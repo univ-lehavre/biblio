@@ -1,22 +1,9 @@
-import { Context, Effect, Ref } from 'effect';
-import { existsSync, readFileSync } from 'fs';
-import { log, text } from '@clack/prompts';
-import { IAuthor, IContext, IState } from './types';
-import { AuthorsResult } from '@univ-lehavre/openalex-types';
+import { State } from '.';
+import { Effect, Ref } from 'effect';
+import { text } from '@clack/prompts';
 import { fetchOpenAlexAPI } from '@univ-lehavre/fetch-openalex';
-
-class State extends Context.Tag('State')<State, Ref.Ref<IState>>() {}
-
-const loadState = (file: string): Effect.Effect<void, never, State> =>
-  Effect.gen(function* () {
-    const state = yield* State;
-    if (existsSync(file)) {
-      const data = readFileSync(file, 'utf-8');
-      const parsed: IState = JSON.parse(data);
-      yield* Ref.set(state, parsed);
-      log.info(`État précédent chargé depuis le fichier "${file}"`);
-    }
-  });
+import type { AuthorsResult } from '@univ-lehavre/openalex-types';
+import type { IContext, IEvent } from '../types';
 
 const set_ORCID = () =>
   Effect.gen(function* () {
@@ -33,7 +20,6 @@ const set_ORCID = () =>
         }),
       catch: () => process.exit(0),
     });
-    const state = yield* State;
 
     const authors = yield* fetchOpenAlexAPI<AuthorsResult>('authors', {
       filter: `orcid:${orcid.toString()}`,
@@ -44,17 +30,19 @@ const set_ORCID = () =>
       id: orcid.toString(),
       label: authors.results[0]?.display_name,
     };
+    const state = yield* State;
     yield* Ref.update(state, state => ({
       ...state,
       context,
     }));
 
-    const items: IAuthor[] = [];
+    const items: IEvent[] = [];
 
     authors.results.forEach(author =>
       items.push({
         orcid: orcid.toString(),
-        type: 'id',
+        entity: 'author',
+        field: 'id',
         value: author.id,
         label: author.display_name,
         status: 'pending',
@@ -66,7 +54,8 @@ const set_ORCID = () =>
       .forEach(alternative => {
         items.push({
           orcid: orcid.toString(),
-          type: 'display_name_alternatives',
+          entity: 'author',
+          field: 'display_name_alternatives',
           value: alternative,
           status: 'pending',
         });
@@ -78,7 +67,8 @@ const set_ORCID = () =>
       .forEach(institution => {
         items.push({
           orcid: orcid.toString(),
-          type: 'institution',
+          entity: 'author',
+          field: 'institution',
           value: institution.id,
           label: institution.display_name,
           status: 'pending',
@@ -86,18 +76,25 @@ const set_ORCID = () =>
       });
     const current_state = yield* Ref.get(state);
 
-    const current_authors = current_state.authors?.filter(a => a.orcid === orcid.toString()) ?? [];
+    const current_authors = current_state.events.filter(a => a.orcid === orcid.toString()) ?? [];
 
-    const filterOutExisting = (incoming: IAuthor[], existing: IAuthor[]) =>
+    const filterOutExisting = (incoming: IEvent[], existing: IEvent[]) =>
       incoming.filter(
-        i => !existing.some(e => e.orcid === i.orcid && e.type === i.type && e.value === i.value),
+        i =>
+          !existing.some(
+            e =>
+              e.orcid === i.orcid &&
+              e.entity === i.entity &&
+              e.field === i.field &&
+              e.value === i.value,
+          ),
       );
 
     const filtered = filterOutExisting(items, current_authors);
 
     yield* Ref.update(state, state => ({
       ...state,
-      authors: [...(state.authors ?? []), ...filtered],
+      events: [...(state.events ?? []), ...filtered],
     }));
   });
 
@@ -125,4 +122,4 @@ const set_ORCID = () =>
 //     });
 //   });
 
-export { loadState, set_ORCID, State };
+export { set_ORCID };

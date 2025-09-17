@@ -13,53 +13,35 @@ interface OpenAlexID {
   status: Status;
 }
 
-type IAuthorType = 'id' | 'display_name_alternatives' | 'raw_author_name' | 'institution' | 'work';
+type IEntity = 'author' | 'institution' | 'work';
+type IField = 'id' | 'display_name' | 'display_name_alternatives' | 'institution' | 'work';
 
-interface IAuthor {
-  orcid: string;
-  type: IAuthorType;
-  value: string;
-  label?: string;
-  status: Status;
-}
-
-type IInstitutionType = 'id' | 'display_name_alternatives' | 'raw_affiliation_strings';
-
-interface IInstitution {
-  ror: string;
-  type: IInstitutionType;
-  value: string;
-  label?: string;
-  status: Status;
-}
-
-type IWorkType = 'id';
-
-interface IWork {
-  doi: string;
-  type: IWorkType;
+interface IEvent {
+  /**
+   * L’ORCID est présent si l’entité est liée au chercheur : une affiliation ou une publication.
+   */
+  orcid?: string;
+  entity: IEntity;
+  field: IField;
   value: string;
   label?: string;
   status: Status;
 }
 
 interface IContext {
-  type: 'author' | 'institution' | 'work';
-  id: string;
+  type: IEntity | 'none';
+  id: string | null;
   label?: string;
 }
 
 interface IState {
-  context?: IContext;
-  authors?: IAuthor[];
-  institutions?: IInstitution[];
-  works?: IWork[];
+  context: IContext;
+  events: IEvent[];
 }
 
 interface Action {
   name: string;
-  type: 'action' | 'task';
-  isActive: (state?: IState) => boolean;
+  isActive?: (state: IState) => boolean;
 }
 
-export type { IAuthor, IInstitution, IWork, IContext, IState, Action, Status, Values, OpenAlexID };
+export type { IContext, IState, Action, Status, Values, OpenAlexID, IEvent, IField, IEntity };

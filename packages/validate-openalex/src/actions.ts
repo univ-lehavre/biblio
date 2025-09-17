@@ -1,35 +1,48 @@
 import color from 'picocolors';
 import { Effect, Ref } from 'effect';
-import { Action, IState } from './types';
-import { set_ORCID, State } from './state';
+import type { Action, IField, IState } from './types';
+import { saveState, set_ORCID, State } from './store';
 import { outro, select } from '@clack/prompts';
-import { copyFileSync, existsSync, writeFileSync } from 'fs';
+
+enum Tasks {
+  WHAT = 'Que souhaitez-vous faire ?',
+  ORCID = 'Sélectionner un chercheur avec son ORCID',
+  ROR = 'Ajouter une affilication pour ce chercheur',
+  DOI = 'Ajouter une publication pour ce chercheur',
+  FGA = 'Fiabiliser les formes graphiques de ce chercheur',
+  EXIT = 'Quitter l’application',
+}
 
 const actions: Action[] = [
   {
-    name: 'Sélectionner un chercheur avec son ORCID',
-    type: 'action',
-    isActive: (state?: IState) => !(state?.context?.type === 'author'),
+    name: Tasks.ROR,
+    isActive: (state: IState) => !state.context.id,
   },
   {
-    name: 'Quitter l’application',
-    type: 'action',
-    isActive: () => true,
+    name: Tasks.DOI,
+    isActive: (state: IState) => !(state.context?.type === 'work'),
+  },
+  {
+    name: Tasks.ORCID,
+  },
+  {
+    name: Tasks.EXIT,
   },
 ];
 
-const list_current_tasks = () =>
+const list_current_tasks = (field: IField) =>
   Effect.gen(function* () {
     const state = yield* Ref.get(yield* State);
     const current_tasks =
-      state.authors
-        ?.filter(
-          author =>
-            author.orcid === state.context?.id &&
-            author.status === 'pending' &&
-            author.type === 'display_name_alternatives',
+      state.events
+        .filter(
+          event =>
+            event.status === 'pending' &&
+            event.orcid === state.context.id &&
+            event.entity === 'author' &&
+            event.field === field,
         )
-        .map(author => ({ value: author.value, label: author.value })) ?? [];
+        .map(event => ({ value: event.value, label: event.value })) ?? [];
     return current_tasks;
   });
 
@@ -37,14 +50,14 @@ const build_actions_list = () =>
   Effect.gen(function* () {
     const state = yield* Ref.get(yield* State);
     const available_actions = actions
-      .filter(action => action.isActive(state))
+      .filter(action => action.isActive?.(state))
       .map(action => ({ value: action.name, label: action.name }));
-    const hasTasks = (yield* list_current_tasks()).length > 0;
+    const hasTasks = (yield* list_current_tasks('display_name_alternatives')).length > 0;
     const result = [];
     if (hasTasks)
       result.push({
-        value: 'Fiabiliser les formes graphiques',
-        label: 'Fiabiliser les formes graphiques',
+        value: Tasks.FGA,
+        label: Tasks.FGA,
       });
     result.push(...available_actions);
     return result;
@@ -56,35 +69,25 @@ const select_action = (
   Effect.tryPromise({
     try: () =>
       select({
-        message: 'Que souhaitez-vous faire ?',
+        message: Tasks.WHAT,
         options,
       }),
     catch: cause => new Error("Erreur lors de la sélection de l'action: ", { cause }),
   });
 
-const exit = (): Effect.Effect<never, never, State> =>
-  Effect.gen(function* () {
-    const state = yield* State;
-    if (existsSync('state.json'))
-      copyFileSync('state.json', `state-${new Date().toISOString().replaceAll(/[:.]/g, '-')}.json`);
-    const value = yield* Ref.get(state);
-    writeFileSync('state.json', JSON.stringify(value, null, 2), 'utf-8');
-    outro(`${color.bgGreen(color.black(` Fin `))}`);
-    process.exit(0);
-  });
-
 const switcher = (action_id: string) =>
   Effect.gen(function* () {
     switch (action_id) {
-      case 'Sélectionner un chercheur avec son ORCID':
+      case Tasks.ORCID:
         yield* set_ORCID();
         break;
-      //   case 'Fiabiliser les formes graphiques':
+      //   case Tasks.FGA:
       //     yield* set_graphical_forms();
       //     break;
-      case 'Quitter l’application':
-        yield* exit();
-        break;
+      case Tasks.EXIT:
+        yield* saveState();
+        outro(`${color.bgGreen(color.black(` Fin `))}`);
+        process.exit(0);
     }
   });
 
