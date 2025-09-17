@@ -1,5 +1,14 @@
 # @univ-lehavre/validate-openalex
 
+## 0.0.2
+
+### Patch Changes
+
+- 65c35c6: Ajout des fichiers de CHANGELOG et de LICENSE
+- Updated dependencies [65c35c6]
+  - @univ-lehavre/fetch-openalex@0.1.2
+  - @univ-lehavre/openalex-types@1.0.1
+
 ## 0.0.1
 
 ### Patch Changes
