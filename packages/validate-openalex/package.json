@@ -14,7 +14,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
-    "start:only": "node --env-file .env ./dist/index.js",
+    "start:only": "node ./dist/univ-lehavre-validate-openalex.cjs.js",
     "start": "run-s build start:only"
   },
   "dependencies": {
