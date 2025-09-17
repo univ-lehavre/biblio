@@ -4,87 +4,7 @@ import { writeFileSync, readFileSync, existsSync, copyFileSync } from 'fs';
 import color from 'picocolors';
 import { fetchOpenAlexAPI } from '@univ-lehavre/fetch-openalex';
 import type { AuthorsResult } from '@univ-lehavre/openalex-types';
-
-type Status = 'pending' | 'resolved' | 'rejected';
-
-export interface Values {
-  value: string;
-  status: Status;
-}
-
-export interface OpenAlexID {
-  id: string;
-  label: string;
-  status: Status;
-}
-
-// export interface IState {
-//   orcid?: string;
-//   authors?: {
-//     id: OpenAlexID[];
-//     orcid: string;
-//     display_name?: Values[];
-//     display_name_alternatives?: Values[];
-//     raw_author_name?: Values[];
-//     institutions?: OpenAlexID[];
-//     works?: OpenAlexID[];
-//   }[];
-//   institutions?: {
-//     ror?: string;
-//     ids?: OpenAlexID[];
-//     display_name?: Values[];
-//     display_name_alternatives?: Values[];
-//     raw_affiliation_strings?: Values[];
-//   }[];
-//   works?: {
-//     doi?: string;
-//     ids?: OpenAlexID[];
-//     title?: string;
-//   }[];
-// }
-
-type IAuthorType = 'id' | 'display_name_alternatives' | 'raw_author_name' | 'institution' | 'work';
-
-interface IAuthor {
-  orcid: string;
-  type: IAuthorType;
-  value: string;
-  label?: string;
-  status: Status;
-}
-
-type IInstitutionType = 'id' | 'display_name_alternatives' | 'raw_affiliation_strings';
-
-interface IInstitution {
-  ror: string;
-  type: IInstitutionType;
-  value: string;
-  label?: string;
-  status: Status;
-}
-
-type IWorkType = 'id';
-
-interface IWork {
-  doi: string;
-  type: IWorkType;
-  value: string;
-  label?: string;
-  status: Status;
-}
-
-interface IContext {
-  type: 'author' | 'institution' | 'work';
-  id: string;
-  label?: string;
-}
-
-interface IState {
-  context?: IContext;
-  authors?: IAuthor[];
-  institutions?: IInstitution[];
-  works?: IWork[];
-}
+import { Action, IAuthor, IContext, IState } from './types';
 
 class State extends Context.Tag('State')<State, Ref.Ref<IState>>() {}
 
@@ -181,12 +101,6 @@ const exit = (): Effect.Effect<never, never, State> =>
     outro(`${color.bgGreen(color.black(` Fin `))}`);
     process.exit(0);
   });
-
-export interface Action {
-  name: string;
-  type: 'action' | 'task';
-  isActive: (state?: IState) => boolean;
-}
 
 const actions: Action[] = [
   {
