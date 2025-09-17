@@ -1,0 +1,62 @@
+{
+  "name": "@univ-lehavre/fetch-openalex",
+  "version": "0.0.0",
+  "description": "Un ensemble d’outils pour le téléchargement de fichiers en TypeScript",
+  "author": "Pierre-Olivier Chasset",
+  "license": "UNLICENSED",
+  "repository": "https://github.com/@univ-lehavre/bibliographic",
+  "scripts": {
+    "build": "preconstruct build",
+    "dev": "preconstruct watch",
+    "clean": "rm -fR dist",
+    "types:check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
+    "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
+    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/qs": "^6.14.0",
+    "@univ-lehavre/typescript-config": "^2.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
+  "main": "dist/univ-lehavre-fetch-openalex.cjs.js",
+  "module": "dist/univ-lehavre-fetch-openalex.esm.js",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/univ-lehavre-fetch-openalex.cjs.mjs",
+        "default": "./dist/univ-lehavre-fetch-openalex.cjs.js"
+      },
+      "module": "./dist/univ-lehavre-fetch-openalex.esm.js",
+      "import": "./dist/univ-lehavre-fetch-openalex.cjs.mjs",
+      "default": "./dist/univ-lehavre-fetch-openalex.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "babel": {
+    "targets": {
+      "node": "22.19"
+    },
+    "presets": [
+      "@babel/preset-env"
+    ],
+    "overrides": [
+      {
+        "test": "**/*.ts",
+        "presets": [
+          "@babel/preset-typescript"
+        ]
+      }
+    ]
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.0.0-alpha.4",
+    "effect": "^3.17.13",
+    "qs": "^6.14.0"
+  }
+}
