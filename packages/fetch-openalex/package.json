@@ -1,6 +1,6 @@
 {
   "name": "@univ-lehavre/fetch-openalex",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Un ensemble d’outils pour le téléchargement de fichiers en TypeScript",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
