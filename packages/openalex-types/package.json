@@ -15,10 +15,22 @@
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix"
   },
+  "dependencies": {
+    "@clack/prompts": "^1.0.0-alpha.4",
+    "effect": "^3.17.13",
+    "qs": "^6.14.0"
+  },
+  "devDependencies": {
+    "@univ-lehavre/typescript-config": "^2.0.0"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "access": "public"
   },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "main": "dist/univ-lehavre-openalex-types.cjs.js",
   "module": "dist/univ-lehavre-openalex-types.esm.js",
   "exports": {
@@ -48,13 +60,5 @@
         ]
       }
     ]
-  },
-  "dependencies": {
-    "@clack/prompts": "^1.0.0-alpha.4",
-    "effect": "^3.17.13",
-    "qs": "^6.14.0"
-  },
-  "devDependencies": {
-    "@univ-lehavre/typescript-config": "^2.0.0"
   }
 }

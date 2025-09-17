@@ -29,6 +29,10 @@
     "registry": "https://npm.pkg.github.com",
     "access": "public"
   },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "main": "dist/univ-lehavre-validate-openalex.cjs.js",
   "module": "dist/univ-lehavre-validate-openalex.esm.js",
   "exports": {
