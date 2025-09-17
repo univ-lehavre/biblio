@@ -1,8 +1,9 @@
 import color from 'picocolors';
 import { Effect, Ref } from 'effect';
-import type { Action, IState } from './types';
-import { hasPending, saveState, set_ORCID, Store } from './store';
+import type { Action, IState } from '../types';
+import { hasPending, saveState, Store } from '../store';
 import { outro, select } from '@clack/prompts';
+import { set_graphical_forms, set_ORCID } from './utils';
 
 enum Tasks {
   WHAT = 'Que souhaitez-vous faire ?',
@@ -94,9 +95,9 @@ const switcher = (action_id: string) =>
       case Tasks.ORCID:
         yield* set_ORCID();
         break;
-      //   case Tasks.FGA:
-      //     yield* set_graphical_forms();
-      //     break;
+      case Tasks.FIP:
+        yield* set_graphical_forms();
+        break;
       case Tasks.EXIT:
         yield* saveState();
         outro(`${color.bgGreen(color.black(` Fin `))}`);

@@ -1,12 +1,12 @@
-import type { IEntity, IField, IState } from '../types';
+import type { IEntity, IEvent, IField, IState } from '../types';
 
-interface HasPendingOptions {
+interface PendingOptions {
   orcid?: string;
   entity?: IEntity;
   field?: IField;
 }
 
-const hasPending = (state: IState, opts: HasPendingOptions): boolean => {
+const listPending = (state: IState, opts: PendingOptions): IEvent[] => {
   const events = state.events
     .map(item => {
       if (item.status !== 'pending') return;
@@ -16,7 +16,12 @@ const hasPending = (state: IState, opts: HasPendingOptions): boolean => {
       return item;
     })
     .filter(item => item !== undefined);
+  return events;
+};
+
+const hasPending = (state: IState, opts: PendingOptions): boolean => {
+  const events = listPending(state, opts);
   return events.length > 0;
 };
 
-export { hasPending };
+export { hasPending, listPending };
