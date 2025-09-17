@@ -11,7 +11,8 @@ const start = (file: string) =>
       console.clear();
       yield* loadState(file);
       const state = yield* Ref.get(yield* State);
-      const title = state.context ? `${state.context.label} (${state.context.id})` : 'OpenAlex';
+      const title =
+        state.context.id !== null ? `${state.context.label} (${state.context.id})` : 'OpenAlex';
       intro(`${color.bgCyan(color.black(` ${title} `))}\n`);
       const options = yield* build_actions_list();
       const selected_action = yield* select_action(options);

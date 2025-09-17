@@ -30,7 +30,7 @@ interface IEvent {
 
 interface IContext {
   type: IEntity | 'none';
-  id: string | null;
+  id: string | undefined;
   label?: string;
 }
 
@@ -41,7 +41,7 @@ interface IState {
 
 interface Action {
   name: string;
-  isActive?: (state: IState) => boolean;
+  isActive: (state: IState) => boolean;
 }
 
 export type { IContext, IState, Action, Status, Values, OpenAlexID, IEvent, IField, IEntity };

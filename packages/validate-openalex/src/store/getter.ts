@@ -1,16 +1,20 @@
-import { Effect, Ref } from 'effect';
-import type { IEntity, IField } from '../types';
-import { State } from '.';
+import type { IEntity, IField, IState } from '../types';
 
-const hasPending = (entity: IEntity, field: IField, orcid?: string) =>
-  Effect.gen(function* () {
-    const state = yield* State;
-    const current = yield* Ref.get(state);
-    const events = current.events.map(item => {
-      if (orcid && item.orcid !== orcid) return;
-      if (item.status === 'pending' && item.entity === entity && item.field === field) return item;
-    });
-    return events.length > 0;
+interface HasPendingOptions {
+  orcid?: string;
+  entity?: IEntity;
+  field?: IField;
+}
+
+const hasPending = (state: IState, opts: HasPendingOptions): boolean => {
+  const events = state.events.map(item => {
+    if (item.status !== 'pending') return;
+    if (opts.orcid && item.orcid !== opts.orcid) return;
+    if (opts.entity && item.entity !== opts.entity) return;
+    if (opts.field && item.field !== opts.field) return;
+    return item;
   });
+  return events.length > 0;
+};
 
 export { hasPending };

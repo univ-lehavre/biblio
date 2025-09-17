@@ -5,7 +5,7 @@ import type { IState } from '../types';
 
 const loadState = (file: string): Effect.Effect<void, never, State> =>
   Effect.gen(function* () {
-    let parsed: IState = { context: { type: 'none', id: null }, events: [] };
+    let parsed: IState = { context: { type: 'none', id: undefined }, events: [] };
     if (existsSync(file)) {
       const data = readFileSync(file, 'utf-8');
       parsed = JSON.parse(data);
