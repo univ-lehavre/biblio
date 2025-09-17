@@ -1,3 +1,5 @@
+export { type ConfigError } from 'effect/ConfigError';
+
 type Status = 'pending' | 'resolved' | 'rejected';
 
 interface Values {
