@@ -1,5 +1,6 @@
 {
   "name": "@univ-lehavre/bibliographic",
+  "description": "Un ensemble d’outils pour fiabiliser les données bibliographiques en TypeScript",
   "private": true,
   "workspaces": [
     "packages/*"
