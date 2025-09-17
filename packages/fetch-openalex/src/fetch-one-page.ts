@@ -39,4 +39,4 @@ const fetch_one_page = <T>(
     catch: (cause: unknown) => new FetchError(`La fonction fetch a retourné une erreur`, { cause }),
   });
 
-export { fetch_one_page };
+export { fetch_one_page, build_headers, build_url };

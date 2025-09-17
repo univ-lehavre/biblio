@@ -34,7 +34,10 @@ const exhaust = <T>(
           process.exit(1);
         }
 
-        total_pages = Math.ceil(response.meta.count / response.meta.per_page);
+        total_pages =
+          total_pages === Infinity
+            ? Math.ceil(response.meta.count / response.meta.per_page)
+            : total_pages;
         spin.message(
           `${count}/${response.meta.count} items téléchargés | Page ${state}/${total_pages}`,
         );
@@ -46,6 +49,7 @@ const exhaust = <T>(
 const fetchAPI = <T>(
   base_url: URL,
   params: Query,
+  total_pages: number = Infinity,
   start_page: number = 1,
 ): Effect.Effect<OpenalexResponse<T>, ConfigError | StatusError | FetchError, never> =>
   Effect.scoped(
@@ -57,7 +61,7 @@ const fetchAPI = <T>(
       const raw = yield* exhaust<T>(
         ratelimiter,
         start_page,
-        Infinity,
+        total_pages,
         params,
         user_agent,
         base_url,
@@ -80,6 +84,8 @@ const fetchAPI = <T>(
 const fetchOpenAlexAPI = <T>(
   entity: 'authors' | 'works' | 'institutions',
   opts: FetchOpenAlexAPIOptions,
+  total_pages: number = Infinity,
+  start_page: number = 1,
 ) =>
   Effect.gen(function* () {
     const { per_page, openalex_api_url } = yield* getEnv();
@@ -90,7 +96,7 @@ const fetchOpenAlexAPI = <T>(
       search,
       per_page,
     };
-    const response: OpenalexResponse<T> = yield* fetchAPI<T>(url, params);
+    const response: OpenalexResponse<T> = yield* fetchAPI<T>(url, params, total_pages, start_page);
     return response;
   });
 
