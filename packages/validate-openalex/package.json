@@ -1,7 +1,7 @@
 {
-  "name": "@univ-lehavre/fetch-openalex",
-  "version": "0.1.0",
-  "description": "Un ensemble d’outils pour le téléchargement de fichiers en TypeScript",
+  "name": "@univ-lehavre/validate-openalex",
+  "version": "0.0.0",
+  "description": "Un ensemble d’outils pour la validation de données bibliographiques en TypeScript",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
   "repository": "https://github.com/univ-lehavre/bibliographic",
@@ -13,34 +13,33 @@
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
-    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
-    "test": "jest"
+    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix"
   },
   "dependencies": {
-    "@univ-lehavre/openalex-types": "workspace:^",
     "@clack/prompts": "^1.0.0-alpha.4",
+    "@univ-lehavre/fetch-openalex": "workspace:^",
+    "@univ-lehavre/openalex-types": "workspace:^",
     "effect": "^3.17.13",
-    "qs": "^6.14.0"
+    "picocolors": "^1.1.1"
   },
   "devDependencies": {
-    "@types/qs": "^6.14.0",
     "@univ-lehavre/typescript-config": "^2.0.0"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "access": "public"
   },
-  "main": "dist/univ-lehavre-fetch-openalex.cjs.js",
-  "module": "dist/univ-lehavre-fetch-openalex.esm.js",
+  "main": "dist/univ-lehavre-validate-openalex.cjs.js",
+  "module": "dist/univ-lehavre-validate-openalex.esm.js",
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/univ-lehavre-fetch-openalex.cjs.mjs",
-        "default": "./dist/univ-lehavre-fetch-openalex.cjs.js"
+        "import": "./dist/univ-lehavre-validate-openalex.cjs.mjs",
+        "default": "./dist/univ-lehavre-validate-openalex.cjs.js"
       },
-      "module": "./dist/univ-lehavre-fetch-openalex.esm.js",
-      "import": "./dist/univ-lehavre-fetch-openalex.cjs.mjs",
-      "default": "./dist/univ-lehavre-fetch-openalex.cjs.js"
+      "module": "./dist/univ-lehavre-validate-openalex.esm.js",
+      "import": "./dist/univ-lehavre-validate-openalex.cjs.mjs",
+      "default": "./dist/univ-lehavre-validate-openalex.cjs.js"
     },
     "./package.json": "./package.json"
   },

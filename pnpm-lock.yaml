@@ -71,6 +71,9 @@ importers:
       '@clack/prompts':
         specifier: ^1.0.0-alpha.4
         version: 1.0.0-alpha.4
+      '@univ-lehavre/openalex-types':
+        specifier: workspace:^
+        version: link:../openalex-types
       effect:
         specifier: ^3.17.13
         version: 3.17.13
@@ -81,6 +84,44 @@ importers:
       '@types/qs':
         specifier: ^6.14.0
         version: 6.14.0
+      '@univ-lehavre/typescript-config':
+        specifier: ^2.0.0
+        version: 2.0.0
+
+  packages/openalex-types:
+    dependencies:
+      '@clack/prompts':
+        specifier: ^1.0.0-alpha.4
+        version: 1.0.0-alpha.4
+      effect:
+        specifier: ^3.17.13
+        version: 3.17.13
+      qs:
+        specifier: ^6.14.0
+        version: 6.14.0
+    devDependencies:
+      '@univ-lehavre/typescript-config':
+        specifier: ^2.0.0
+        version: 2.0.0
+
+  packages/validate-openalex:
+    dependencies:
+      '@clack/prompts':
+        specifier: ^1.0.0-alpha.4
+        version: 1.0.0-alpha.4
+      '@univ-lehavre/fetch-openalex':
+        specifier: workspace:^
+        version: link:../fetch-openalex
+      '@univ-lehavre/openalex-types':
+        specifier: workspace:^
+        version: link:../openalex-types
+      effect:
+        specifier: ^3.17.13
+        version: 3.17.13
+      picocolors:
+        specifier: ^1.1.1
+        version: 1.1.1
+    devDependencies:
       '@univ-lehavre/typescript-config':
         specifier: ^2.0.0
         version: 2.0.0
