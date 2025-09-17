@@ -1,9 +1,9 @@
 import { Context, Ref } from 'effect';
 import type { IState } from '../types';
 
-class State extends Context.Tag('State')<State, Ref.Ref<IState>>() {}
+class Store extends Context.Tag('Store')<Store, Ref.Ref<IState>>() {}
 
-export { State };
+export { Store };
 export * from './fixer';
 export * from './getter';
 export * from './setter';

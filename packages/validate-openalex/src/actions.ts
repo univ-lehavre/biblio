@@ -1,7 +1,7 @@
 import color from 'picocolors';
 import { Effect, Ref } from 'effect';
-import type { Action, IField, IState } from './types';
-import { hasPending, saveState, set_ORCID, State } from './store';
+import type { Action, IState } from './types';
+import { hasPending, saveState, set_ORCID, Store } from './store';
 import { outro, select } from '@clack/prompts';
 
 enum Tasks {
@@ -66,37 +66,14 @@ const actions: Action[] = [
   },
 ];
 
-const list_current_tasks = (field: IField) =>
-  Effect.gen(function* () {
-    const state = yield* Ref.get(yield* State);
-    const current_tasks =
-      state.events
-        .filter(
-          event =>
-            event.status === 'pending' &&
-            event.orcid === state.context.id &&
-            event.entity === 'author' &&
-            event.field === field,
-        )
-        .map(event => ({ value: event.value, label: event.value })) ?? [];
-    return current_tasks;
-  });
-
 const build_actions_list = () =>
   Effect.gen(function* () {
-    const state = yield* Ref.get(yield* State);
+    const store = yield* Store;
+    const state = yield* Ref.get(store);
     const available_actions = actions
       .filter(action => action.isActive(state))
       .map(action => ({ value: action.name, label: action.name }));
-    const hasTasks = (yield* list_current_tasks('display_name_alternatives')).length > 0;
-    const result = [];
-    if (hasTasks)
-      result.push({
-        value: Tasks.FGA,
-        label: Tasks.FGA,
-      });
-    if (hasPending(state, { orcid: state.context.id })) result.push(...available_actions);
-    return result;
+    return available_actions;
   });
 
 const select_action = (

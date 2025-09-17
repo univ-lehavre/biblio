@@ -1,4 +1,4 @@
-import { State } from '.';
+import { Store } from '.';
 import { Effect, Ref } from 'effect';
 import { text } from '@clack/prompts';
 import { fetchOpenAlexAPI } from '@univ-lehavre/fetch-openalex';
@@ -30,7 +30,7 @@ const set_ORCID = () =>
       id: orcid.toString(),
       label: authors.results[0]?.display_name,
     };
-    const state = yield* State;
+    const state = yield* Store;
     yield* Ref.update(state, state => ({
       ...state,
       context,
@@ -101,7 +101,7 @@ const set_ORCID = () =>
 // const set_graphical_forms = () =>
 //   Effect.gen(function* () {
 //     yield* Effect.logInfo('Fiabilisation des formes graphiques');
-//     const state = yield* Ref.get(yield* State);
+//     const state = yield* Ref.get(yield* Store);
 //     const pendings = state.authors?.filter(
 //       author =>
 //         author.orcid === state.context?.id &&
