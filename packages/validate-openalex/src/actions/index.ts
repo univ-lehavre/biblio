@@ -3,7 +3,8 @@ import { Effect, Ref } from 'effect';
 import type { Action, IState } from '../types';
 import { hasPending, saveState, Store } from '../store';
 import { outro, select } from '@clack/prompts';
-import { set_graphical_forms, set_ORCID } from './utils';
+import { set_ORCID, setStatus } from './utils';
+import { PendingOptions } from '../store/types';
 
 enum Tasks {
   WHAT = 'Que souhaitez-vous faire ?',
@@ -91,12 +92,31 @@ const select_action = (
 
 const switcher = (action_id: string) =>
   Effect.gen(function* () {
+    const store = yield* Store;
+    const state = yield* Ref.get(store);
     switch (action_id) {
       case Tasks.ORCID:
         yield* set_ORCID();
         break;
       case Tasks.FIP:
-        yield* set_graphical_forms();
+        yield* setStatus(
+          {
+            orcid: state.context.id,
+            entity: 'author',
+            field: 'display_name_alternatives',
+          },
+          'Sélectionnez les formes graphiques correspondantes à ce chercheur',
+        );
+        break;
+      case Tasks.FIN:
+        yield* setStatus(
+          {
+            orcid: state.context.id,
+            entity: 'author',
+            field: 'institution',
+          },
+          'Sélectionnez les affiliations correspondantes au chercheur',
+        );
         break;
       case Tasks.EXIT:
         yield* saveState();

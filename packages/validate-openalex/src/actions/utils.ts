@@ -113,27 +113,25 @@ const set_ORCID = () =>
     }));
   });
 
-const set_graphical_forms = () =>
+const setStatus = (opts: PendingOptions, message: string) =>
   Effect.gen(function* () {
     const store = yield* Store;
     const state = yield* Ref.get(store);
-    const opts: PendingOptions = {
-      orcid: state.context.id,
-      entity: 'author',
-      field: 'display_name_alternatives',
-    };
     const pendings = listPending(state, opts);
-    const options = pendings?.map(event => ({ value: event.value, label: event.value })) ?? [];
+    const options = pendings.map(event => ({
+      value: event.value,
+      label: event.label ?? event.value,
+    }));
     const selected = yield* Effect.tryPromise({
       try: () =>
         multiselect({
-          message: 'Sélectionnez les formes graphiques correspondantes au chercheur',
+          message,
           options,
           required: false,
         }),
-      catch: cause => new Error('Erreur lors de la sélection de la forme graphique: ', { cause }),
+      catch: cause => new Error('Erreur lors de la sélection: ', { cause }),
     });
     if (selected instanceof Array) yield* updateStatus(selected, opts);
   });
 
-export { set_ORCID, set_graphical_forms };
+export { set_ORCID, setStatus };
