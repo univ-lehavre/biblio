@@ -6,6 +6,7 @@ import type { AuthorsResult } from '@univ-lehavre/openalex-types';
 import type { IContext, IEvent } from '../types';
 import { PendingOptions } from '../store/types';
 import { v7 } from 'uuid';
+import { print_title } from '../prompt';
 
 const set_ORCID = () =>
   Effect.gen(function* () {
@@ -48,6 +49,7 @@ const set_ORCID = () =>
         field: 'display_name',
         value: author.display_name,
         status: 'pending',
+        updated_at: new Date().toISOString(),
       }),
     );
     authors.results.forEach(author =>
@@ -58,6 +60,7 @@ const set_ORCID = () =>
         field: 'id',
         value: author.id,
         status: 'pending',
+        updated_at: new Date().toISOString(),
       }),
     );
     authors.results
@@ -71,6 +74,7 @@ const set_ORCID = () =>
           field: 'display_name_alternatives',
           value: alternative,
           status: 'pending',
+          updated_at: new Date().toISOString(),
         });
       });
     authors.results
@@ -86,6 +90,7 @@ const set_ORCID = () =>
           value: institution.id,
           label: institution.display_name,
           status: 'pending',
+          updated_at: new Date().toISOString(),
         });
       });
 
@@ -111,6 +116,8 @@ const set_ORCID = () =>
       ...state,
       events: [...state.events, ...filtered],
     }));
+    console.clear();
+    yield* print_title();
   });
 
 const setStatus = (opts: PendingOptions, message: string) =>

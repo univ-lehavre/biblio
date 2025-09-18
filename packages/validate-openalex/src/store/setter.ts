@@ -8,7 +8,7 @@ const updateEvents = (state: IState, values: string[], opts: PendingOptions): IE
   const pendings = listPending(state, opts);
   const updated = pendings.map(item => {
     const status: Status = values.includes(item.value) ? 'accepted' : 'rejected';
-    return { ...item, status };
+    return { ...item, status, updated_at: new Date().toISOString() };
   });
   return updated;
 };
@@ -20,7 +20,6 @@ const updateStatus = (values: string[], opts: PendingOptions) =>
     const updated = updateEvents(state, values, opts);
     const uuids = updated.map(e => e.uuid);
     const unchanged = state.events.filter(e => !uuids.includes(e.uuid));
-    console.log(updated);
     yield* Ref.update(store, s => ({
       context: s.context,
       events: [...unchanged, ...updated],

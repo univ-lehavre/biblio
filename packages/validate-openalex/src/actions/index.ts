@@ -4,7 +4,6 @@ import type { Action, IState } from '../types';
 import { hasPending, saveState, Store } from '../store';
 import { outro, select } from '@clack/prompts';
 import { set_ORCID, setStatus } from './utils';
-import { PendingOptions } from '../store/types';
 
 enum Tasks {
   WHAT = 'Que souhaitez-vous faire ?',
@@ -49,18 +48,15 @@ const actions: Action[] = [
   },
   {
     name: Tasks.ROR,
-    isActive: (state: IState) =>
-      state.context.type === 'author' && !hasPending(state, { orcid: state.context.id }),
+    isActive: (state: IState) => state.context.type === 'author',
   },
   {
     name: Tasks.DOI,
-    isActive: (state: IState) =>
-      state.context.type === 'author' && !hasPending(state, { orcid: state.context.id }),
+    isActive: (state: IState) => state.context.type === 'author',
   },
   {
     name: Tasks.ORCID,
-    isActive: (state: IState) =>
-      state.context.type === 'none' || !hasPending(state, { orcid: state.context.id }),
+    isActive: (state: IState) => !!state,
   },
   {
     name: Tasks.EXIT,

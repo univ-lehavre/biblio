@@ -24,6 +24,7 @@ interface IEvent {
   value: string;
   label?: string;
   status: Status;
+  updated_at: string;
 }
 
 interface IContext {
