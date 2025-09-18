@@ -14,7 +14,7 @@ interface OpenAlexID {
 }
 
 type IEntity = 'author' | 'institution' | 'work';
-type IField = 'id' | 'display_name' | 'display_name_alternatives' | 'institution' | 'work';
+type IField = 'id' | 'display_name' | 'display_name_alternatives' | 'affiliation' | 'work';
 
 interface IEvent {
   uuid: string;

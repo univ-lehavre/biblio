@@ -8,9 +8,95 @@ import { PendingOptions } from '../store/types';
 import { v7 } from 'uuid';
 import { print_title } from '../prompt';
 
+const searchAuthorByName = (names: string[]) =>
+  Effect.gen(function* () {
+    const authors = yield* fetchOpenAlexAPI<AuthorsResult>('authors', {
+      filter: `search:${names.join('|')}`,
+    });
+    return authors.results;
+  });
+
+const filterOutExisting = (incoming: IEvent[], existing: IEvent[]) =>
+  incoming.filter(
+    i =>
+      !existing.some(
+        e =>
+          e.orcid === i.orcid &&
+          e.entity === i.entity &&
+          e.field === i.field &&
+          e.value === i.value,
+      ),
+  );
+
+const buildEvents = (orcid: string, authors: AuthorsResult[]): IEvent[] => {
+  const items: IEvent[] = [];
+
+  authors.forEach(author =>
+    items.push({
+      uuid: v7(),
+      orcid,
+      entity: 'author',
+      field: 'display_name',
+      value: author.display_name,
+      status: 'pending',
+      updated_at: new Date().toISOString(),
+    }),
+  );
+  authors.forEach(author =>
+    items.push({
+      uuid: v7(),
+      orcid,
+      entity: 'author',
+      field: 'id',
+      value: author.id,
+      status: 'pending',
+      updated_at: new Date().toISOString(),
+    }),
+  );
+  authors
+    .map(author => author.display_name_alternatives)
+    .flat()
+    .forEach(alternative => {
+      items.push({
+        uuid: v7(),
+        orcid,
+        entity: 'author',
+        field: 'display_name_alternatives',
+        value: alternative,
+        status: 'pending',
+        updated_at: new Date().toISOString(),
+      });
+    });
+  authors
+    .map(author => author.affiliations)
+    .flat()
+    .map(affiliation => affiliation.institution)
+    .forEach(institution => {
+      items.push({
+        uuid: v7(),
+        orcid,
+        entity: 'author',
+        field: 'affiliation',
+        value: institution.id,
+        label: institution.display_name,
+        status: 'pending',
+        updated_at: new Date().toISOString(),
+      });
+    });
+  return items;
+};
+
+const searchAuthorByORCID = (orcid: string[]) =>
+  Effect.gen(function* () {
+    const authors = yield* fetchOpenAlexAPI<AuthorsResult>('authors', {
+      filter: `orcid:${orcid}`,
+    });
+    return authors.results;
+  });
+
 const set_ORCID = () =>
   Effect.gen(function* () {
-    const orcid = yield* Effect.tryPromise({
+    const _orcid = yield* Effect.tryPromise({
       try: () =>
         text({
           message: 'Saisissez l’ORCID d’un chercheur',
@@ -23,99 +109,44 @@ const set_ORCID = () =>
         }),
       catch: () => process.exit(0),
     });
+    const orcid = _orcid?.toString().trim();
 
-    const authors = yield* fetchOpenAlexAPI<AuthorsResult>('authors', {
-      filter: `orcid:${orcid.toString()}`,
-    });
+    const authors = yield* searchAuthorByORCID([orcid]);
 
     const context: IContext = {
       type: 'author',
-      id: orcid.toString(),
-      label: authors.results.map(author => author.display_name).join(', '),
+      id: orcid,
+      label: authors.map(author => author.display_name).join(', '),
     };
-    const state = yield* Store;
-    yield* Ref.update(state, state => ({
+    const store = yield* Store;
+    yield* Ref.update(store, state => ({
       ...state,
       context,
     }));
 
-    const items: IEvent[] = [];
+    // Build events from fetched authors
 
-    authors.results.forEach(author =>
-      items.push({
-        uuid: v7(),
-        orcid: orcid.toString(),
-        entity: 'author',
-        field: 'display_name',
-        value: author.display_name,
-        status: 'pending',
-        updated_at: new Date().toISOString(),
-      }),
-    );
-    authors.results.forEach(author =>
-      items.push({
-        uuid: v7(),
-        orcid: orcid.toString(),
-        entity: 'author',
-        field: 'id',
-        value: author.id,
-        status: 'pending',
-        updated_at: new Date().toISOString(),
-      }),
-    );
-    authors.results
-      .map(author => author.display_name_alternatives)
-      .flat()
-      .forEach(alternative => {
-        items.push({
-          uuid: v7(),
-          orcid: orcid.toString(),
-          entity: 'author',
-          field: 'display_name_alternatives',
-          value: alternative,
-          status: 'pending',
-          updated_at: new Date().toISOString(),
-        });
-      });
-    authors.results
-      .map(author => author.affiliations)
-      .flat()
-      .map(affiliation => affiliation.institution)
-      .forEach(institution => {
-        items.push({
-          uuid: v7(),
-          orcid: orcid.toString(),
-          entity: 'author',
-          field: 'institution',
-          value: institution.id,
-          label: institution.display_name,
-          status: 'pending',
-          updated_at: new Date().toISOString(),
-        });
-      });
+    const current_state = yield* Ref.get(store);
 
-    const current_state = yield* Ref.get(state);
+    const current_authors = current_state.events.filter(a => a.orcid === orcid) ?? [];
 
-    const current_authors = current_state.events.filter(a => a.orcid === orcid.toString()) ?? [];
-
-    const filterOutExisting = (incoming: IEvent[], existing: IEvent[]) =>
-      incoming.filter(
-        i =>
-          !existing.some(
-            e =>
-              e.orcid === i.orcid &&
-              e.entity === i.entity &&
-              e.field === i.field &&
-              e.value === i.value,
-          ),
-      );
-
+    const items = buildEvents(orcid, authors);
     const filtered = filterOutExisting(items, current_authors);
 
-    yield* Ref.update(state, state => ({
+    yield* Ref.update(store, state => ({
       ...state,
       events: [...state.events, ...filtered],
     }));
+
+    yield* setStatus(
+      {
+        orcid,
+        entity: 'author',
+        field: 'affiliation',
+      },
+      'Sélectionnez les affiliations correspondantes à ce chercheur',
+    );
+
     console.clear();
     yield* print_title();
   });
@@ -141,4 +172,4 @@ const setStatus = (opts: PendingOptions, message: string) =>
     if (selected instanceof Array) yield* updateStatus(selected, opts);
   });
 
-export { set_ORCID, setStatus };
+export { set_ORCID, setStatus, searchAuthorByName, searchAuthorByORCID };
