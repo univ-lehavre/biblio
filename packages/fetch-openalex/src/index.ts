@@ -22,7 +22,6 @@ const exhaust = <T>(
     body: state =>
       Effect.gen(function* () {
         params.page = state;
-        yield* Effect.logInfo(params.page);
         const response = yield* ratelimiter(
           fetch_one_page<OpenalexResponse<T>>(base_url, params, user_agent),
         );
@@ -33,7 +32,6 @@ const exhaust = <T>(
           );
           process.exit(1);
         }
-
         total_pages =
           total_pages === Infinity
             ? Math.ceil(response.meta.count / response.meta.per_page)
