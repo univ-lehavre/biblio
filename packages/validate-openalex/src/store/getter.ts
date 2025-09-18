@@ -1,10 +1,5 @@
-import type { IEntity, IEvent, IField, IState } from '../types';
-
-interface PendingOptions {
-  orcid?: string;
-  entity?: IEntity;
-  field?: IField;
-}
+import type { IEvent, IState } from '../types';
+import { PendingOptions } from './types';
 
 const listPending = (state: IState, opts: PendingOptions): IEvent[] => {
   const events = state.events

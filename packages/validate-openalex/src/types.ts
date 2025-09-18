@@ -1,6 +1,6 @@
 export { type ConfigError } from 'effect/ConfigError';
 
-type Status = 'pending' | 'resolved' | 'rejected';
+type Status = 'pending' | 'accepted' | 'rejected';
 
 interface Values {
   value: string;
@@ -17,9 +17,7 @@ type IEntity = 'author' | 'institution' | 'work';
 type IField = 'id' | 'display_name' | 'display_name_alternatives' | 'institution' | 'work';
 
 interface IEvent {
-  /**
-   * L’ORCID est présent si l’entité est liée au chercheur : une affiliation ou une publication.
-   */
+  uuid: string;
   orcid?: string;
   entity: IEntity;
   field: IField;

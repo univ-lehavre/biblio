@@ -22,7 +22,8 @@
     "@univ-lehavre/fetch-openalex": "workspace:^",
     "@univ-lehavre/openalex-types": "workspace:^",
     "effect": "^3.17.13",
-    "picocolors": "^1.1.1"
+    "picocolors": "^1.1.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@univ-lehavre/typescript-config": "^2.0.0",

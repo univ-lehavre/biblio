@@ -1,9 +1,11 @@
-import { listPending, Store } from '../store';
+import { listPending, Store, updateStatus } from '../store';
 import { Effect, Ref } from 'effect';
 import { multiselect, text } from '@clack/prompts';
 import { fetchOpenAlexAPI } from '@univ-lehavre/fetch-openalex';
 import type { AuthorsResult } from '@univ-lehavre/openalex-types';
 import type { IContext, IEvent } from '../types';
+import { PendingOptions } from '../store/types';
+import { v7 } from 'uuid';
 
 const set_ORCID = () =>
   Effect.gen(function* () {
@@ -40,6 +42,7 @@ const set_ORCID = () =>
 
     authors.results.forEach(author =>
       items.push({
+        uuid: v7(),
         orcid: orcid.toString(),
         entity: 'author',
         field: 'display_name',
@@ -49,6 +52,7 @@ const set_ORCID = () =>
     );
     authors.results.forEach(author =>
       items.push({
+        uuid: v7(),
         orcid: orcid.toString(),
         entity: 'author',
         field: 'id',
@@ -61,6 +65,7 @@ const set_ORCID = () =>
       .flat()
       .forEach(alternative => {
         items.push({
+          uuid: v7(),
           orcid: orcid.toString(),
           entity: 'author',
           field: 'display_name_alternatives',
@@ -74,6 +79,7 @@ const set_ORCID = () =>
       .map(affiliation => affiliation.institution)
       .forEach(institution => {
         items.push({
+          uuid: v7(),
           orcid: orcid.toString(),
           entity: 'author',
           field: 'institution',
@@ -103,7 +109,7 @@ const set_ORCID = () =>
 
     yield* Ref.update(state, state => ({
       ...state,
-      events: [...(state.events ?? []), ...filtered],
+      events: [...state.events, ...filtered],
     }));
   });
 
@@ -111,21 +117,23 @@ const set_graphical_forms = () =>
   Effect.gen(function* () {
     const store = yield* Store;
     const state = yield* Ref.get(store);
-    const pendings = listPending(state, {
+    const opts: PendingOptions = {
       orcid: state.context.id,
       entity: 'author',
       field: 'display_name_alternatives',
-    });
-    const opts = pendings?.map(event => ({ value: event.value, label: event.value })) ?? [];
+    };
+    const pendings = listPending(state, opts);
+    const options = pendings?.map(event => ({ value: event.value, label: event.value })) ?? [];
     const selected = yield* Effect.tryPromise({
       try: () =>
         multiselect({
           message: 'Sélectionnez les formes graphiques correspondantes au chercheur',
-          options: opts,
+          options,
+          required: false,
         }),
       catch: cause => new Error('Erreur lors de la sélection de la forme graphique: ', { cause }),
     });
-    return selected;
+    if (selected instanceof Array) yield* updateStatus(selected, opts);
   });
 
 export { set_ORCID, set_graphical_forms };
