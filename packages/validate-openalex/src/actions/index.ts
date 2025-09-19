@@ -1,4 +1,3 @@
 export * from './actions';
-export * from './getter';
-export * from './switcher';
+export * from './filter';
 export * from './utils';

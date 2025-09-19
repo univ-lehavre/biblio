@@ -1,3 +1,5 @@
+import { Effect } from 'effect';
+import { Store } from '../store';
 import type { IEntity, IField, Status } from '../events/types';
 import type { IState } from '../store/types';
 
@@ -10,7 +12,12 @@ interface PendingOptions {
 
 interface Action {
   name: string;
-  isActive: (state: IState) => boolean;
+  visible: (state: IState) => boolean;
+  group?: {
+    name: string;
+    index: number;
+  };
+  action: () => Effect.Effect<void, unknown, Store>;
 }
 
 export type { Action, PendingOptions };

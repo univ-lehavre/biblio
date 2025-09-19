@@ -1,7 +1,9 @@
 import type { IEntity, IEvent } from '../events/types';
 
+type IContextType = IEntity | 'none';
+
 interface IContext {
-  type: IEntity | 'none';
+  type: IContextType;
   id: string | undefined;
   label?: string;
 }
@@ -11,4 +13,4 @@ interface IState {
   events: IEvent[];
 }
 
-export type { IContext, IState };
+export type { IContext, IContextType, IState };

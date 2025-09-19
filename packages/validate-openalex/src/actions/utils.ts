@@ -1,7 +1,7 @@
 import { Store } from '../store';
 import { Effect, Ref } from 'effect';
 import { searchAuthorByORCID } from '../fetch';
-import { update_store_context, update_store_events } from '../store/updater';
+import { update_store_context, update_store_events } from '../store';
 import { event2option, log, multiselect, print_title, select, text } from '../prompt';
 import {
   create_events_from_author_results,
@@ -30,7 +30,14 @@ const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, Store> =>
     const store = yield* Store;
     const state: IState = yield* Ref.get(store);
 
+    yield* update_store_context({
+      type: 'author',
+      id: orcid,
+    });
+
     if (hasORCID(state, orcid)) {
+      console.clear();
+      yield* print_title();
       log.info(`L’ORCID ${orcid} a déjà été ajouté`);
       return;
     }
@@ -39,30 +46,11 @@ const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, Store> =>
     const items = create_events_from_author_results(orcid, authors);
     yield* update_store_events([...state.events, ...items]);
 
-    yield* reliable_display_name('Sélectionnez le patronyme correspondant à ce chercheur', {
-      orcid,
-      entity: 'author',
-      field: 'display_name',
-    });
-
-    yield* reliable_strings('Sélectionnez les formes graphiques correspondantes à ce chercheur', {
-      orcid,
-      entity: 'author',
-      field: 'display_name_alternatives',
-    });
-    yield* reliable_strings('Sélectionnez les affiliations correspondantes à ce chercheur', {
-      orcid,
-      entity: 'author',
-      field: 'affiliation',
-    });
-
-    // Étendre la recherche en fouillant OpenAlex avec les formes graphiques validées
-
     console.clear();
     yield* print_title();
   });
 
-const reliable_display_name = (message: string, opts: PendingOptions) =>
+const mark_display_name_reliable = (message: string, opts: PendingOptions) =>
   Effect.gen(function* () {
     const store = yield* Store;
     const state = yield* Ref.get(store);
@@ -72,27 +60,53 @@ const reliable_display_name = (message: string, opts: PendingOptions) =>
     yield* update_store_events(updated);
     yield* update_store_context({
       type: 'author',
-      id: opts.orcid,
+      id: state.context.id,
       label: selected.toString(),
     });
     console.clear();
     yield* print_title();
   });
 
-const reliable_strings = (
+const mark_alternative_strings_reliable = (
   message: string,
   opts: PendingOptions,
-): Effect.Effect<string[] | undefined, Error, Store> =>
+  addORCID = true,
+): Effect.Effect<void, Error, Store> =>
   Effect.gen(function* () {
     const store = yield* Store;
     const state = yield* Ref.get(store);
+    if (addORCID) opts.orcid = state.context.id;
     const options = filter_pending(state, opts).map(event2option);
     const selected = yield* multiselect(message, false, options);
     if (selected instanceof Array) {
       const updated = update_status(state, selected, opts);
       yield* update_store_events(updated);
-      return selected;
     }
   });
 
-export { insert_new_ORCID, reliable_strings };
+const mark_authors_alternative_strings_reliable = () =>
+  mark_alternative_strings_reliable(
+    'Sélectionnez les formes graphiques correspondantes à ce chercheur',
+    {
+      entity: 'author',
+      field: 'display_name_alternatives',
+    },
+    true,
+  );
+
+const mark_affiliations_alternative_strings_reliable = () =>
+  mark_alternative_strings_reliable(
+    'Sélectionnez les affiliations correspondantes au chercheur',
+    {
+      entity: 'author',
+      field: 'affiliation',
+    },
+    true,
+  );
+
+export {
+  insert_new_ORCID,
+  mark_display_name_reliable,
+  mark_authors_alternative_strings_reliable,
+  mark_affiliations_alternative_strings_reliable,
+};
