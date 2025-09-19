@@ -11,5 +11,5 @@ interface OpenAlexID {
   status: Status;
 }
 
+export type { ConfigError } from 'effect/ConfigError';
 export type { Values, OpenAlexID };
-export { type ConfigError } from 'effect/ConfigError';

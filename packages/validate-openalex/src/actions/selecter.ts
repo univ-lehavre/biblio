@@ -1,10 +1,8 @@
 import { Tasks } from '.';
 import { Effect } from 'effect';
-import { select } from '../prompt';
+import { Option, select } from '../prompt';
 
-const select_action = (
-  options: { value: string; label: string }[],
-): Effect.Effect<string | symbol, Error, never> =>
+const select_action = (options: Option<string>[]): Effect.Effect<string | symbol, Error, never> =>
   Effect.tryPromise({
     try: () =>
       select({

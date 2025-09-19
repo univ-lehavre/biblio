@@ -1,23 +1,22 @@
-import type { IEvent } from './types';
-import type { IState } from '../store/types';
 import type { PendingOptions } from '../actions/types';
+import type { IState } from '../store/types';
+import type { IEvent } from './types';
 
-const listPending = (state: IState, opts: PendingOptions): IEvent[] => {
-  const events = state.events
+const filtered_list_by_attributes = (state: IState, opts: PendingOptions): IEvent[] =>
+  state.events
     .map(item => {
-      if (item.status !== 'pending') return;
+      if (opts.status && item.status !== opts.status) return;
       if (opts.orcid && item.orcid !== opts.orcid) return;
       if (opts.entity && item.entity !== opts.entity) return;
       if (opts.field && item.field !== opts.field) return;
       return item;
     })
     .filter(item => item !== undefined);
-  return events;
-};
 
-const hasPending = (state: IState, opts: PendingOptions): boolean => {
-  const events = listPending(state, opts);
-  return events.length > 0;
-};
+const listPending = (state: IState, opts: PendingOptions): IEvent[] =>
+  filtered_list_by_attributes(state, {
+    ...opts,
+    status: 'pending',
+  });
 
-export { hasPending, listPending };
+export { listPending };

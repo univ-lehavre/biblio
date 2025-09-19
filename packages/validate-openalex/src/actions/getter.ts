@@ -1,15 +1,8 @@
 import { actions } from '.';
-import { Store } from '../store';
-import { Effect, Ref } from 'effect';
+import { IState } from '../store/types';
+import { Action } from './types';
 
-const build_actions_list = () =>
-  Effect.gen(function* () {
-    const store = yield* Store;
-    const state = yield* Ref.get(store);
-    const available_actions = actions
-      .filter(action => action.isActive(state))
-      .map(action => ({ value: action.name, label: action.name }));
-    return available_actions;
-  });
+const active_actions = (state: IState): Action[] =>
+  actions.filter(action => action.isActive(state));
 
-export { build_actions_list };
+export { active_actions };

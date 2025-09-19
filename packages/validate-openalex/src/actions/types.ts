@@ -1,10 +1,11 @@
-import type { IEntity, IField } from '../events/types';
+import type { IEntity, IField, Status } from '../events/types';
 import type { IState } from '../store/types';
 
 interface PendingOptions {
   orcid?: string;
   entity?: IEntity;
   field?: IField;
+  status?: Status;
 }
 
 interface Action {

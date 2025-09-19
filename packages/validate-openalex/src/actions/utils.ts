@@ -7,8 +7,9 @@ import type { IContext, IState } from '../store/types';
 import type { AuthorsResult } from '../fetch/types';
 import type { PendingOptions } from './types';
 import type { IEvent } from '../events/types';
+import { ConfigError } from '../types';
 
-const filterOutExisting = (incoming: IEvent[], existing: IEvent[]) =>
+const filterOutExisting = (incoming: IEvent[], existing: IEvent[]): IEvent[] =>
   incoming.filter(
     i =>
       !existing.some(
@@ -58,7 +59,7 @@ const buildEvents = (orcid: string, authors: AuthorsResult[]): IEvent[] => {
   return items;
 };
 
-const set_ORCID = () =>
+const set_ORCID = (): Effect.Effect<void, Error | ConfigError, Store> =>
   Effect.gen(function* () {
     const _orcid = yield* Effect.tryPromise({
       try: () =>
@@ -118,7 +119,10 @@ const set_ORCID = () =>
     yield* print_title();
   });
 
-const setStatus = (message: string, opts: PendingOptions) =>
+const setStatus = (
+  message: string,
+  opts: PendingOptions,
+): Effect.Effect<string[] | undefined, Error, Store> =>
   Effect.gen(function* () {
     const store = yield* Store;
     const state = yield* Ref.get(store);
@@ -136,7 +140,10 @@ const setStatus = (message: string, opts: PendingOptions) =>
         }),
       catch: cause => new Error('Erreur lors de la sélection: ', { cause }),
     });
-    if (selected instanceof Array) yield* updateStatus(selected, opts);
+    if (selected instanceof Array) {
+      yield* updateStatus(selected, opts);
+      return selected;
+    }
   });
 
 export { set_ORCID, setStatus };

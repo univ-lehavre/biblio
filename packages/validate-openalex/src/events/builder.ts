@@ -1,5 +1,5 @@
 import { v7 } from 'uuid';
-import { IEvent, IField } from './types';
+import type { IEvent, IField } from './types';
 
 const buildEvent = (
   partial: Partial<IEvent> & {

@@ -7,8 +7,8 @@ const save = (
   backup: boolean = true,
 ): Effect.Effect<void, never, Store> =>
   Effect.gen(function* () {
-    const state = yield* Store;
     if (backup && existsSync(file)) copyFileSync(file, `backup-${file}`);
+    const state = yield* Store;
     const value = yield* Ref.get(state);
     writeFileSync(file, JSON.stringify(value, null, 2), 'utf-8');
   });

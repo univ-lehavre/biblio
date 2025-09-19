@@ -12,14 +12,14 @@ const switcher = (action_id: string) =>
       case Tasks.ORCID:
         yield* set_ORCID();
         break;
-      case Tasks.FIP:
+      case Tasks.AUTH_FIP:
         yield* setStatus('Sélectionnez les formes graphiques correspondantes à ce chercheur', {
           orcid: state.context.id,
           entity: 'author',
           field: 'display_name_alternatives',
         });
         break;
-      case Tasks.FIN:
+      case Tasks.AUTH_FIN:
         yield* setStatus('Sélectionnez les affiliations correspondantes au chercheur', {
           orcid: state.context.id,
           entity: 'author',
