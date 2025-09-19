@@ -20,4 +20,4 @@ const string2option = (value: string): Option<string> => ({ value });
 const strings2options = (strings: string[]): Option<string>[] => strings.map(string2option);
 
 export { print_title, strings2options, string2option, action2option, color, Option };
-export { outro, select, multiselect, text } from '@clack/prompts';
+export * from './selector';

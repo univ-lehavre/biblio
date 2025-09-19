@@ -1,13 +1,14 @@
 import { Store } from '../store';
 import { Effect, Ref } from 'effect';
 import { searchAuthorByORCID } from '../fetch';
+import { update_store_events } from '../store/updater';
 import { multiselect, print_title, text } from '../prompt';
-import { buildPendingAuthorEvent, listPending, updateStatus } from '../events';
+import { buildPendingAuthorEvent, listPending, update_status } from '../events';
 import type { IContext, IState } from '../store/types';
 import type { AuthorsResult } from '../fetch/types';
 import type { PendingOptions } from './types';
 import type { IEvent } from '../events/types';
-import { ConfigError } from '../types';
+import type { ConfigError } from '../types';
 
 const filterOutExisting = (incoming: IEvent[], existing: IEvent[]): IEvent[] =>
   incoming.filter(
@@ -141,7 +142,8 @@ const setStatus = (
       catch: cause => new Error('Erreur lors de la sélection: ', { cause }),
     });
     if (selected instanceof Array) {
-      yield* updateStatus(selected, opts);
+      const updated = update_status(state, selected, opts);
+      yield* update_store_events(updated);
       return selected;
     }
   });
