@@ -42,7 +42,9 @@ const create_events_from_author_results = (orcid: string, authors: AuthorsResult
     items.push(
       buildPendingAuthorEvent({ orcid, field: 'display_name', value: author.display_name }),
     );
-    items.push(buildPendingAuthorEvent({ orcid, field: 'id', value: author.id }));
+    items.push(
+      buildPendingAuthorEvent({ orcid, field: 'id', value: author.id, label: author.display_name }),
+    );
   });
 
   authors

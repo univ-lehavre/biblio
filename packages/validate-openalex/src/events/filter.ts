@@ -19,4 +19,7 @@ const filter_pending = (state: IState, opts: PendingOptions): IEvent[] =>
     status: 'pending',
   });
 
-export { filtered_list_by_attributes, filter_pending };
+const filter_pending_id = (state: IState, orcid: string): IEvent[] =>
+  filter_pending(state, { orcid, entity: 'author', field: 'id' });
+
+export { filtered_list_by_attributes, filter_pending, filter_pending_id };

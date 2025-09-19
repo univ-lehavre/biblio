@@ -44,6 +44,7 @@ const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, Store> =>
       entity: 'author',
       field: 'display_name',
     });
+
     yield* reliable_strings('Sélectionnez les formes graphiques correspondantes à ce chercheur', {
       orcid,
       entity: 'author',

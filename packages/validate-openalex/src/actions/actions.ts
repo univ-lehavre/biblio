@@ -23,6 +23,13 @@ enum Tasks {
   INST_RES = 'Fiabiliser les chercheurs d’une institution',
 }
 
+/**
+ * Ajouter l’action de télécharger toutes les publications du chercheur
+ * - avec vérification des nouvelles formes graphiques du patronyme
+ * - avec vérification des co-affiliations pour les affiliations connues
+ * Ajouter l’action d’étendre le patronyme à une recherche par formes graphiques
+ */
+
 const actions: Action[] = [
   {
     name: Tasks.AUTH_FIP,
