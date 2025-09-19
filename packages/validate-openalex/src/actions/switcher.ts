@@ -2,7 +2,7 @@ import { Tasks } from '.';
 import { Effect, Ref } from 'effect';
 import { save, Store } from '../store';
 import { color, outro } from '../prompt';
-import { set_ORCID, setStatus } from './utils';
+import { reliable_strings, insert_new_ORCID } from './utils';
 
 const switcher = (action_id: string) =>
   Effect.gen(function* () {
@@ -10,17 +10,20 @@ const switcher = (action_id: string) =>
     const state = yield* Ref.get(store);
     switch (action_id) {
       case Tasks.ORCID:
-        yield* set_ORCID();
+        yield* insert_new_ORCID();
         break;
       case Tasks.AUTH_FIP:
-        yield* setStatus('Sélectionnez les formes graphiques correspondantes à ce chercheur', {
-          orcid: state.context.id,
-          entity: 'author',
-          field: 'display_name_alternatives',
-        });
+        yield* reliable_strings(
+          'Sélectionnez les formes graphiques correspondantes à ce chercheur',
+          {
+            orcid: state.context.id,
+            entity: 'author',
+            field: 'display_name_alternatives',
+          },
+        );
         break;
       case Tasks.AUTH_FIN:
-        yield* setStatus('Sélectionnez les affiliations correspondantes au chercheur', {
+        yield* reliable_strings('Sélectionnez les affiliations correspondantes au chercheur', {
           orcid: state.context.id,
           entity: 'author',
           field: 'affiliation',

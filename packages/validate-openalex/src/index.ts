@@ -1,8 +1,7 @@
 import { Effect, Ref } from 'effect';
-import { load, save, Store } from './store';
-import { action2option, print_title, select } from './prompt';
+import { load, provideStore, save, Store } from './store';
 import { active_actions, switcher, Tasks } from './actions';
-import type { IState } from './store/types';
+import { action2option, print_title, select } from './prompt';
 
 const start = (file: string = 'state.json') =>
   Effect.gen(function* () {
@@ -12,10 +11,10 @@ const start = (file: string = 'state.json') =>
     while (true) {
       const state = yield* Ref.get(store);
       const options = active_actions(state).map(action2option);
-      const selected_action = yield* select(Tasks.WHAT, 'Erreur lors de la sélection', options);
+      const selected_action = yield* select(Tasks.WHAT, options);
       yield* switcher(selected_action.toString());
       yield* save();
     }
   });
 
-Effect.runPromiseExit(start().pipe(Effect.provideServiceEffect(Store, Ref.make({} as IState))));
+Effect.runPromiseExit(start().pipe(provideStore));

@@ -1,4 +1,4 @@
 export * from './builder';
-export * from './getter';
-export * from './updater';
+export * from './filter';
 export * from './tester';
+export * from './updater';

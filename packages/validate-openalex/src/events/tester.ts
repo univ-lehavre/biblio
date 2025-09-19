@@ -1,8 +1,11 @@
-import { listPending } from './getter';
+import { filter_pending } from './filter';
 import type { PendingOptions } from '../actions/types';
 import type { IState } from '../store/types';
 
 const hasPending = (state: IState, opts: PendingOptions): boolean =>
-  listPending(state, opts).length > 0;
+  filter_pending(state, opts).length > 0;
 
-export { hasPending };
+const hasORCID = (state: IState, orcid: string): boolean =>
+  state.events.some(e => e.orcid === orcid);
+
+export { hasPending, hasORCID };

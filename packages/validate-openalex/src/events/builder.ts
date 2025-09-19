@@ -1,5 +1,6 @@
 import { v7 } from 'uuid';
 import type { IEvent, IField } from './types';
+import { AuthorsResult } from '../fetch/types';
 
 const buildEvent = (
   partial: Partial<IEvent> & {
@@ -34,4 +35,43 @@ const buildPendingAuthorEvent = (
     status: 'pending',
   });
 
-export { buildEvent, buildPendingAuthorEvent };
+const create_events_from_author_results = (orcid: string, authors: AuthorsResult[]): IEvent[] => {
+  const items: IEvent[] = [];
+
+  authors.forEach(author => {
+    items.push(
+      buildPendingAuthorEvent({ orcid, field: 'display_name', value: author.display_name }),
+    );
+    items.push(buildPendingAuthorEvent({ orcid, field: 'id', value: author.id }));
+  });
+
+  authors
+    .flatMap(author => author.display_name_alternatives ?? [])
+    .forEach(alternative =>
+      items.push(
+        buildPendingAuthorEvent({
+          orcid,
+          field: 'display_name_alternatives',
+          value: alternative,
+        }),
+      ),
+    );
+
+  authors
+    .flatMap(author => author.affiliations ?? [])
+    .flatMap(aff => [aff.institution])
+    .forEach(institution =>
+      items.push(
+        buildPendingAuthorEvent({
+          orcid,
+          field: 'affiliation',
+          value: institution.id,
+          label: institution.display_name,
+        }),
+      ),
+    );
+
+  return items;
+};
+
+export { buildEvent, buildPendingAuthorEvent, create_events_from_author_results };

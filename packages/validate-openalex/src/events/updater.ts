@@ -1,10 +1,10 @@
-import { listPending } from './getter';
+import { filter_pending } from './filter';
 import type { PendingOptions } from '../actions/types';
 import type { IEvent, Status } from './types';
 import type { IState } from '../store/types';
 
 const update_status_events = (state: IState, values: string[], opts: PendingOptions): IEvent[] =>
-  listPending(state, opts).map(item => {
+  filter_pending(state, opts).map(item => {
     const status: Status = values.includes(item.value) ? 'accepted' : 'rejected';
     return { ...item, status };
   });

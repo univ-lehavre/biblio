@@ -1,146 +1,92 @@
 import { Store } from '../store';
 import { Effect, Ref } from 'effect';
 import { searchAuthorByORCID } from '../fetch';
-import { update_store_events } from '../store/updater';
-import { multiselect, print_title, text } from '../prompt';
-import { buildPendingAuthorEvent, listPending, update_status } from '../events';
-import type { IContext, IState } from '../store/types';
-import type { AuthorsResult } from '../fetch/types';
+import { update_store_context, update_store_events } from '../store/updater';
+import { event2option, log, multiselect, print_title, select, text } from '../prompt';
+import {
+  create_events_from_author_results,
+  filter_pending,
+  hasORCID,
+  update_status,
+} from '../events';
 import type { PendingOptions } from './types';
-import type { IEvent } from '../events/types';
+import type { IState } from '../store/types';
 import type { ConfigError } from '../types';
 
-const filterOutExisting = (incoming: IEvent[], existing: IEvent[]): IEvent[] =>
-  incoming.filter(
-    i =>
-      !existing.some(
-        e =>
-          e.orcid === i.orcid &&
-          e.entity === i.entity &&
-          e.field === i.field &&
-          e.value === i.value,
-      ),
-  );
-
-const buildEvents = (orcid: string, authors: AuthorsResult[]): IEvent[] => {
-  const items: IEvent[] = [];
-
-  // display_name and id per author
-  authors.forEach(author => {
-    items.push(
-      buildPendingAuthorEvent({ orcid, field: 'display_name', value: author.display_name }),
-    );
-    items.push(buildPendingAuthorEvent({ orcid, field: 'id', value: author.id }));
-  });
-
-  // display_name_alternatives (flattened)
-  authors
-    .flatMap(author => author.display_name_alternatives ?? [])
-    .forEach(alternative =>
-      items.push(
-        buildPendingAuthorEvent({ orcid, field: 'display_name_alternatives', value: alternative }),
-      ),
-    );
-
-  // affiliations -> institution
-  authors
-    .flatMap(author => author.affiliations ?? [])
-    .flatMap(aff => [aff.institution])
-    .forEach(institution =>
-      items.push(
-        buildPendingAuthorEvent({
-          orcid,
-          field: 'affiliation',
-          value: institution.id,
-          label: institution.display_name,
-        }),
-      ),
-    );
-
-  return items;
-};
-
-const set_ORCID = (): Effect.Effect<void, Error | ConfigError, Store> =>
+const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, Store> =>
   Effect.gen(function* () {
-    const _orcid = yield* Effect.tryPromise({
-      try: () =>
-        text({
-          message: 'Saisissez l’ORCID d’un chercheur',
-          placeholder: '0000-0002-1825-0097',
-          validate: value => {
-            if (!value) return 'L’ORCID est requis';
-            const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
-            if (!orcidRegex.test(value)) return 'L’ORCID doit être au format 0000-0000-0000-0000';
-          },
-        }),
-      catch: () => process.exit(0),
-    });
-    const orcid = _orcid?.toString().trim();
+    const orcid = (yield* text(
+      'Saisissez l’ORCID d’un chercheur',
+      '0000-0000-0000-0000',
+      (value: string | undefined) => {
+        if (!value) return 'L’ORCID est requis';
+        const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
+        if (!orcidRegex.test(value)) return 'L’ORCID doit être au format 0000-0000-0000-0000';
+      },
+    ))
+      .toString()
+      .trim();
+
+    const store = yield* Store;
+    const state: IState = yield* Ref.get(store);
+
+    if (hasORCID(state, orcid)) {
+      log.info(`L’ORCID ${orcid} a déjà été ajouté`);
+      return;
+    }
 
     const authors = yield* searchAuthorByORCID([orcid]);
+    const items = create_events_from_author_results(orcid, authors);
+    yield* update_store_events([...state.events, ...items]);
 
-    const context: IContext = {
-      type: 'author',
-      id: orcid,
-      label: authors.map(author => author.display_name).join(', '),
-    };
-    const store = yield* Store;
-    yield* Ref.update(store, state => ({
-      ...state,
-      context,
-    }));
-
-    // Build events from fetched authors
-
-    const current_state: IState = yield* Ref.get(store);
-
-    const current_authors = current_state.events.filter(a => a.orcid === orcid) ?? [];
-
-    const items = buildEvents(orcid, authors);
-    const filtered = filterOutExisting(items, current_authors);
-
-    yield* Ref.update(store, state => ({
-      ...state,
-      events: [...state.events, ...filtered],
-    }));
-
-    yield* setStatus('Sélectionnez les patronymes correspondants à ce chercheur', {
+    yield* reliable_display_name('Sélectionnez le patronyme correspondant à ce chercheur', {
       orcid,
       entity: 'author',
       field: 'display_name',
     });
-
-    yield* setStatus('Sélectionnez les affiliations correspondantes à ce chercheur', {
+    yield* reliable_strings('Sélectionnez les formes graphiques correspondantes à ce chercheur', {
+      orcid,
+      entity: 'author',
+      field: 'display_name_alternatives',
+    });
+    yield* reliable_strings('Sélectionnez les affiliations correspondantes à ce chercheur', {
       orcid,
       entity: 'author',
       field: 'affiliation',
     });
 
+    // Étendre la recherche en fouillant OpenAlex avec les formes graphiques validées
+
     console.clear();
     yield* print_title();
   });
 
-const setStatus = (
+const reliable_display_name = (message: string, opts: PendingOptions) =>
+  Effect.gen(function* () {
+    const store = yield* Store;
+    const state = yield* Ref.get(store);
+    const options = filter_pending(state, opts).map(event2option);
+    const selected = yield* select(message, options);
+    const updated = update_status(state, [selected.toString()], opts);
+    yield* update_store_events(updated);
+    yield* update_store_context({
+      type: 'author',
+      id: opts.orcid,
+      label: selected.toString(),
+    });
+    console.clear();
+    yield* print_title();
+  });
+
+const reliable_strings = (
   message: string,
   opts: PendingOptions,
 ): Effect.Effect<string[] | undefined, Error, Store> =>
   Effect.gen(function* () {
     const store = yield* Store;
     const state = yield* Ref.get(store);
-    const pendings = listPending(state, opts);
-    const options = pendings.map(event => ({
-      value: event.value,
-      label: event.label ?? event.value,
-    }));
-    const selected = yield* Effect.tryPromise({
-      try: () =>
-        multiselect({
-          message,
-          options,
-          required: false,
-        }),
-      catch: cause => new Error('Erreur lors de la sélection: ', { cause }),
-    });
+    const options = filter_pending(state, opts).map(event2option);
+    const selected = yield* multiselect(message, false, options);
     if (selected instanceof Array) {
       const updated = update_status(state, selected, opts);
       yield* update_store_events(updated);
@@ -148,4 +94,4 @@ const setStatus = (
     }
   });
 
-export { set_ORCID, setStatus };
+export { insert_new_ORCID, reliable_strings };

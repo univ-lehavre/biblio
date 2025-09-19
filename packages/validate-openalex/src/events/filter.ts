@@ -13,10 +13,10 @@ const filtered_list_by_attributes = (state: IState, opts: PendingOptions): IEven
     })
     .filter(item => item !== undefined);
 
-const listPending = (state: IState, opts: PendingOptions): IEvent[] =>
+const filter_pending = (state: IState, opts: PendingOptions): IEvent[] =>
   filtered_list_by_attributes(state, {
     ...opts,
     status: 'pending',
   });
 
-export { listPending };
+export { filtered_list_by_attributes, filter_pending };
