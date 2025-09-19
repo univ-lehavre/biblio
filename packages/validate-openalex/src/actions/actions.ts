@@ -1,12 +1,13 @@
 import type { IState } from '../store/types';
 import type { Action } from './types';
 import { isVisible } from './tester';
+import { save_and_exit } from '../store';
 import {
   insert_new_ORCID,
   mark_affiliations_alternative_strings_reliable,
+  mark_author_display_name_reliable,
   mark_authors_alternative_strings_reliable,
-} from './utils';
-import { save_and_exit } from '../store';
+} from '../events';
 
 enum Tasks {
   WHAT = 'Que souhaitez-vous faire ?',
@@ -67,6 +68,11 @@ enum Tasks {
 // });
 
 const actions: Action[] = [
+  {
+    name: 'Fiabiliser le patronyme de ce chercheur',
+    visible: (state: IState) => isVisible(state, 'author', 'author', 'display_name'),
+    action: mark_author_display_name_reliable,
+  },
   {
     name: 'Fiabiliser les formes imprimées du patronyme de ce chercheur',
     visible: (state: IState) => isVisible(state, 'author', 'author', 'display_name_alternatives'),
