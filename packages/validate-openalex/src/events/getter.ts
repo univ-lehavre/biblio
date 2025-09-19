@@ -1,5 +1,6 @@
-import type { IEvent, IState } from '../types';
-import { PendingOptions } from './types';
+import type { IEvent } from './types';
+import type { IState } from '../store/types';
+import type { PendingOptions } from '../actions/types';
 
 const listPending = (state: IState, opts: PendingOptions): IEvent[] => {
   const events = state.events

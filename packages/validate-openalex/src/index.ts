@@ -1,8 +1,8 @@
 import { Effect, Ref } from 'effect';
-import type { IState } from './types';
-import { loadState, saveState, Store } from './store';
-import { build_actions_list, select_action, switcher } from './actions';
 import { print_title } from './prompt';
+import { loadState, save, Store } from './store';
+import { build_actions_list, select_action, switcher } from './actions';
+import type { IState } from './store/types';
 
 const start = (file: string) =>
   Effect.gen(function* () {
@@ -12,7 +12,7 @@ const start = (file: string) =>
       const options = yield* build_actions_list();
       const selected_action = yield* select_action(options);
       yield* switcher(selected_action.toString());
-      yield* saveState();
+      yield* save();
     }
   });
 

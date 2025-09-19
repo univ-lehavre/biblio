@@ -4,5 +4,4 @@
 dist/
 node_modules/
 packages/*/docs/
-state*.json
-state.json
+*state*.json

@@ -1,6 +1,4 @@
-export { type ConfigError } from 'effect/ConfigError';
-
-type Status = 'pending' | 'accepted' | 'rejected';
+import type { Status } from './events/types';
 
 interface Values {
   value: string;
@@ -13,34 +11,5 @@ interface OpenAlexID {
   status: Status;
 }
 
-type IEntity = 'author' | 'institution' | 'work';
-type IField = 'id' | 'display_name' | 'display_name_alternatives' | 'affiliation' | 'work';
-
-interface IEvent {
-  uuid: string;
-  orcid?: string;
-  entity: IEntity;
-  field: IField;
-  value: string;
-  label?: string;
-  status: Status;
-  updated_at: string;
-}
-
-interface IContext {
-  type: IEntity | 'none';
-  id: string | undefined;
-  label?: string;
-}
-
-interface IState {
-  context: IContext;
-  events: IEvent[];
-}
-
-interface Action {
-  name: string;
-  isActive: (state: IState) => boolean;
-}
-
-export type { IContext, IState, Action, Status, Values, OpenAlexID, IEvent, IField, IEntity };
+export type { Values, OpenAlexID };
+export { type ConfigError } from 'effect/ConfigError';

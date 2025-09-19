@@ -1,8 +1,8 @@
-import { listPending } from './getter';
-import type { IEvent, IState, Status } from '../types';
-import { PendingOptions } from './types';
+import { Store } from '../store';
 import { Effect, Ref } from 'effect';
-import { Store } from '.';
+import { listPending } from './getter';
+import type { IState, PendingOptions } from '../store/types';
+import type { IEvent, Status } from './types';
 
 const updateEvents = (state: IState, values: string[], opts: PendingOptions): IEvent[] => {
   const pendings = listPending(state, opts);
@@ -16,7 +16,7 @@ const updateEvents = (state: IState, values: string[], opts: PendingOptions): IE
 const updateStatus = (values: string[], opts: PendingOptions) =>
   Effect.gen(function* () {
     const store = yield* Store;
-    const state = yield* Ref.get(store);
+    const state: IState = yield* Ref.get(store);
     const updated = updateEvents(state, values, opts);
     const uuids = updated.map(e => e.uuid);
     const unchanged = state.events.filter(e => !uuids.includes(e.uuid));

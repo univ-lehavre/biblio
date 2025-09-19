@@ -1,9 +1,14 @@
-import { IEntity, IField } from '../types';
+import type { IEntity, IEvent } from '../events/types';
 
-interface PendingOptions {
-  orcid?: string;
-  entity?: IEntity;
-  field?: IField;
+interface IContext {
+  type: IEntity | 'none';
+  id: string | undefined;
+  label?: string;
 }
 
-export type { PendingOptions };
+interface IState {
+  context: IContext;
+  events: IEvent[];
+}
+
+export type { IContext, IState };

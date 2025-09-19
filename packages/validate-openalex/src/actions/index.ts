@@ -1,9 +1,6 @@
-import color from 'picocolors';
-import { Effect, Ref } from 'effect';
-import type { Action, IState } from '../types';
-import { hasPending, saveState, Store } from '../store';
-import { outro, select } from '@clack/prompts';
-import { set_ORCID, setStatus } from './utils';
+import { hasPending } from '../events';
+import type { Action } from './types';
+import type { IState } from '../store/types';
 
 enum Tasks {
   WHAT = 'Que souhaitez-vous faire ?',
@@ -34,7 +31,7 @@ const actions: Action[] = [
       hasPending(state, {
         orcid: state.context.id,
         entity: 'author',
-        field: 'institution',
+        field: 'affiliation',
       }),
   },
   {
@@ -64,61 +61,7 @@ const actions: Action[] = [
   },
 ];
 
-const build_actions_list = () =>
-  Effect.gen(function* () {
-    const store = yield* Store;
-    const state = yield* Ref.get(store);
-    const available_actions = actions
-      .filter(action => action.isActive(state))
-      .map(action => ({ value: action.name, label: action.name }));
-    return available_actions;
-  });
-
-const select_action = (
-  options: { value: string; label: string }[],
-): Effect.Effect<string | symbol, Error, never> =>
-  Effect.tryPromise({
-    try: () =>
-      select({
-        message: Tasks.WHAT,
-        options,
-      }),
-    catch: cause => new Error("Erreur lors de la sélection de l'action: ", { cause }),
-  });
-
-const switcher = (action_id: string) =>
-  Effect.gen(function* () {
-    const store = yield* Store;
-    const state = yield* Ref.get(store);
-    switch (action_id) {
-      case Tasks.ORCID:
-        yield* set_ORCID();
-        break;
-      case Tasks.FIP:
-        yield* setStatus(
-          {
-            orcid: state.context.id,
-            entity: 'author',
-            field: 'display_name_alternatives',
-          },
-          'Sélectionnez les formes graphiques correspondantes à ce chercheur',
-        );
-        break;
-      case Tasks.FIN:
-        yield* setStatus(
-          {
-            orcid: state.context.id,
-            entity: 'author',
-            field: 'institution',
-          },
-          'Sélectionnez les affiliations correspondantes au chercheur',
-        );
-        break;
-      case Tasks.EXIT:
-        yield* saveState();
-        outro(`${color.bgGreen(color.black(` Fin `))}`);
-        process.exit(0);
-    }
-  });
-
-export { actions, build_actions_list, select_action, switcher };
+export { actions, Tasks };
+export * from './getter';
+export * from './selecter';
+export * from './switcher';
