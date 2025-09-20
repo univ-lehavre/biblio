@@ -1,10 +1,21 @@
 {
-  "name": "@univ-lehavre/bibliographic",
+  "name": "@univ-lehavre/biblio",
   "description": "Un ensemble d’outils pour fiabiliser les données bibliographiques en TypeScript",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/univ-lehavre/biblio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/univ-lehavre/biblio/issues"
+  },
   "workspaces": [
     "packages/*"
   ],
+  "packageManager": "pnpm@10.16.1",
+  "engines": {
+    "node": ">=22.19.0"
+  },
   "scripts": {
     "build": "turbo run build",
     "build:checked": "turbo run build types:check lint format:check test",
@@ -40,9 +51,5 @@
     "turbo": "^2.5.6",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.44.0"
-  },
-  "packageManager": "pnpm@10.16.1",
-  "engines": {
-    "node": ">=22.19.0"
   }
 }
