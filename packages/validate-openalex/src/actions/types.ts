@@ -4,6 +4,7 @@ import type { IEntity, IField, Status } from '../events/types';
 import type { IState } from '../store/types';
 
 interface PendingOptions {
+  openalex_id?: string;
   orcid?: string;
   entity?: IEntity;
   field?: IField;

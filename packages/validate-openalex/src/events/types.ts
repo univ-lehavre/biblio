@@ -5,14 +5,20 @@ type IEntity = 'author' | 'institution' | 'work';
 type IField = 'id' | 'display_name' | 'display_name_alternatives' | 'affiliation' | 'work';
 
 interface IEvent {
-  uuid: string;
-  orcid?: string;
-  entity: IEntity;
-  field: IField;
-  value: string;
-  label?: string;
-  status: Status;
-  updated_at: string;
+  meta: {
+    uuid: string;
+    label?: string;
+    status: Status;
+    created_at: string;
+    updated_at: string;
+  };
+  data: {
+    official_id: string;
+    openalex_id: string;
+    entity: IEntity;
+    field: IField;
+    value: string;
+  };
 }
 
 export type { Status, IEvent, IField, IEntity };

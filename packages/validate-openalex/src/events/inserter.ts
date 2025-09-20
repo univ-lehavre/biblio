@@ -1,9 +1,13 @@
 import { Store } from '../store';
 import { Effect, Ref } from 'effect';
-import { searchAuthorByORCID } from '../fetch';
+import { searchAuthorByName, searchAuthorByORCID } from '../fetch';
 import { update_store_context, update_store_events } from '../store';
 import { log, print_title, text } from '../prompt';
-import { create_events_from_author_results, hasORCID } from '../events';
+import {
+  author_display_name_alternatives_accepted,
+  create_events_from_author_results,
+  hasORCID,
+} from '../events';
 import type { IState } from '../store/types';
 import type { ConfigError } from '../types';
 
@@ -44,4 +48,22 @@ const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, Store> =>
     yield* print_title();
   });
 
-export { insert_new_ORCID };
+// une fonction qui connaissant deux variables IEvent[] et les PendingOptions à respecter, réduit le premier tableau en supprimant les doublons avec le second tableau
+// const remove_duplicates = (
+//   existing: IEvent[],
+//   newItems: IEvent[],
+//   opts: PendingOptions,
+// ): IEvent[] => {};
+
+const upsert_author_search_by_name = () =>
+  Effect.gen(function* () {
+    const store = yield* Store;
+    const state: IState = yield* Ref.get(store);
+    const names = author_display_name_alternatives_accepted(state).map(e => e.value);
+    const authors = yield* searchAuthorByName(names);
+    const items = create_events_from_author_results(state.context.id as string, authors);
+    // Supprimer les doublons dans l’existant
+    yield* update_store_events([...state.events, ...items]);
+  });
+
+export { insert_new_ORCID, upsert_author_search_by_name };

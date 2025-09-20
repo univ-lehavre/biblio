@@ -2,9 +2,10 @@ import type { PendingOptions } from '../actions/types';
 import type { IState } from '../store/types';
 import type { IEvent } from './types';
 
-const filtered_list_by_attributes = (state: IState, opts: PendingOptions): IEvent[] =>
+const filtered_list_by_attributes = (state: IState, opts: Partial<IEvent>): IEvent[] =>
   state.events
     .map(item => {
+      if (opts.openalex_id && item.openalex_id !== opts.openalex_id) return;
       if (opts.status && item.status !== opts.status) return;
       if (opts.orcid && item.orcid !== opts.orcid) return;
       if (opts.entity && item.entity !== opts.entity) return;
@@ -19,7 +20,12 @@ const filter_pending = (state: IState, opts: PendingOptions): IEvent[] =>
     status: 'pending',
   });
 
-const filter_pending_id = (state: IState, orcid: string): IEvent[] =>
-  filter_pending(state, { orcid, entity: 'author', field: 'id' });
+const author_display_name_alternatives_accepted = (state: IState): IEvent[] =>
+  filtered_list_by_attributes(state, {
+    orcid: state.context.id,
+    entity: 'author',
+    field: 'display_name_alternatives',
+    status: 'accepted',
+  });
 
-export { filtered_list_by_attributes, filter_pending, filter_pending_id };
+export { filtered_list_by_attributes, filter_pending, author_display_name_alternatives_accepted };

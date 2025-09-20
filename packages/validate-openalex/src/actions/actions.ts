@@ -5,8 +5,8 @@ import { save_and_exit } from '../store';
 import {
   insert_new_ORCID,
   mark_affiliations_alternative_strings_reliable,
-  mark_author_display_name_reliable,
   mark_authors_alternative_strings_reliable,
+  mark_authors_display_name_reliable,
 } from '../events';
 
 enum Tasks {
@@ -71,7 +71,7 @@ const actions: Action[] = [
   {
     name: 'Fiabiliser le patronyme de ce chercheur',
     visible: (state: IState) => isVisible(state, 'author', 'author', 'display_name'),
-    action: mark_author_display_name_reliable,
+    action: mark_authors_display_name_reliable,
   },
   {
     name: 'Fiabiliser les formes imprimées du patronyme de ce chercheur',
@@ -82,6 +82,11 @@ const actions: Action[] = [
     name: 'Fiabiliser le parcours de ce chercheur',
     visible: (state: IState) => isVisible(state, 'author', 'author', 'affiliation'),
     action: mark_affiliations_alternative_strings_reliable,
+  },
+  {
+    name: "Étendre la recherche à d'autres formes graphiques du patronyme",
+    visible: (state: IState) => isVisible(state, 'author', 'author', 'display_name'),
+    action: mark_authors_display_name_reliable,
   },
   // {
   //   name: Tasks.INST_FIA,
