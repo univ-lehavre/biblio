@@ -31,17 +31,17 @@
     "dist",
     "CHANGELOG.md"
   ],
-  "main": "dist/univ-lehavre-openalex-types.cjs.js",
-  "module": "dist/univ-lehavre-openalex-types.esm.js",
+  "main": "dist/univ-lehavre-biblio-openalex-types.cjs.js",
+  "module": "dist/univ-lehavre-biblio-openalex-types.esm.js",
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/univ-lehavre-openalex-types.cjs.mjs",
-        "default": "./dist/univ-lehavre-openalex-types.cjs.js"
+        "import": "./dist/univ-lehavre-biblio-openalex-types.cjs.mjs",
+        "default": "./dist/univ-lehavre-biblio-openalex-types.cjs.js"
       },
-      "module": "./dist/univ-lehavre-openalex-types.esm.js",
-      "import": "./dist/univ-lehavre-openalex-types.cjs.mjs",
-      "default": "./dist/univ-lehavre-openalex-types.cjs.js"
+      "module": "./dist/univ-lehavre-biblio-openalex-types.esm.js",
+      "import": "./dist/univ-lehavre-biblio-openalex-types.cjs.mjs",
+      "default": "./dist/univ-lehavre-biblio-openalex-types.cjs.js"
     },
     "./package.json": "./package.json"
   },
