@@ -19,8 +19,8 @@
   },
   "dependencies": {
     "@clack/prompts": "^1.0.0-alpha.4",
-    "@univ-lehavre/fetch-openalex": "workspace:^",
-    "@univ-lehavre/openalex-types": "workspace:^",
+    "@univ-lehavre/biblio-fetch-openalex": "workspace:^",
+    "@univ-lehavre/biblio-openalex-types": "workspace:^",
     "effect": "^3.17.13",
     "json-stable-stringify": "^1.3.0",
     "picocolors": "^1.1.1",

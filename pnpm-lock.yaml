@@ -71,7 +71,7 @@ importers:
       '@clack/prompts':
         specifier: ^1.0.0-alpha.4
         version: 1.0.0-alpha.4
-      '@univ-lehavre/openalex-types':
+      '@univ-lehavre/biblio-openalex-types':
         specifier: workspace:^
         version: link:../openalex-types
       effect:
@@ -109,10 +109,10 @@ importers:
       '@clack/prompts':
         specifier: ^1.0.0-alpha.4
         version: 1.0.0-alpha.4
-      '@univ-lehavre/fetch-openalex':
+      '@univ-lehavre/biblio-fetch-openalex':
         specifier: workspace:^
         version: link:../fetch-openalex
-      '@univ-lehavre/openalex-types':
+      '@univ-lehavre/biblio-openalex-types':
         specifier: workspace:^
         version: link:../openalex-types
       effect:

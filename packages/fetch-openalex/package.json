@@ -17,7 +17,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@univ-lehavre/openalex-types": "workspace:^",
+    "@univ-lehavre/biblio-openalex-types": "workspace:^",
     "@clack/prompts": "^1.0.0-alpha.4",
     "effect": "^3.17.13",
     "qs": "^6.14.0"
