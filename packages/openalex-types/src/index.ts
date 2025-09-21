@@ -1,12 +1,14 @@
+interface IInstitution {
+  id: string;
+  ror: string;
+  display_name: string;
+  country_code: string;
+  type: string;
+  lineage: string[];
+}
+
 interface AffiliationsResult {
-  institution: {
-    id: string;
-    ror: string;
-    display_name: string;
-    country_code: string;
-    type: string;
-    lineage: string[];
-  };
+  institution: IInstitution;
   years: number[];
 }
 
@@ -61,4 +63,4 @@ interface OpenalexResponse<T> {
   results: T[];
 }
 
-export type { AuthorsResult, OpenalexResponse, AffiliationsResult, WorksResult };
+export type { AuthorsResult, OpenalexResponse, AffiliationsResult, WorksResult, IInstitution };
