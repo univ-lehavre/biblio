@@ -99,18 +99,18 @@ const actions: Action[] = [
         },
       ),
   },
-  {
-    name: "Étendre la recherche à d'autres formes graphiques du patronyme",
-    visible: () => isVisible('author', 'display_name'),
-    action: () =>
-      mark_alternative_strings_reliable(
-        'Sélectionnez les formes graphiques correspondantes à ce chercheur',
-        {
-          entity: 'author',
-          field: 'display_name',
-        },
-      ),
-  },
+  // {
+  //   name: "Étendre la recherche à d'autres formes graphiques du patronyme",
+  //   visible: () => isVisible('author', 'display_name'),
+  //   action: () =>
+  //     mark_alternative_strings_reliable(
+  //       'Sélectionnez les formes graphiques correspondantes à ce chercheur',
+  //       {
+  //         entity: 'author',
+  //         field: 'display_name',
+  //       },
+  //     ),
+  // },
   // {
   //   name: Tasks.INST_FIA,
   //   visible: (state: IState) =>

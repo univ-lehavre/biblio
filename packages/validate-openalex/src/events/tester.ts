@@ -13,21 +13,4 @@ const hasORCID = (orcid: string): Effect.Effect<boolean, never, EventsStore> =>
     return events.some(e => e.entity === 'author' && e.id === orcid);
   });
 
-const isUnique = (events: IEvent[]): boolean => {
-  const ids = new Set<string>();
-  for (const event of events) {
-    if (ids.has(event.dataIntegrity)) return true;
-    ids.add(event.dataIntegrity);
-  }
-  return false;
-};
-
-const hasDuplicates = (existing: IEvent[], newItems: IEvent[]): boolean => {
-  const newIDs = new Set<string>(newItems.map(e => e.dataIntegrity));
-  for (const event of existing) {
-    if (newIDs.has(event.dataIntegrity)) return true;
-  }
-  return false;
-};
-
-export { hasPending, hasORCID, isUnique, hasDuplicates };
+export { hasPending, hasORCID };

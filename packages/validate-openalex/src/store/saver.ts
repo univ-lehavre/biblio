@@ -35,6 +35,6 @@ const saveStoresAndExit = () =>
     process.exit(0);
   });
 
-const timestamp = (): string => new Date().toISOString().replaceAll(/[:.]/g, '-');
+// const timestamp = (): string => new Date().toISOString().replaceAll(/[:.]/g, '-');
 
-export { saveEventsStore, saveContextStore, saveStores, saveStoresAndExit, timestamp };
+export { saveEventsStore, saveContextStore, saveStores, saveStoresAndExit };
