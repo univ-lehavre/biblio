@@ -1,6 +1,6 @@
 {
-  "name": "@univ-lehavre/biblio-fetch-openalex",
-  "version": "0.2.0",
+  "name": "@univ-lehavre/biblio-openalex-types",
+  "version": "1.0.2",
   "description": "Un ensemble d’outils pour le téléchargement de fichiers en TypeScript",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
@@ -13,17 +13,14 @@
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
-    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
-    "test": "jest"
+    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix"
   },
   "dependencies": {
-    "@univ-lehavre/biblio-openalex-types": "workspace:^",
     "@clack/prompts": "^1.0.0-alpha.4",
     "effect": "^3.17.13",
     "qs": "^6.14.0"
   },
   "devDependencies": {
-    "@types/qs": "^6.14.0",
     "@univ-lehavre/typescript-config": "^2.0.0"
   },
   "publishConfig": {
@@ -34,17 +31,17 @@
     "dist",
     "CHANGELOG.md"
   ],
-  "main": "dist/univ-lehavre-biblio-fetch-openalex.cjs.js",
-  "module": "dist/univ-lehavre-biblio-fetch-openalex.esm.js",
+  "main": "dist/univ-lehavre-biblio-openalex-types.cjs.js",
+  "module": "dist/univ-lehavre-biblio-openalex-types.esm.js",
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/univ-lehavre-biblio-fetch-openalex.cjs.mjs",
-        "default": "./dist/univ-lehavre-biblio-fetch-openalex.cjs.js"
+        "import": "./dist/univ-lehavre-biblio-openalex-types.cjs.mjs",
+        "default": "./dist/univ-lehavre-biblio-openalex-types.cjs.js"
       },
-      "module": "./dist/univ-lehavre-biblio-fetch-openalex.esm.js",
-      "import": "./dist/univ-lehavre-biblio-fetch-openalex.cjs.mjs",
-      "default": "./dist/univ-lehavre-biblio-fetch-openalex.cjs.js"
+      "module": "./dist/univ-lehavre-biblio-openalex-types.esm.js",
+      "import": "./dist/univ-lehavre-biblio-openalex-types.cjs.mjs",
+      "default": "./dist/univ-lehavre-biblio-openalex-types.cjs.js"
     },
     "./package.json": "./package.json"
   },

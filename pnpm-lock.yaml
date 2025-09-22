@@ -71,6 +71,9 @@ importers:
       '@clack/prompts':
         specifier: ^1.0.0-alpha.4
         version: 1.0.0-alpha.4
+      '@univ-lehavre/biblio-openalex-types':
+        specifier: workspace:^
+        version: link:../openalex-types
       effect:
         specifier: ^3.17.13
         version: 3.17.13
@@ -84,6 +87,53 @@ importers:
       '@univ-lehavre/typescript-config':
         specifier: ^2.0.0
         version: 2.0.0
+
+  packages/openalex-types:
+    dependencies:
+      '@clack/prompts':
+        specifier: ^1.0.0-alpha.4
+        version: 1.0.0-alpha.4
+      effect:
+        specifier: ^3.17.13
+        version: 3.17.13
+      qs:
+        specifier: ^6.14.0
+        version: 6.14.0
+    devDependencies:
+      '@univ-lehavre/typescript-config':
+        specifier: ^2.0.0
+        version: 2.0.0
+
+  packages/validate-openalex:
+    dependencies:
+      '@clack/prompts':
+        specifier: ^1.0.0-alpha.4
+        version: 1.0.0-alpha.4
+      '@univ-lehavre/biblio-fetch-openalex':
+        specifier: workspace:^
+        version: link:../fetch-openalex
+      '@univ-lehavre/biblio-openalex-types':
+        specifier: workspace:^
+        version: link:../openalex-types
+      effect:
+        specifier: ^3.17.13
+        version: 3.17.13
+      json-stable-stringify:
+        specifier: ^1.3.0
+        version: 1.3.0
+      picocolors:
+        specifier: ^1.1.1
+        version: 1.1.1
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
+    devDependencies:
+      '@univ-lehavre/typescript-config':
+        specifier: ^2.0.0
+        version: 2.0.0
+      npm-run-all:
+        specifier: ^4.1.5
+        version: 4.1.5
 
 packages:
 
@@ -2386,6 +2436,10 @@ packages:
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
 
+  json-stable-stringify@1.3.0:
+    resolution: {integrity: sha512-qtYiSSFlwot9XHtF9bD9c7rwKjr+RecWT//ZnPvSmEjpV5mmPOCN4j8UjY5hbjNkOwZ/jQv3J6R1/pL7RwgMsg==}
+    engines: {node: '>= 0.4'}
+
   json5@2.2.3:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
@@ -2393,6 +2447,9 @@ packages:
 
   jsonfile@6.2.0:
     resolution: {integrity: sha512-FGuPw30AdOIUTRMC2OMRtQV+jkVj2cfPqSeWXv1NEAJ1qZ5zb1X6z1mFhbfOB/iy3ssJCD+3KuZ8r8C3uVFlAg==}
+
+  jsonify@0.0.1:
+    resolution: {integrity: sha512-2/Ki0GcmuqSrgFyelQq9M05y7PS0mEwuIzrf3f1fPqkVDVRvZrPZtVSMHxdgo8Aq0sxAOb/cr2aqqA3LeWHVPg==}
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -3170,6 +3227,10 @@ packages:
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
+
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
 
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
@@ -6149,6 +6210,14 @@ snapshots:
 
   json-stable-stringify-without-jsonify@1.0.1: {}
 
+  json-stable-stringify@1.3.0:
+    dependencies:
+      call-bind: 1.0.8
+      call-bound: 1.0.4
+      isarray: 2.0.5
+      jsonify: 0.0.1
+      object-keys: 1.1.1
+
   json5@2.2.3: {}
 
   jsonfile@6.2.0:
@@ -6156,6 +6225,8 @@ snapshots:
       universalify: 2.0.1
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  jsonify@0.0.1: {}
 
   keyv@4.5.4:
     dependencies:
@@ -6954,6 +7025,8 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
+
+  uuid@13.0.0: {}
 
   v8-compile-cache-lib@3.0.1: {}
 
