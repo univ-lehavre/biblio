@@ -4,7 +4,7 @@
   "description": "Un ensemble d’outils pour la validation de données bibliographiques en TypeScript",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
-  "repository": "https://github.com/univ-lehavre/bibliographic",
+  "repository": "https://github.com/univ-lehavre/biblio",
   "scripts": {
     "build": "preconstruct build",
     "dev": "preconstruct watch",
