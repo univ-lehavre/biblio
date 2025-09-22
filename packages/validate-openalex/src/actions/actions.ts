@@ -1,11 +1,7 @@
 import { isVisible } from './tester';
 import { insert_new_ORCID } from './actors';
 import { saveStoresAndExit } from '../store';
-import {
-  mark_affiliations_alternative_strings_reliable,
-  mark_authors_alternative_strings_reliable,
-  mark_authors_display_name_reliable,
-} from '../events';
+import { mark_alternative_strings_reliable } from '.';
 import type { Action } from './types';
 
 // enum Tasks {
@@ -70,22 +66,50 @@ const actions: Action[] = [
   {
     name: 'Fiabiliser le patronyme de ce chercheur',
     visible: () => isVisible('author', 'display_name'),
-    action: mark_authors_display_name_reliable,
+    action: () =>
+      mark_alternative_strings_reliable(
+        'Sélectionnez les formes graphiques correspondantes à ce chercheur',
+        {
+          entity: 'author',
+          field: 'display_name',
+        },
+      ),
   },
   {
     name: 'Fiabiliser les formes imprimées du patronyme de ce chercheur',
     visible: () => isVisible('author', 'display_name_alternatives'),
-    action: mark_authors_alternative_strings_reliable,
+    action: () =>
+      mark_alternative_strings_reliable(
+        'Sélectionnez les formes graphiques correspondantes à ce chercheur',
+        {
+          entity: 'author',
+          field: 'display_name_alternatives',
+        },
+      ),
   },
   {
     name: 'Fiabiliser le parcours de ce chercheur',
     visible: () => isVisible('author', 'affiliation'),
-    action: mark_affiliations_alternative_strings_reliable,
+    action: () =>
+      mark_alternative_strings_reliable(
+        'Sélectionnez les affiliations correspondantes au chercheur',
+        {
+          entity: 'author',
+          field: 'affiliation',
+        },
+      ),
   },
   {
     name: "Étendre la recherche à d'autres formes graphiques du patronyme",
     visible: () => isVisible('author', 'display_name'),
-    action: mark_authors_display_name_reliable,
+    action: () =>
+      mark_alternative_strings_reliable(
+        'Sélectionnez les formes graphiques correspondantes à ce chercheur',
+        {
+          entity: 'author',
+          field: 'display_name',
+        },
+      ),
   },
   // {
   //   name: Tasks.INST_FIA,
