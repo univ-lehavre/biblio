@@ -68,7 +68,7 @@ const actions: Action[] = [
     visible: () => isVisible('author', 'display_name'),
     action: () =>
       mark_alternative_strings_reliable(
-        'Sélectionnez les formes graphiques correspondantes à ce chercheur',
+        'Sélectionnez les patronymes correspondant à ce chercheur',
         {
           entity: 'author',
           field: 'display_name',
@@ -80,7 +80,7 @@ const actions: Action[] = [
     visible: () => isVisible('author', 'display_name_alternatives'),
     action: () =>
       mark_alternative_strings_reliable(
-        'Sélectionnez les formes graphiques correspondantes à ce chercheur',
+        'Sélectionnez les formes imprimées correspondantes à ce chercheur',
         {
           entity: 'author',
           field: 'display_name_alternatives',

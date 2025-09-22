@@ -10,7 +10,7 @@ const buildIntegrity = (data: unknown): Effect.Effect<string, never, ContextStor
     const NAMESPACE: string = (yield* getContext()).NAMESPACE;
     const str: string = stringify(data) ?? '';
     const encoder: TextEncoder = new TextEncoder();
-    const encoded: Uint8Array<ArrayBufferLike> = encoder.encode(str);
+    const encoded: Uint8Array = encoder.encode(str);
     const digest: string = v5(encoded, NAMESPACE);
     return digest;
   });
