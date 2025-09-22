@@ -1,24 +1,19 @@
 import { Effect } from 'effect';
-import { Store } from '../store';
-import type { IEntity, IField, Status } from '../events/types';
-import type { IState } from '../store/types';
+import { ContextStore, EventsStore } from '../store';
+import type { IEventData, Status } from '../events/types';
 
-interface PendingOptions {
-  openalex_id?: string;
-  orcid?: string;
-  entity?: IEntity;
-  field?: IField;
-  status?: Status;
-}
+type PendingOptions = IEventData & {
+  status: Status;
+};
 
 interface Action {
   name: string;
-  visible: (state: IState) => boolean;
   group?: {
     name: string;
     index: number;
   };
-  action: () => Effect.Effect<void, unknown, Store>;
+  visible: () => Effect.Effect<void, unknown, ContextStore | EventsStore>;
+  action: () => Effect.Effect<void, unknown, EventsStore>;
 }
 
 export type { Action, PendingOptions };

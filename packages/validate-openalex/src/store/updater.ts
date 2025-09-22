@@ -1,26 +1,18 @@
-import { Store } from '../store';
 import { Effect, Ref } from 'effect';
-import { IEvent } from '../events/types';
-import { IContext } from './types';
+import { ContextStore, EventsStore } from '../store';
+import type { IEvent } from '../events/types';
+import type { IContext } from './types';
 
-const update_store_events = (events: IEvent[]): Effect.Effect<void, never, Store> =>
+const updateEventsStore = (events: IEvent[]): Effect.Effect<void, never, EventsStore> =>
   Effect.gen(function* () {
-    const store = yield* Store;
-    yield* Ref.update(store, state => ({
-      context: state.context,
-      events,
-    }));
+    const store = yield* EventsStore;
+    yield* Ref.update(store, () => events);
   });
 
-const update_store_context = (context: IContext): Effect.Effect<void, never, Store> =>
+const updateContextStore = (context: IContext): Effect.Effect<void, never, ContextStore> =>
   Effect.gen(function* () {
-    const store = yield* Store;
-    // Mettre à jour le label en fonction du display_name accepté
-    // if (?context.label) context.label = undefined;
-    yield* Ref.update(store, state => ({
-      context,
-      events: state.events,
-    }));
+    const store = yield* ContextStore;
+    yield* Ref.update(store, () => context);
   });
 
-export { update_store_events, update_store_context };
+export { updateEventsStore, updateContextStore };

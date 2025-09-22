@@ -1,24 +1,28 @@
-import { Effect, Ref } from 'effect';
-import { load, provideStore, save, Store } from './store';
-import { actions, active_actions, Tasks } from './actions';
+import { Effect } from 'effect';
+import { getEventsData } from './events';
+import { actions, active_actions } from './actions';
 import { action2option, print_title, select } from './prompt';
-import { Action } from './actions/types';
+import { loadStores, saveStores, provideContextStore, provideEventsStore } from './store';
+import type { IEventData } from './events/types';
+import type { Action } from './actions/types';
 
-const start = (file: string = 'state.json') =>
+const start = () =>
   Effect.gen(function* () {
-    const store = yield* Store;
-    yield* load(file);
+    yield* loadStores();
     yield* print_title();
-    while (true) {
-      const state = yield* Ref.get(store);
-      const options = active_actions(state).map(action2option);
-      const selected_action_value = yield* select(Tasks.WHAT, options);
-      const action: Action | undefined = actions.find(
-        action => action.name === selected_action_value.toString(),
-      );
-      if (action) yield* action.action();
-      yield* save();
-    }
+    yield* Effect.forever(ask());
   });
 
-Effect.runPromiseExit(start().pipe(provideStore()));
+const ask = () =>
+  Effect.gen(function* () {
+    const events: IEventData[] = yield* getEventsData();
+    const options = active_actions(events).map(action2option);
+    const selected_action_value = yield* select('Que souhaitez-vous faire ?', options);
+    const action: Action | undefined = actions.find(
+      action => action.name === selected_action_value.toString(),
+    );
+    if (action) yield* action.action();
+    yield* saveStores();
+  });
+
+Effect.runPromiseExit(start().pipe(provideContextStore(), provideEventsStore()));

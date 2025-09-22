@@ -4,21 +4,24 @@ type IEntity = 'author' | 'institution' | 'work';
 
 type IField = 'id' | 'display_name' | 'display_name_alternatives' | 'affiliation' | 'work';
 
-interface IEvent {
-  meta: {
-    uuid: string;
-    label?: string;
-    status: Status;
-    created_at: string;
-    updated_at: string;
-  };
-  data: {
-    official_id: string;
-    openalex_id: string;
-    entity: IEntity;
-    field: IField;
-    value: string;
-  };
+interface IEventMeta {
+  /** Source des données : OpenAlexID */
+  from: string;
+  status: Status;
+  label?: string;
+  dataIntegrity: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export type { Status, IEvent, IField, IEntity };
+interface IEventData {
+  /** ORCID, ROR, DOI relatif à l'entité définie */
+  id: string;
+  entity: IEntity;
+  field: IField;
+  value: string;
+}
+
+interface IEvent extends IEventMeta, IEventData {}
+
+export type { Status, IEvent, IEventMeta, IEventData, IField, IEntity };

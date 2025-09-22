@@ -1,10 +1,27 @@
+import color from 'picocolors';
 import { Effect } from 'effect';
+import { getContext } from '../context';
+import { ContextStore } from '../store';
 import {
-  Option,
+  type Option,
+  log,
+  intro,
+  outro,
   select as select_prompt,
   multiselect as multiselect_prompt,
   text as text_prompt,
 } from '@clack/prompts';
+import type { IContext } from '../store/types';
+
+const print_title = (): Effect.Effect<void, never, ContextStore> =>
+  Effect.gen(function* () {
+    const context: IContext = yield* getContext();
+    const title = context.id !== undefined ? `${context.label} (${context.id})` : 'OpenAlex';
+    console.clear();
+    intro(`${color.bgCyan(color.black(` ${title} `))}\n`);
+  });
+
+const end = () => outro(`${color.bgGreen(color.black(` Fin `))}`);
 
 const select = (message: string, options: Option<string>[]) =>
   Effect.tryPromise({
@@ -42,5 +59,4 @@ const text = (
     catch: () => new Error('Erreur lors de la saisie'),
   });
 
-export { select, multiselect, text };
-export { outro } from '@clack/prompts';
+export { select, multiselect, text, print_title, end, log };

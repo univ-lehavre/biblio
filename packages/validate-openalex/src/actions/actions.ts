@@ -113,4 +113,4 @@ const actions: Action[] = [
   },
 ];
 
-export { actions, Tasks };
+export { actions };

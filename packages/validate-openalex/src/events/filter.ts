@@ -1,31 +1,34 @@
-import type { PendingOptions } from '../actions/types';
-import type { IState } from '../store/types';
 import type { IEvent } from './types';
 
-const filtered_list_by_attributes = (state: IState, opts: Partial<IEvent>): IEvent[] =>
-  state.events
+const filterByAttributes = (events: IEvent[], opts: Partial<IEvent>): IEvent[] =>
+  events
     .map(item => {
-      if (opts.openalex_id && item.openalex_id !== opts.openalex_id) return;
+      // Filter on meta
+      if (opts.from && item.from !== opts.from) return;
       if (opts.status && item.status !== opts.status) return;
-      if (opts.orcid && item.orcid !== opts.orcid) return;
+      if (opts.label && item.label !== opts.label) return;
+      if (opts.dataIntegrity && item.dataIntegrity !== opts.dataIntegrity) return;
+      // Filter on data
+      if (opts.id && item.id !== opts.id) return;
       if (opts.entity && item.entity !== opts.entity) return;
       if (opts.field && item.field !== opts.field) return;
+      if (opts.value && item.value !== opts.value) return;
       return item;
     })
     .filter(item => item !== undefined);
 
-const filter_pending = (state: IState, opts: PendingOptions): IEvent[] =>
-  filtered_list_by_attributes(state, {
+const filterPending = (events: IEvent[], opts: Partial<IEvent>): IEvent[] =>
+  filterByAttributes(events, {
     ...opts,
     status: 'pending',
   });
 
-const author_display_name_alternatives_accepted = (state: IState): IEvent[] =>
-  filtered_list_by_attributes(state, {
-    orcid: state.context.id,
+const filterAcceptedAuthorDisplayNameAlternatives = (events: IEvent[], orcid: string): IEvent[] =>
+  filterByAttributes(events, {
+    id: orcid,
     entity: 'author',
     field: 'display_name_alternatives',
     status: 'accepted',
   });
 
-export { filtered_list_by_attributes, filter_pending, author_display_name_alternatives_accepted };
+export { filterPending, filterAcceptedAuthorDisplayNameAlternatives };

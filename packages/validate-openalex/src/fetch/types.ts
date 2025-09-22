@@ -10,5 +10,5 @@ interface FetchOpenAlexAPIOptions {
   cursor?: string;
 }
 
-export type { AuthorsResult } from '@univ-lehavre/openalex-types';
+export type { AuthorsResult, IInstitution } from '@univ-lehavre/biblio-openalex-types';
 export type { FetchOpenAlexAPIOptions };

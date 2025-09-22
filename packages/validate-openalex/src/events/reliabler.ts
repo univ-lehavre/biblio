@@ -1,9 +1,11 @@
-import { Store } from '../store';
 import { Effect, Ref } from 'effect';
-import { update_store_context, update_store_events } from '../store';
 import { event2option, multiselect } from '../prompt';
-import { filter_pending, update_status } from '../events';
 import { PendingOptions } from '../actions/types';
+import { getORCID } from '../context';
+import { filterPending } from './filter';
+import { getEvents } from './getter';
+import { updateStatusEventsBasedOnAcceptedValues } from './updater';
+import { updateEventsStore } from '../store';
 
 const uniqueSorted = (items: string[]): string[] =>
   Array.from(new Set(items))
@@ -14,17 +16,15 @@ const mark_alternative_strings_reliable = (
   message: string,
   opts: PendingOptions,
   addORCID = true,
-): Effect.Effect<void, Error, Store> =>
+) =>
   Effect.gen(function* () {
-    const store = yield* Store;
-    const state = yield* Ref.get(store);
-    if (addORCID) opts.orcid = state.context.id;
-    const options = filter_pending(state, opts).map(event2option);
+    if (addORCID) opts.id = yield* getORCID();
+    const options = filterPending(yield* getEvents(), opts).map(event2option);
     const selected = yield* multiselect(message, false, options);
     if (selected instanceof Array && selected.length > 0) {
       // Mise à jour des événements
-      const updated = update_status(state, selected, opts);
-      yield* update_store_events(updated);
+      const updated = updateStatusEventsBasedOnAcceptedValues(yield* getEvents(), selected, opts);
+      yield* updateEventsStore(updated);
       // Mise à jour des éventuels identifiants OpenAlex
       const ids = uniqueSorted(
         updated.filter(e => e.status === 'accepted').map(e => e.openalex_id),

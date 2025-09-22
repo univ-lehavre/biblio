@@ -1,7 +1,8 @@
 import { actions } from '.';
-import { IState } from '../store/types';
-import { Action } from './types';
+import type { IEventData } from '../events/types';
+import type { Action } from './types';
 
-const active_actions = (state: IState): Action[] => actions.filter(action => action.visible(state));
+const active_actions = (events: IEventData[]): Action[] =>
+  actions.filter(action => action.visible(events));
 
 export { active_actions };
