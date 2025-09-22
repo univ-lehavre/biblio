@@ -1,8 +1,19 @@
+import { Effect } from 'effect';
 import { actions } from '.';
-import type { IEventData } from '../events/types';
 import type { Action } from './types';
 
-const active_actions = (events: IEventData[]): Action[] =>
-  actions.filter(action => action.visible(events));
+const active_actions = () =>
+  Effect.gen(function* () {
+    const items: Action[] = [];
+    for (const action of actions) {
+      if (!action.visible) {
+        items.push(action);
+      } else {
+        const visible = yield* action.visible();
+        if (visible) items.push(action);
+      }
+    }
+    return items;
+  });
 
 export { active_actions };

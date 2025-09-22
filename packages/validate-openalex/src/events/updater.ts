@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
 import { getEvents } from './getter';
-import { filterDuplicates, filterPending } from './filter';
+import { filterPending } from './filter';
 import type { IEvent, Status } from './types';
 import { updateEventsStore } from '../store';
 
@@ -24,8 +24,7 @@ const updateEventsStoreBasedOnAcceptedValues = (values: string[], opts: Partial<
   Effect.gen(function* () {
     const events = yield* getEvents();
     const updated = updateEventStatusBasedOnAcceptedValues(events, values, opts).map(updateDate);
-    const noDuplicates = filterDuplicates(events, updated);
-    yield* updateEventsStore(noDuplicates);
+    yield* updateEventsStore(updated);
   });
 
 export { updateEventsStoreBasedOnAcceptedValues };

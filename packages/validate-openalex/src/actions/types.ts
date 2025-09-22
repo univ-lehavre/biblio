@@ -7,8 +7,8 @@ interface Action {
     name: string;
     index: number;
   };
-  visible: () => Effect.Effect<void, unknown, ContextStore | EventsStore>;
-  action: () => Effect.Effect<void, unknown, EventsStore>;
+  visible?: () => Effect.Effect<boolean, unknown, ContextStore | EventsStore>;
+  action: () => Effect.Effect<void, unknown, ContextStore | EventsStore>;
 }
 
 export type { Action };

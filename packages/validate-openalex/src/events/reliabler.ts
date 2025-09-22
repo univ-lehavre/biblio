@@ -5,20 +5,26 @@ import { filterPending } from './filter';
 import { event2option, multiselect } from '../prompt';
 import { updateEventsStoreBasedOnAcceptedValues } from './updater';
 import type { IEvent } from './types';
+import { ContextStore, EventsStore } from '../store';
 
-const mark_alternative_strings_reliable = (message: string, opts: Partial<IEvent>) =>
+const mark_alternative_strings_reliable = (
+  message: string,
+  opts: Partial<IEvent>,
+): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     if (!opts.id) opts.id = yield* getORCID();
     const events = yield* getEvents();
     const options = filterPending(events, opts).map(event2option);
     const selected = yield* multiselect(message, false, options);
-    if (selected instanceof Array && selected.length > 0) {
-      // Mise à jour des événements
+    if (selected instanceof Array && selected.length > 0)
       yield* updateEventsStoreBasedOnAcceptedValues(selected, opts);
-    }
   });
 
-const mark_authors_display_name_reliable = () =>
+const mark_authors_display_name_reliable = (): Effect.Effect<
+  void,
+  Error,
+  ContextStore | EventsStore
+> =>
   mark_alternative_strings_reliable(
     'Sélectionnez les formes graphiques correspondantes à ce chercheur',
     {
@@ -27,7 +33,11 @@ const mark_authors_display_name_reliable = () =>
     },
   );
 
-const mark_authors_alternative_strings_reliable = () =>
+const mark_authors_alternative_strings_reliable = (): Effect.Effect<
+  void,
+  Error,
+  ContextStore | EventsStore
+> =>
   mark_alternative_strings_reliable(
     'Sélectionnez les formes graphiques correspondantes à ce chercheur',
     {
@@ -36,7 +46,11 @@ const mark_authors_alternative_strings_reliable = () =>
     },
   );
 
-const mark_affiliations_alternative_strings_reliable = () =>
+const mark_affiliations_alternative_strings_reliable = (): Effect.Effect<
+  void,
+  Error,
+  ContextStore | EventsStore
+> =>
   mark_alternative_strings_reliable('Sélectionnez les affiliations correspondantes au chercheur', {
     entity: 'author',
     field: 'affiliation',
