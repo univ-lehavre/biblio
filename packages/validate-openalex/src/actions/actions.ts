@@ -4,8 +4,7 @@ import {
   insert_new_ORCID,
   mark_alternative_strings_reliable,
   isContext,
-  removeAuthorPendings,
-  hasEventsForThisORCID,
+  extendsEventsWithAlternativeStrings,
 } from '.';
 import type { Action } from './types';
 
@@ -71,20 +70,8 @@ const actions: Action[] = [
   },
   {
     name: "Étendre la recherche à d'autres formes imprimées de ce chercheur",
-    visible: () => isContext('author') && hasEventsForThisORCID(),
-    action: () =>
-      mark_alternative_strings_reliable(
-        'Sélectionnez les formes imprimées correspondantes à ce chercheur',
-        {
-          entity: 'author',
-          field: 'display_name',
-        },
-      ),
-  },
-  {
-    name: 'Supprimer les données non fiabilisées de ce chercheur',
-    visible: () => isContext('author') && hasPendings('author'),
-    action: () => removeAuthorPendings(),
+    visible: () => isContext('author'),
+    action: () => extendsEventsWithAlternativeStrings(),
   },
   {
     name: 'Sélectionner un chercheur',

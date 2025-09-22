@@ -19,7 +19,7 @@ const print_title = (): Effect.Effect<void, never, ContextStore | EventsStore> =
   Effect.gen(function* () {
     const { id }: IContext = yield* getContext();
     const display_name: string[] = yield* getDisplayNames();
-    const hasORCIDEvents = yield* hasEventsForThisORCID();
+    const hasORCIDEvents: boolean = id ? yield* hasEventsForThisORCID() : false;
     const title: string =
       display_name.length > 0
         ? `${display_name.join(', ')} (${id})`

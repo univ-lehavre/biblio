@@ -15,4 +15,10 @@ const buildIntegrity = (data: unknown): Effect.Effect<string, never, ContextStor
     return digest;
   });
 
-export { buildIntegrity };
+// Une fonction prenant un string[] et retournant un tableau avec des chaînes uniques et triées
+const uniqueSorted = (values: string[]): string[] => {
+  const unique: string[] = Array.from(new Set(values));
+  return unique.sort();
+};
+
+export { buildIntegrity, uniqueSorted };
