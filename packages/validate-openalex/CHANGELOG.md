@@ -1,5 +1,11 @@
 # @univ-lehavre/validate-openalex
 
+## 0.1.1
+
+### Patch Changes
+
+- 1e3d0c1: Le style du code a été amélioré
+
 ## 0.1.0
 
 ### Minor Changes
