@@ -25,4 +25,12 @@ const getEvents = (): Effect.Effect<IEvent[], never, EventsStore> =>
     return events;
   });
 
-export { getEventsData, getEvents, getEventData };
+const getDisplayNames = () =>
+  Effect.gen(function* () {
+    const events = yield* getEvents();
+    return events
+      .filter(e => e.entity === 'author' && e.field === 'display_name' && e.status === 'accepted')
+      .map(e => e.value);
+  });
+
+export { getEventsData, getEvents, getEventData, getDisplayNames };

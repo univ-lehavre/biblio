@@ -7,12 +7,12 @@ import type { Action } from './actions/types';
 const start = () =>
   Effect.gen(function* () {
     yield* loadStores();
-    yield* print_title();
     yield* Effect.forever(ask());
   });
 
 const ask = () =>
   Effect.gen(function* () {
+    yield* print_title();
     const actives: Action[] = yield* active_actions();
     const options = actives.map(action2option);
     const selected_action_value = (yield* select('Que souhaitez-vous faire ?', options)).toString();

@@ -20,4 +20,10 @@ const mark_alternative_strings_reliable = (
       yield* updateEventsStoreBasedOnAcceptedValues(selected, opts);
   });
 
+//const searchAlternativeReliableStrings = () =>
+// Effect.gen(function* () {
+//   const orcid = yield* getORCID();
+//   const events = yield* getEvents();
+// });
+
 export { mark_alternative_strings_reliable };

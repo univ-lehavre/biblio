@@ -1,30 +1,25 @@
 import type { IEvent } from './types';
 
-const filterByAttributes = (events: IEvent[], opts: Partial<IEvent>): IEvent[] =>
-  events
-    .map(item => {
-      // Filter on meta
-      if (opts.from && item.from !== opts.from) return;
-      if (opts.status && item.status !== opts.status) return;
-      if (opts.label && item.label !== opts.label) return;
-      if (opts.dataIntegrity && item.dataIntegrity !== opts.dataIntegrity) return;
-      // Filter on data
-      if (opts.id && item.id !== opts.id) return;
-      if (opts.entity && item.entity !== opts.entity) return;
-      if (opts.field && item.field !== opts.field) return;
-      if (opts.value && item.value !== opts.value) return;
-      return item;
-    })
-    .filter(item => item !== undefined);
+const isInteresting = (event: IEvent, opts: Partial<IEvent>): boolean => {
+  const keys = Object.keys(opts) as (keyof IEvent)[];
+  if (keys.length === 0) return true;
+  for (const key of keys) {
+    if (event[key] !== opts[key]) return false;
+  }
+  return true;
+};
+
+const filterEventsByAttributes = (events: IEvent[], opts: Partial<IEvent>): IEvent[] =>
+  events.filter(event => isInteresting(event, opts));
 
 const filterPending = (events: IEvent[], opts: Partial<IEvent>): IEvent[] =>
-  filterByAttributes(events, {
+  filterEventsByAttributes(events, {
     ...opts,
     status: 'pending',
   });
 
 const filterAcceptedAuthorDisplayNameAlternatives = (events: IEvent[], orcid: string): IEvent[] =>
-  filterByAttributes(events, {
+  filterEventsByAttributes(events, {
     id: orcid,
     entity: 'author',
     field: 'display_name_alternatives',
@@ -37,4 +32,9 @@ const filterDuplicates = (existing: IEvent[], updated: IEvent[]): IEvent[] => {
   return [...unchanged, ...updated];
 };
 
-export { filterPending, filterAcceptedAuthorDisplayNameAlternatives, filterDuplicates };
+export {
+  filterPending,
+  filterAcceptedAuthorDisplayNameAlternatives,
+  filterDuplicates,
+  isInteresting,
+};

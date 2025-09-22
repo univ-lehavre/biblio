@@ -1,7 +1,8 @@
 import color from 'picocolors';
 import { Effect } from 'effect';
 import { getContext } from '../context';
-import { ContextStore } from '../store';
+import { getDisplayNames } from '../events';
+import { ContextStore, EventsStore } from '../store';
 import {
   type Option,
   log,
@@ -12,11 +13,19 @@ import {
   text as text_prompt,
 } from '@clack/prompts';
 import type { IContext } from '../store/types';
+import { hasEventsForThisORCID } from '../actions';
 
-const print_title = (): Effect.Effect<void, never, ContextStore> =>
+const print_title = (): Effect.Effect<void, never, ContextStore | EventsStore> =>
   Effect.gen(function* () {
-    const context: IContext = yield* getContext();
-    const title = context.id !== undefined ? `${context.label} (${context.id})` : 'OpenAlex';
+    const { id }: IContext = yield* getContext();
+    const display_name: string[] = yield* getDisplayNames();
+    const hasORCIDEvents = yield* hasEventsForThisORCID();
+    const title: string =
+      display_name.length > 0
+        ? `${display_name.join(', ')} (${id})`
+        : id && hasORCIDEvents
+          ? `ORCID ${id}`
+          : 'OpenAlex';
     console.clear();
     intro(`${color.bgCyan(color.black(` ${title} `))}\n`);
   });

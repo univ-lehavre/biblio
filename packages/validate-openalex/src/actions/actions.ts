@@ -1,5 +1,12 @@
 import { saveStoresAndExit } from '../store';
-import { hasPendings, insert_new_ORCID, mark_alternative_strings_reliable, isContext } from '.';
+import {
+  hasPendings,
+  insert_new_ORCID,
+  mark_alternative_strings_reliable,
+  isContext,
+  removeAuthorPendings,
+  hasEventsForThisORCID,
+} from '.';
 import type { Action } from './types';
 
 /**
@@ -28,7 +35,7 @@ import type { Action } from './types';
 const actions: Action[] = [
   {
     name: 'Fiabiliser le patronyme de ce chercheur',
-    visible: () => hasPendings('author', 'display_name'),
+    visible: () => isContext('author') && hasPendings('author', 'display_name'),
     action: () =>
       mark_alternative_strings_reliable(
         'Sélectionnez les patronymes correspondant à ce chercheur',
@@ -40,7 +47,7 @@ const actions: Action[] = [
   },
   {
     name: 'Fiabiliser les formes imprimées du patronyme de ce chercheur',
-    visible: () => hasPendings('author', 'display_name_alternatives'),
+    visible: () => isContext('author') && hasPendings('author', 'display_name_alternatives'),
     action: () =>
       mark_alternative_strings_reliable(
         'Sélectionnez les formes imprimées correspondantes à ce chercheur',
@@ -52,7 +59,7 @@ const actions: Action[] = [
   },
   {
     name: 'Fiabiliser le parcours de ce chercheur',
-    visible: () => hasPendings('author', 'affiliation'),
+    visible: () => isContext('author') && hasPendings('author', 'affiliation'),
     action: () =>
       mark_alternative_strings_reliable(
         'Sélectionnez les affiliations correspondantes au chercheur',
@@ -64,7 +71,7 @@ const actions: Action[] = [
   },
   {
     name: "Étendre la recherche à d'autres formes imprimées de ce chercheur",
-    visible: () => isContext('author'),
+    visible: () => isContext('author') && hasEventsForThisORCID(),
     action: () =>
       mark_alternative_strings_reliable(
         'Sélectionnez les formes imprimées correspondantes à ce chercheur',
@@ -73,6 +80,11 @@ const actions: Action[] = [
           field: 'display_name',
         },
       ),
+  },
+  {
+    name: 'Supprimer les données non fiabilisées de ce chercheur',
+    visible: () => isContext('author') && hasPendings('author'),
+    action: () => removeAuthorPendings(),
   },
   {
     name: 'Sélectionner un chercheur',

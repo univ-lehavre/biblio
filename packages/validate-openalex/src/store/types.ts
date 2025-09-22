@@ -6,7 +6,6 @@ interface IContext {
   type: IContextType;
   // Description
   id: string | undefined;
-  label?: string;
   // Stockage du contexte et des évènements
   backup: boolean;
   context_file: string;

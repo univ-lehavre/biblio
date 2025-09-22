@@ -1,9 +1,11 @@
 import { Effect } from 'effect';
-import { buildAuthorResultsPendingEvents, hasORCID } from '../events';
+import { buildAuthorResultsPendingEvents, getEvents, hasORCID, isInteresting } from '../events';
 import { log, print_title, text } from '../prompt';
 import { ContextStore, EventsStore, updateContextStore, updateEventsStore } from '../store';
 import { searchAuthorByORCID } from '../fetch';
 import { ConfigError } from 'effect/ConfigError';
+import { getORCID } from '../context';
+import { setEventsStore } from '../store/setter';
 
 const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
@@ -35,4 +37,22 @@ const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextSto
     }
   });
 
-export { insert_new_ORCID };
+const hasEventsForThisORCID = (): Effect.Effect<boolean, never, ContextStore | EventsStore> =>
+  Effect.gen(function* () {
+    const orcid: string | undefined = yield* getORCID();
+    if (!orcid) return false;
+    const events = yield* getEvents();
+    return events.some(event => event.entity === 'author' && event.id === orcid);
+  });
+
+const removeAuthorPendings = () =>
+  Effect.gen(function* () {
+    const orcid: string | undefined = yield* getORCID();
+    const events = yield* getEvents();
+    const notPendings = events.filter(
+      event => !isInteresting(event, { id: orcid, status: 'pending' }),
+    );
+    yield* setEventsStore(notPendings);
+  });
+
+export { insert_new_ORCID, removeAuthorPendings, hasEventsForThisORCID };
