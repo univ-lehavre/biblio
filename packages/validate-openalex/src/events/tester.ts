@@ -1,8 +1,7 @@
 import { filterPending } from './filter';
-import type { PendingOptions } from '../actions/types';
 import { IEvent } from './types';
 
-const hasPending = (events: IEvent[], opts: PendingOptions): boolean =>
+const hasPending = (events: IEvent[], opts: Partial<IEvent>): boolean =>
   filterPending(events, opts).length > 0;
 
 const hasORCID = (events: IEvent[], orcid: string): boolean =>
@@ -11,16 +10,16 @@ const hasORCID = (events: IEvent[], orcid: string): boolean =>
 const isUnique = (events: IEvent[]): boolean => {
   const ids = new Set<string>();
   for (const event of events) {
-    if (ids.has(event.uuid)) return true;
-    ids.add(event.uuid);
+    if (ids.has(event.dataIntegrity)) return true;
+    ids.add(event.dataIntegrity);
   }
   return false;
 };
 
 const hasDuplicates = (existing: IEvent[], newItems: IEvent[]): boolean => {
-  const newIDs = new Set<string>(newItems.map(e => e.uuid));
+  const newIDs = new Set<string>(newItems.map(e => e.dataIntegrity));
   for (const event of existing) {
-    if (newIDs.has(event.uuid)) return true;
+    if (newIDs.has(event.dataIntegrity)) return true;
   }
   return false;
 };

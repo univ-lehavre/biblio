@@ -1,12 +1,14 @@
-import { filterPending } from './filter';
-import type { PendingOptions } from '../actions/types';
+import { Effect } from 'effect';
+import { getEvents } from './getter';
+import { filterDuplicates, filterPending } from './filter';
 import type { IEvent, Status } from './types';
+import { updateEventsStore } from '../store';
 
-const updatePendingStatusEventsBasedOnAcceptedValues = (
+const updateEventStatusBasedOnAcceptedValues = (
   events: IEvent[],
   /** Accepted values from events */
   accepted: string[],
-  opts: PendingOptions,
+  opts: Partial<IEvent>,
 ): IEvent[] =>
   filterPending(events, opts).map(event => {
     const status: Status = accepted.includes(event.value) ? 'accepted' : 'rejected';
@@ -15,20 +17,15 @@ const updatePendingStatusEventsBasedOnAcceptedValues = (
 
 const updateDate = (event: IEvent): IEvent => ({
   ...event,
-  updated_at: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 });
 
-const updateStatusEventsBasedOnAcceptedValues = (
-  events: IEvent[],
-  values: string[],
-  opts: PendingOptions,
-): IEvent[] => {
-  const updated = updatePendingStatusEventsBasedOnAcceptedValues(events, values, opts).map(
-    updateDate,
-  );
-  const uuids = updated.map(e => e.uuid);
-  const unchanged = events.filter(e => !uuids.includes(e.uuid));
-  return [...unchanged, ...updated];
-};
+const updateEventsStoreBasedOnAcceptedValues = (values: string[], opts: Partial<IEvent>) =>
+  Effect.gen(function* () {
+    const events = yield* getEvents();
+    const updated = updateEventStatusBasedOnAcceptedValues(events, values, opts).map(updateDate);
+    const noDuplicates = filterDuplicates(events, updated);
+    yield* updateEventsStore(noDuplicates);
+  });
 
-export { updateStatusEventsBasedOnAcceptedValues };
+export { updateEventsStoreBasedOnAcceptedValues };

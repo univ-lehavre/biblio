@@ -1,22 +1,10 @@
-import { v5 } from 'uuid';
 import { Effect } from 'effect';
-import { TextEncoder } from 'util';
 import { getContext } from '../context';
 import { ContextStore } from '../store';
 import { getEventData } from './getter';
-import stringify from 'json-stable-stringify';
+import { buildIntegrity } from '../tools';
 import type { AuthorsResult, IInstitution } from '../fetch/types';
-import type { IEvent, IEventData } from './types';
-
-const buildIntegrity = (data: unknown): Effect.Effect<string, never, ContextStore> =>
-  Effect.gen(function* () {
-    const NAMESPACE: string = (yield* getContext()).NAMESPACE;
-    const str: string | undefined = stringify(data);
-    const encoder: TextEncoder = new TextEncoder();
-    const encoded: Uint8Array<ArrayBufferLike> = encoder.encode(str);
-    const digest: string = v5(encoded, NAMESPACE);
-    return digest;
-  });
+import type { IEvent } from './types';
 
 const buildEvent = (
   partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt'>,
@@ -54,15 +42,6 @@ const buildAuthorResultsPendingEvents = (
     for (const author of authors) {
       const openalexID = author.id;
       // Traitement des données personnelles de l'auteur
-      const id: IEvent = yield* buildPendingAuthorEvent({
-        from: openalexID,
-        id: orcid,
-        entity: 'author',
-        field: 'id',
-        value: openalexID,
-        label: author.display_name,
-      });
-      items.push(id);
       const display_name: IEvent = yield* buildPendingAuthorEvent({
         from: openalexID,
         id: orcid,

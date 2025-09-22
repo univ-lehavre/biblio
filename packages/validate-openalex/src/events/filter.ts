@@ -31,4 +31,10 @@ const filterAcceptedAuthorDisplayNameAlternatives = (events: IEvent[], orcid: st
     status: 'accepted',
   });
 
-export { filterPending, filterAcceptedAuthorDisplayNameAlternatives };
+const filterDuplicates = (existing: IEvent[], updated: IEvent[]): IEvent[] => {
+  const uuids = updated.map(e => e.dataIntegrity);
+  const unchanged = existing.filter(e => !uuids.includes(e.dataIntegrity));
+  return [...unchanged, ...updated];
+};
+
+export { filterPending, filterAcceptedAuthorDisplayNameAlternatives, filterDuplicates };

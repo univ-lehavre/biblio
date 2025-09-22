@@ -10,7 +10,8 @@ const getEventsData = (): Effect.Effect<IEventData[], never, EventsStore> =>
     return data;
   });
 
-const getEventData = (event: IEvent): IEventData => ({
+const getEventData = (event: Partial<IEvent> & IEventData): IEventData => ({
+  from: event.from,
   id: event.id,
   entity: event.entity,
   field: event.field,

@@ -5,16 +5,16 @@ type IEntity = 'author' | 'institution' | 'work';
 type IField = 'id' | 'display_name' | 'display_name_alternatives' | 'affiliation' | 'work';
 
 interface IEventMeta {
-  /** Source des données : OpenAlexID */
-  from: string;
-  status: Status;
-  label?: string;
-  dataIntegrity: string;
   createdAt: string;
   updatedAt: string;
+  label?: string;
+  status: Status;
+  dataIntegrity: string;
 }
 
 interface IEventData {
+  /** Source des données : OpenAlexID */
+  from: string;
   /** ORCID, ROR, DOI relatif à l'entité définie */
   id: string;
   entity: IEntity;

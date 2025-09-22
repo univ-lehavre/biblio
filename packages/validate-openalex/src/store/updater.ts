@@ -3,6 +3,14 @@ import { ContextStore, EventsStore } from '../store';
 import type { IEvent } from '../events/types';
 import type { IContext } from './types';
 
+const updateEventsStoreWithNewEvents = (
+  newEvents: IEvent[],
+): Effect.Effect<void, never, EventsStore> =>
+  Effect.gen(function* () {
+    const store = yield* EventsStore;
+    yield* Ref.update(store, events => [...events, ...newEvents]);
+  });
+
 const updateEventsStore = (events: IEvent[]): Effect.Effect<void, never, EventsStore> =>
   Effect.gen(function* () {
     const store = yield* EventsStore;
@@ -15,4 +23,4 @@ const updateContextStore = (context: IContext): Effect.Effect<void, never, Conte
     yield* Ref.update(store, () => context);
   });
 
-export { updateEventsStore, updateContextStore };
+export { updateEventsStore, updateEventsStoreWithNewEvents, updateContextStore };
