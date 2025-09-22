@@ -1,5 +1,17 @@
 # @univ-lehavre/fetch-openalex
 
+## 0.2.0
+
+### Minor Changes
+
+- 571a4fe: Restructuration du code
+
+### Patch Changes
+
+- df76955: Suppression d’un log des nombres d’items téléchargés
+- Updated dependencies [571a4fe]
+  - @univ-lehavre/biblio-openalex-types@1.0.2
+
 ## 0.1.2
 
 ### Patch Changes

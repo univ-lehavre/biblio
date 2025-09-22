@@ -1,5 +1,11 @@
 # @univ-lehavre/openalex-types
 
+## 1.0.2
+
+### Patch Changes
+
+- 571a4fe: Restructuration du code
+
 ## 1.0.1
 
 ### Patch Changes

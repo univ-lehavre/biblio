@@ -1,5 +1,18 @@
 # @univ-lehavre/validate-openalex
 
+## 0.1.0
+
+### Minor Changes
+
+- 571a4fe: Restructuration du code
+
+### Patch Changes
+
+- Updated dependencies [df76955]
+- Updated dependencies [571a4fe]
+  - @univ-lehavre/biblio-fetch-openalex@0.2.0
+  - @univ-lehavre/biblio-openalex-types@1.0.2
+
 ## 0.0.2
 
 ### Patch Changes
