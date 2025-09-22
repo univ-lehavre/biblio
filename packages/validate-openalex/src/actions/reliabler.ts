@@ -16,8 +16,7 @@ const mark_alternative_strings_reliable = (
     const events = yield* getEvents();
     const options = filterPending(events, opts).map(event2option);
     const selected = yield* multiselect(message, false, options);
-    if (selected instanceof Array && selected.length > 0)
-      yield* updateEventsStoreBasedOnAcceptedValues(selected, opts);
+    if (selected instanceof Array) yield* updateEventsStoreBasedOnAcceptedValues(selected, opts);
   });
 
 //const searchAlternativeReliableStrings = () =>

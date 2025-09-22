@@ -25,12 +25,16 @@ const ask = () =>
       const display_names = yield* getDisplayNames();
       const display_name_alternatives = yield* getDisplayNameAlternatives();
       const affiliations = yield* getAffiliations();
-      log.info(`${openalexIDs.length} OpenAlex IDs : ${openalexIDs.join(', ')}`);
-      log.info(`${display_names.length} Display Names : ${display_names.join(', ')}`);
-      log.info(
-        `${display_name_alternatives.length} Display Name Alternatives : ${display_name_alternatives.join(', ')}`,
-      );
-      log.info(`${affiliations.length} Affiliations : ${affiliations.join(', ')}`);
+      if (openalexIDs.length > 0)
+        log.info(`${openalexIDs.length} OpenAlex IDs : ${openalexIDs.join(', ')}`);
+      if (display_names.length > 0)
+        log.info(`${display_names.length} Display Names : ${display_names.join(', ')}`);
+      if (display_name_alternatives.length > 0)
+        log.info(
+          `${display_name_alternatives.length} Display Name Alternatives : ${display_name_alternatives.join(', ')}`,
+        );
+      if (affiliations.length > 0)
+        log.info(`${affiliations.length} Affiliations : ${affiliations.join(', ')}`);
     }
     const actives: Action[] = yield* active_actions();
     const options = actives.map(action2option);
@@ -48,4 +52,4 @@ const ask = () =>
 
 const runnable = start().pipe(provideEventsStore(), provideContextStore());
 
-Effect.runPromiseExit(runnable);
+Effect.runPromiseExit(runnable).then(console.log).catch(console.error);

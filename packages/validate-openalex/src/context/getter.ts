@@ -11,10 +11,9 @@ const getContext = (): Effect.Effect<IContext, never, ContextStore> =>
 
 const getORCID = (): Effect.Effect<string | undefined, never, ContextStore> =>
   Effect.gen(function* () {
-    const context: IContext = yield* getContext();
-    if (context.type !== 'author')
-      throw new Error(`Context is of type ${context.type}. ORCID needs a context of type author.`);
-    return context.id;
+    const { type, id }: IContext = yield* getContext();
+    if (type !== 'author') return;
+    return id;
   });
 
 export { getContext, getORCID };

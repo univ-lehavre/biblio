@@ -26,7 +26,7 @@ const print_title = (): Effect.Effect<void, never, ContextStore | EventsStore> =
         : id && hasORCIDEvents
           ? `ORCID ${id}`
           : 'OpenAlex';
-    console.clear();
+    //console.clear();
     intro(`${color.bgCyan(color.black(` ${title} `))}\n`);
   });
 
