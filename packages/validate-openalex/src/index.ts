@@ -13,13 +13,20 @@ const start = () =>
 
 const ask = () =>
   Effect.gen(function* () {
-    const options = (yield* active_actions()).map(action2option);
-    const selected_action_value = yield* select('Que souhaitez-vous faire ?', options);
+    const actives: Action[] = yield* active_actions();
+    const options = actives.map(action2option);
+    const selected_action_value = (yield* select('Que souhaitez-vous faire ?', options)).toString();
     const action: Action | undefined = actions.find(
-      action => action.name === selected_action_value.toString(),
+      action => action.name === selected_action_value,
     );
-    if (action) yield* action.action();
+    if (action) {
+      yield* action.action();
+    } else {
+      console.log('Action non trouvée');
+    }
     yield* saveStores();
   });
 
-Effect.runPromiseExit(start().pipe(provideContextStore(), provideEventsStore()));
+const runnable = start().pipe(provideEventsStore(), provideContextStore());
+
+Effect.runPromiseExit(runnable);

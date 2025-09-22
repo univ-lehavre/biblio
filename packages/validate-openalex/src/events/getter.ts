@@ -21,7 +21,7 @@ const getEventData = (event: Partial<IEvent> & IEventData): IEventData => ({
 const getEvents = (): Effect.Effect<IEvent[], never, EventsStore> =>
   Effect.gen(function* () {
     const store: Ref.Ref<IEvent[]> = yield* EventsStore;
-    const events: IEvent[] = yield* Ref.get(store);
+    const events: IEvent[] = yield* Ref.get(store) ?? [];
     return events;
   });
 

@@ -1,10 +1,11 @@
 import { Effect } from 'effect';
 import { buildAuthorResultsPendingEvents, hasORCID } from '../events';
 import { log, print_title, text } from '../prompt';
-import { updateContextStore, updateEventsStore } from '../store';
+import { ContextStore, EventsStore, updateContextStore, updateEventsStore } from '../store';
 import { searchAuthorByORCID } from '../fetch';
+import { ConfigError } from 'effect/ConfigError';
 
-const insert_new_ORCID = () =>
+const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const orcid = (yield* text(
       'Saisissez l’ORCID d’un chercheur',

@@ -1,8 +1,9 @@
 import { Effect } from 'effect';
 import { actions } from '.';
+import { ContextStore, EventsStore } from '../store';
 import type { Action } from './types';
 
-const active_actions = () =>
+const active_actions = (): Effect.Effect<Action[], unknown, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const items: Action[] = [];
     for (const action of actions) {

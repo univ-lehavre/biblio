@@ -5,3 +5,5 @@ dist/
 node_modules/
 packages/*/docs/
 *state*.json
+*context*.json
+*events*.json
