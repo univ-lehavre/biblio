@@ -1,9 +1,7 @@
 import { Effect } from 'effect';
-import { getEventsData } from './events';
 import { actions, active_actions } from './actions';
 import { action2option, print_title, select } from './prompt';
 import { loadStores, saveStores, provideContextStore, provideEventsStore } from './store';
-import type { IEventData } from './events/types';
 import type { Action } from './actions/types';
 
 const start = () =>
@@ -15,8 +13,7 @@ const start = () =>
 
 const ask = () =>
   Effect.gen(function* () {
-    const events: IEventData[] = yield* getEventsData();
-    const options = active_actions(events).map(action2option);
+    const options = (yield* active_actions()).map(action2option);
     const selected_action_value = yield* select('Que souhaitez-vous faire ?', options);
     const action: Action | undefined = actions.find(
       action => action.name === selected_action_value.toString(),

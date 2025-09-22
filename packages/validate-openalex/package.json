@@ -38,17 +38,17 @@
     "dist",
     "CHANGELOG.md"
   ],
-  "main": "dist/univ-lehavre-validate-openalex.cjs.js",
-  "module": "dist/univ-lehavre-validate-openalex.esm.js",
+  "main": "dist/univ-lehavre-biblio-validate-openalex.cjs.js",
+  "module": "dist/univ-lehavre-biblio-validate-openalex.esm.js",
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/univ-lehavre-validate-openalex.cjs.mjs",
-        "default": "./dist/univ-lehavre-validate-openalex.cjs.js"
+        "import": "./dist/univ-lehavre-biblio-validate-openalex.cjs.mjs",
+        "default": "./dist/univ-lehavre-biblio-validate-openalex.cjs.js"
       },
-      "module": "./dist/univ-lehavre-validate-openalex.esm.js",
-      "import": "./dist/univ-lehavre-validate-openalex.cjs.mjs",
-      "default": "./dist/univ-lehavre-validate-openalex.cjs.js"
+      "module": "./dist/univ-lehavre-biblio-validate-openalex.esm.js",
+      "import": "./dist/univ-lehavre-biblio-validate-openalex.cjs.mjs",
+      "default": "./dist/univ-lehavre-biblio-validate-openalex.cjs.js"
     },
     "./package.json": "./package.json"
   },

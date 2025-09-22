@@ -1,6 +1,6 @@
 import type { RateLimiter } from 'effect';
 
-export type * from '@univ-lehavre/openalex-types';
+export type * from '@univ-lehavre/biblio-openalex-types';
 
 type QueryValue = string | number | boolean | Array<string | number | boolean> | undefined;
 
