@@ -5,7 +5,7 @@ import { getEventData, getEvents } from './getter';
 import { buildIntegrity } from '../tools';
 import type { AuthorsResult, IInstitution } from '../fetch/types';
 import type { IEvent } from './types';
-import { updateNewEventsWithExistingMetadata } from './updater';
+import { updateNewEventsWithExistingMetadata } from '.';
 
 const buildEvent = (
   partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'>,

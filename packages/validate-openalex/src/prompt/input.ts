@@ -4,7 +4,6 @@ import { getContext } from '../context';
 import { ContextStore, EventsStore } from '../store';
 import {
   type Option,
-  log,
   intro,
   outro,
   select as select_prompt,
@@ -74,4 +73,4 @@ const text = (
     catch: () => new Error('Erreur lors de la saisie'),
   });
 
-export { select, multiselect, text, autocompleteMultiselect, print_title, end, log };
+export { select, multiselect, text, autocompleteMultiselect, print_title, end };
