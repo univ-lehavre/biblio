@@ -1,3 +1,4 @@
+import { log } from '@clack/prompts';
 import type { Action } from '@univ-lehavre/biblio-validate-openalex';
 import {
   action2option,
@@ -7,7 +8,6 @@ import {
   getDisplayNameAlternatives,
   getOpenAlexIDs,
   loadStores,
-  log,
   print_title,
   provideContextStore,
   provideEventsStore,
