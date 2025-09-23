@@ -13,8 +13,7 @@
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
-    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
-    "test": "jest"
+    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix"
   },
   "dependencies": {
     "@univ-lehavre/biblio-openalex-types": "workspace:^",
