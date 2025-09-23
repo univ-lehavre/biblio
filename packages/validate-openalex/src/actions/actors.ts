@@ -2,18 +2,17 @@ import { Effect } from 'effect';
 import { getORCID } from '../context';
 import { searchAuthorByName, searchAuthorByORCID } from '../fetch';
 import { setEventsStore } from '../store/setter';
-import { log, text, string2option, select } from '../prompt';
+import { text, select, events2options } from '../prompt';
 import { ContextStore, EventsStore, updateContextStore, updateEventsStore } from '../store';
 import {
   buildAuthorResultsPendingEvents,
   getEvents,
   getManyEvent,
-  hasORCID,
   isInteresting,
+  updateNewEventsWithExistingMetadata,
 } from '../events';
 import type { ConfigError } from 'effect/ConfigError';
 import type { IEvent } from '../events/types';
-import { uniqueSorted } from '../tools';
 import { AuthorsResult } from '@univ-lehavre/biblio-openalex-types';
 import { getAuthorAlternativeStrings } from './tester';
 
@@ -30,28 +29,21 @@ const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextSto
     ))
       .toString()
       .trim();
-
     yield* updateContextStore({ type: 'author', id: orcid });
-
-    if (yield* hasORCID(orcid)) {
-      log.info(`L’ORCID ${orcid} a déjà été ajouté`);
-      return;
-    } else {
-      const authors = yield* searchAuthorByORCID([orcid]);
-      const items = yield* buildAuthorResultsPendingEvents(authors);
-      yield* updateEventsStore(items);
-    }
+    const authors = yield* searchAuthorByORCID([orcid]);
+    const items = yield* buildAuthorResultsPendingEvents(authors);
+    yield* updateEventsStore(items);
   });
 
 const extendsEventsWithAlternativeStrings = () =>
   Effect.gen(function* () {
     const orcid: string | undefined = yield* getORCID();
-    if (!orcid) return;
-    const events: IEvent[] = yield* getAuthorAlternativeStrings();
-    const alternatives = uniqueSorted(events.map(event => event.value));
+    if (!orcid) throw new Error('No ORCID in context');
+    const authorAlternativeStringEvents: IEvent[] = yield* getAuthorAlternativeStrings();
+    const options = events2options(authorAlternativeStringEvents);
     const selected: symbol | string = yield* select(
       "Sélectionnez la forme imprimée de l'auteur à rechercher",
-      alternatives.map(string2option),
+      options,
     );
     if (typeof selected !== 'string') throw new Error('Sélection invalide');
 
@@ -66,56 +58,19 @@ const extendsEventsWithAlternativeStrings = () =>
     const updatedEvents = eventsToUpdate.map(event => ({ ...event, hasBeenExtendedAt }));
     yield* updateEventsStore(updatedEvents);
 
-    let updated: IEvent[] = [];
     const authors: AuthorsResult[] = yield* searchAuthorByName([selected]);
     const newItems: IEvent[] = yield* buildAuthorResultsPendingEvents(authors);
+    const events: IEvent[] = yield* getEvents();
     // remove from newItems the events that are already in events
-    const filteredNewItems = newItems
-      // Filtre les données pré-existantes
-      .filter(
-        newItem =>
-          !events.some(
-            event =>
-              event.from === newItem.from &&
-              event.id === newItem.id &&
-              event.entity === newItem.entity &&
-              event.field === newItem.field &&
-              event.value === newItem.value,
-          ),
-      )
-      // Met à jour le statut si l'événement existe déjà avec un statut "accepted" ou "rejected"
-      .map(newItem => {
-        const event = events.find(
-          event =>
-            event.id === newItem.id &&
-            event.entity === 'author' &&
-            event.field === newItem.field &&
-            event.value === newItem.value &&
-            event.status === 'accepted',
-        );
-        if (event) {
-          newItem.status = 'accepted';
-        }
-        return newItem;
-      })
-      .map(newItem => {
-        const event = events.find(
-          event =>
-            event.id === newItem.id &&
-            event.entity === 'author' &&
-            event.field === newItem.field &&
-            event.value === newItem.value &&
-            event.status === 'rejected',
-        );
-        if (event) {
-          newItem.status = 'rejected';
-        }
-        return newItem;
-      });
-    updated = [...updated, ...filteredNewItems];
+    const filteredNewItems = updateNewEventsWithExistingMetadata(
+      events,
+      newItems.filter(
+        newItem => !events.some(event => event.dataIntegrity === newItem.dataIntegrity),
+      ),
+    );
 
     const seen = new Set<string>();
-    const uniques = updated.filter(item => {
+    const uniques = filteredNewItems.filter(item => {
       if (seen.has(item.dataIntegrity)) return false;
       seen.add(item.dataIntegrity);
       return true;

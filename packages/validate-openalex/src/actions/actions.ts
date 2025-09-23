@@ -8,6 +8,7 @@ import {
   extendsToWorks,
   notHasPendings,
   hasAuthorAlternativeStrings,
+  hasAcceptedValues,
 } from '.';
 import type { Action } from './types';
 
@@ -71,15 +72,11 @@ const actions: Action[] = [
   },
   {
     name: 'Télécharger les travaux de ce chercheur',
-    visible: [
-      () => isContext('author'),
-      () => notHasPendings('author', 'display_name_alternatives'),
-      () => notHasPendings('author', 'affiliation'),
-    ],
+    visible: [() => hasAcceptedValues()],
     action: () => extendsToWorks(),
   },
   {
-    name: 'Sélectionner un chercheur',
+    name: 'Ajouter un chercheur avec son ORCID',
     action: () => insert_new_ORCID(),
   },
   {

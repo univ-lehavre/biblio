@@ -1,10 +1,11 @@
 import { Effect } from 'effect';
 import { getContext } from '../context';
-import { ContextStore } from '../store';
-import { getEventData } from './getter';
+import { ContextStore, EventsStore } from '../store';
+import { getEventData, getEvents } from './getter';
 import { buildIntegrity } from '../tools';
 import type { AuthorsResult, IInstitution } from '../fetch/types';
 import type { IEvent } from './types';
+import { updateNewEventsWithExistingMetadata } from './updater';
 
 const buildEvent = (
   partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'>,
@@ -38,7 +39,7 @@ const buildPendingAuthorEvent = (
 
 const buildAuthorResultsPendingEvents = (
   authors: AuthorsResult[],
-): Effect.Effect<IEvent[], never, ContextStore> =>
+): Effect.Effect<IEvent[], never, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const items: IEvent[] = [];
     const orcid: string | undefined = (yield* getContext()).id;
@@ -70,7 +71,9 @@ const buildAuthorResultsPendingEvents = (
         items.push(event);
       }
     }
-    return items;
+    const events = yield* getEvents();
+    const updated = updateNewEventsWithExistingMetadata(events, items);
+    return updated;
   });
 
 export { buildAuthorResultsPendingEvents };

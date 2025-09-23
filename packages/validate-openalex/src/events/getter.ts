@@ -5,6 +5,10 @@ import { getORCID } from '../context';
 import { uniqueSorted } from '../tools';
 import { filterEventsByAttributes } from './filter';
 
+/**
+ * Récupère les données de tous les événements dans le store.
+ * @returns Les données de tous les événements dans le store
+ */
 const getEventsData = (): Effect.Effect<IEventData[], never, EventsStore> =>
   Effect.gen(function* () {
     const store: Ref.Ref<IEvent[]> = yield* EventsStore;
@@ -13,6 +17,11 @@ const getEventsData = (): Effect.Effect<IEventData[], never, EventsStore> =>
     return data;
   });
 
+/**
+ * Récupère les données d'un événement.
+ * @param event Un événement partiel contenant au moins les champs de IEventData
+ * @returns Les données de l'événement
+ */
 const getEventData = (event: Partial<IEvent> & IEventData): IEventData => ({
   from: event.from,
   id: event.id,

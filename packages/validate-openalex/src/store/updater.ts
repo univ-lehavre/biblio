@@ -12,6 +12,11 @@ const updateEventsStoreWithNewEvents = (
     yield* Ref.update(store, events => [...events, ...newEvents]);
   });
 
+/**
+ *
+ * @param newEvents Nouveaux événements à ajouter au store
+ * @returns
+ */
 const updateEventsStore = (newEvents: IEvent[]): Effect.Effect<void, never, EventsStore> =>
   Effect.gen(function* () {
     const store = yield* EventsStore;

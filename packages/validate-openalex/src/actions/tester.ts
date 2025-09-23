@@ -31,6 +31,28 @@ const notHasPendings = (
     return !has;
   });
 
+const hasAcceptedValues = () =>
+  Effect.gen(function* () {
+    const { type, id }: IContext = yield* getContext();
+    if (type !== 'author') return false;
+    const events: IEvent[] = yield* getEvents();
+    return events.some(
+      event =>
+        isInteresting(event, {
+          id,
+          entity: 'author',
+          field: 'display_name_alternatives',
+          status: 'accepted',
+        }) &&
+        isInteresting(event, {
+          id,
+          entity: 'author',
+          field: 'affiliation',
+          status: 'accepted',
+        }),
+    );
+  });
+
 const filterAuthorAlternativeStringsToExtend = (id: string): Partial<IEvent> => ({
   hasBeenExtendedAt: 'never',
   id,
@@ -69,6 +91,7 @@ const isContext = (entity: IEntity): Effect.Effect<boolean, never, ContextStore 
 
 export {
   hasPendings,
+  hasAcceptedValues,
   isContext,
   notHasPendings,
   hasAuthorAlternativeStrings,

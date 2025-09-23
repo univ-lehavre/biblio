@@ -1,9 +1,32 @@
 import { Effect } from 'effect';
 import { getORCID } from '../context';
-import { ContextStore, EventsStore } from '../store';
-import { autocompleteMultiselect, event2option } from '../prompt';
-import { updateEventsStoreBasedOnAcceptedValues, getEvents, filterPending } from '../events';
-import type { IEvent } from '../events/types';
+import { ContextStore, EventsStore, updateEventsStore } from '../store';
+import { autocompleteMultiselect, events2options } from '../prompt';
+import { getEvents, filterPending } from '../events';
+import type { IEvent, Status } from '../events/types';
+
+const updateEventStatusBasedOnAcceptedValues = (
+  events: IEvent[],
+  /** Accepted values from events */
+  accepted: string[],
+  opts: Partial<IEvent>,
+): IEvent[] =>
+  filterPending(events, opts).map(event => {
+    const status: Status = accepted.includes(event.value) ? 'accepted' : 'rejected';
+    return { ...event, status };
+  });
+
+const updateDate = (event: IEvent): IEvent => ({
+  ...event,
+  updatedAt: new Date().toISOString(),
+});
+
+const updateEventsStoreBasedOnAcceptedValues = (values: string[], opts: Partial<IEvent>) =>
+  Effect.gen(function* () {
+    const events = yield* getEvents();
+    const updated = updateEventStatusBasedOnAcceptedValues(events, values, opts).map(updateDate);
+    yield* updateEventsStore(updated);
+  });
 
 const mark_alternative_strings_reliable = (
   message: string,
@@ -13,24 +36,10 @@ const mark_alternative_strings_reliable = (
     if (!opts.id) opts.id = yield* getORCID();
     const events = yield* getEvents();
     const filtered = filterPending(events, opts);
-
-    const seen = new Set<string>();
-    const uniques = [];
-    for (const event of filtered) {
-      if (seen.has(event.value)) continue;
-      seen.add(event.value);
-      uniques.push(event);
-    }
-
-    const options = uniques
-      .map(event2option)
-      .sort((a, b) =>
-        a.label && b.label ? a.label.localeCompare(b.label) : a.value.localeCompare(b.value),
-      );
+    const options = events2options(filtered);
     const selected = yield* autocompleteMultiselect(message, false, options);
-    if (selected instanceof Array) {
-      yield* updateEventsStoreBasedOnAcceptedValues(selected, opts);
-    }
+    if (typeof selected === 'symbol') throw new Error('La sélection a été annulée');
+    yield* updateEventsStoreBasedOnAcceptedValues(selected, opts);
   });
 
 export { mark_alternative_strings_reliable };
