@@ -5,6 +5,9 @@ import {
   mark_alternative_strings_reliable,
   isContext,
   extendsEventsWithAlternativeStrings,
+  extendsToWorks,
+  notHasPendings,
+  hasAuthorAlternativeStrings,
 } from '.';
 import type { Action } from './types';
 
@@ -33,20 +36,8 @@ import type { Action } from './types';
 
 const actions: Action[] = [
   {
-    name: 'Fiabiliser le patronyme de ce chercheur',
-    visible: () => isContext('author') && hasPendings('author', 'display_name'),
-    action: () =>
-      mark_alternative_strings_reliable(
-        'Sélectionnez les patronymes correspondant à ce chercheur',
-        {
-          entity: 'author',
-          field: 'display_name',
-        },
-      ),
-  },
-  {
     name: 'Fiabiliser les formes imprimées du patronyme de ce chercheur',
-    visible: () => isContext('author') && hasPendings('author', 'display_name_alternatives'),
+    visible: [() => isContext('author'), () => hasPendings('author', 'display_name_alternatives')],
     action: () =>
       mark_alternative_strings_reliable(
         'Sélectionnez les formes imprimées correspondantes à ce chercheur',
@@ -58,7 +49,7 @@ const actions: Action[] = [
   },
   {
     name: 'Fiabiliser le parcours de ce chercheur',
-    visible: () => isContext('author') && hasPendings('author', 'affiliation'),
+    visible: [() => isContext('author'), () => hasPendings('author', 'affiliation')],
     action: () =>
       mark_alternative_strings_reliable(
         'Sélectionnez les affiliations correspondantes au chercheur',
@@ -69,9 +60,23 @@ const actions: Action[] = [
       ),
   },
   {
-    name: "Étendre la recherche à d'autres formes imprimées de ce chercheur",
-    visible: () => isContext('author'),
+    name: 'Étendre la recherche à une forme imprimée de ce chercheur',
+    visible: [
+      () => isContext('author'),
+      () => notHasPendings('author', 'display_name_alternatives'),
+      () => notHasPendings('author', 'affiliation'),
+      () => hasAuthorAlternativeStrings(),
+    ],
     action: () => extendsEventsWithAlternativeStrings(),
+  },
+  {
+    name: 'Télécharger les travaux de ce chercheur',
+    visible: [
+      () => isContext('author'),
+      () => notHasPendings('author', 'display_name_alternatives'),
+      () => notHasPendings('author', 'affiliation'),
+    ],
+    action: () => extendsToWorks(),
   },
   {
     name: 'Sélectionner un chercheur',

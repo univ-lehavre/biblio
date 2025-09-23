@@ -8,7 +8,7 @@ interface Action {
     name: string;
     index: number;
   };
-  visible?: () => Effect.Effect<boolean, Error, ContextStore | EventsStore>;
+  visible?: (() => Effect.Effect<boolean, never, ContextStore | EventsStore>)[];
   action: () => Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore>;
 }
 

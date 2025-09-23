@@ -2,11 +2,12 @@ type Status = 'pending' | 'accepted' | 'rejected';
 
 type IEntity = 'author' | 'institution' | 'work';
 
-type IField = 'id' | 'display_name' | 'display_name_alternatives' | 'affiliation' | 'work';
+type IField = 'id' | 'display_name_alternatives' | 'affiliation' | 'work';
 
 interface IEventMeta {
   createdAt: string;
   updatedAt: string;
+  hasBeenExtendedAt: string | null;
   label?: string;
   status: Status;
   dataIntegrity: string;

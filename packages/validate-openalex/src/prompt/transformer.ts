@@ -4,7 +4,9 @@ import type { Option } from './types';
 
 const action2option = (action: Action): Option<string> => ({ value: action.name });
 
-const event2option = (event: IEvent): Option<string> => ({
+const event2option = (
+  event: Partial<IEvent> & { value: string; label?: string },
+): Option<string> => ({
   value: event.value,
   label: event.label,
 });

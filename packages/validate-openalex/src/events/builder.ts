@@ -7,7 +7,7 @@ import type { AuthorsResult, IInstitution } from '../fetch/types';
 import type { IEvent } from './types';
 
 const buildEvent = (
-  partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt'>,
+  partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'>,
 ): Effect.Effect<IEvent, never, ContextStore> =>
   Effect.gen(function* () {
     const dataIntegrity: string = yield* buildIntegrity(getEventData(partial));
@@ -17,12 +17,16 @@ const buildEvent = (
       dataIntegrity,
       createdAt,
       updatedAt: createdAt,
+      hasBeenExtendedAt: 'never',
     };
     return event;
   });
 
 const buildPendingAuthorEvent = (
-  partial: Omit<IEvent, 'status' | 'dataIntegrity' | 'createdAt' | 'updatedAt'>,
+  partial: Omit<
+    IEvent,
+    'status' | 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'
+  >,
 ): Effect.Effect<IEvent, never, ContextStore> =>
   Effect.gen(function* () {
     const event: IEvent = yield* buildEvent({
@@ -42,14 +46,6 @@ const buildAuthorResultsPendingEvents = (
     for (const author of authors) {
       const openalexID = author.id;
       // Traitement des données personnelles de l'auteur
-      const display_name: IEvent = yield* buildPendingAuthorEvent({
-        from: openalexID,
-        id: orcid,
-        entity: 'author',
-        field: 'display_name',
-        value: author.display_name,
-      });
-      items.push(display_name);
       for (const display_name_alternative of author.display_name_alternatives ?? []) {
         const event: IEvent = yield* buildPendingAuthorEvent({
           from: openalexID,

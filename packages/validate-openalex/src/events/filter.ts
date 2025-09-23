@@ -34,6 +34,7 @@ const filterDuplicates = (existing: IEvent[], updated: IEvent[]): IEvent[] => {
 
 export {
   filterPending,
+  filterEventsByAttributes,
   filterAcceptedAuthorDisplayNameAlternatives,
   filterDuplicates,
   isInteresting,

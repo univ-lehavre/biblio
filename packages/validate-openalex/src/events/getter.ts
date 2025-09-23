@@ -3,6 +3,7 @@ import { EventsStore } from '../store';
 import type { IEvent, IEventData } from './types';
 import { getORCID } from '../context';
 import { uniqueSorted } from '../tools';
+import { filterEventsByAttributes } from './filter';
 
 const getEventsData = (): Effect.Effect<IEventData[], never, EventsStore> =>
   Effect.gen(function* () {
@@ -20,6 +21,13 @@ const getEventData = (event: Partial<IEvent> & IEventData): IEventData => ({
   value: event.value,
 });
 
+const getManyEvent = (opts: Partial<IEvent>): Effect.Effect<IEvent[], never, EventsStore> =>
+  Effect.gen(function* () {
+    const events = yield* getEvents();
+    const event: IEvent[] = filterEventsByAttributes(events, opts);
+    return event;
+  });
+
 const getEvents = (): Effect.Effect<IEvent[], never, EventsStore> =>
   Effect.gen(function* () {
     const store: Ref.Ref<IEvent[]> = yield* EventsStore;
@@ -32,27 +40,27 @@ const getOpenAlexIDs = () =>
     const orcid: string | undefined = yield* getORCID();
     if (orcid === undefined) return [];
     const events = yield* getEvents();
-    return uniqueSorted(
-      events.filter(e => e.id === orcid && e.status === 'accepted').map(e => e.from),
-    );
-  });
+    const affiliations = events
+      .filter(
+        e =>
+          e.id === orcid &&
+          e.entity === 'author' &&
+          e.field === 'affiliation' &&
+          e.status === 'accepted',
+      )
+      .map(e => e.from);
 
-const getDisplayNames = () =>
-  Effect.gen(function* () {
-    const orcid: string | undefined = yield* getORCID();
-    if (orcid === undefined) return [];
-    const events = yield* getEvents();
-    return uniqueSorted(
-      events
-        .filter(
-          e =>
-            e.id === orcid &&
-            e.entity === 'author' &&
-            e.field === 'display_name' &&
-            e.status === 'accepted',
-        )
-        .map(e => e.value),
-    );
+    const display_name_alternatives = events
+      .filter(
+        e =>
+          e.id === orcid &&
+          e.entity === 'author' &&
+          e.field === 'display_name_alternatives' &&
+          e.status === 'accepted',
+      )
+      .map(e => e.from);
+    const intersection = affiliations.filter(value => display_name_alternatives.includes(value));
+    if (intersection.length > 0) return uniqueSorted(intersection);
   });
 
 const getDisplayNameAlternatives = () =>
@@ -93,9 +101,9 @@ const getAffiliations = () =>
 
 export {
   getEventsData,
+  getManyEvent,
   getEvents,
   getEventData,
-  getDisplayNames,
   getDisplayNameAlternatives,
   getAffiliations,
   getOpenAlexIDs,

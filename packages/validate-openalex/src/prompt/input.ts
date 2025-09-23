@@ -1,7 +1,6 @@
 import color from 'picocolors';
 import { Effect } from 'effect';
 import { getContext } from '../context';
-import { getDisplayNames } from '../events';
 import { ContextStore, EventsStore } from '../store';
 import {
   type Option,
@@ -11,6 +10,7 @@ import {
   select as select_prompt,
   multiselect as multiselect_prompt,
   text as text_prompt,
+  autocompleteMultiselect as autocompleteMultiselect_prompt,
 } from '@clack/prompts';
 import type { IContext } from '../store/types';
 import { hasEventsForThisORCID } from '../actions';
@@ -18,15 +18,9 @@ import { hasEventsForThisORCID } from '../actions';
 const print_title = (): Effect.Effect<void, never, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const { id }: IContext = yield* getContext();
-    const display_name: string[] = yield* getDisplayNames();
     const hasORCIDEvents: boolean = id ? yield* hasEventsForThisORCID() : false;
-    const title: string =
-      display_name.length > 0
-        ? `${display_name.join(', ')} (${id})`
-        : id && hasORCIDEvents
-          ? `ORCID ${id}`
-          : 'OpenAlex';
-    //console.clear();
+    const title: string = id && hasORCIDEvents ? `ORCID ${id}` : 'OpenAlex';
+    console.clear();
     intro(`${color.bgCyan(color.black(` ${title} `))}\n`);
   });
 
@@ -53,6 +47,19 @@ const multiselect = (message: string, required: boolean, options: Option<string>
     catch: cause => new Error('Erreur lors de la sélection', { cause }),
   });
 
+const autocompleteMultiselect = (message: string, required: boolean, options: Option<string>[]) =>
+  Effect.tryPromise({
+    try: () =>
+      autocompleteMultiselect_prompt({
+        message,
+        options,
+        required,
+        placeholder: "Taper pour filtrer l'option...",
+        maxItems: 20,
+      }),
+    catch: cause => new Error('Erreur lors de la sélection', { cause }),
+  });
+
 const text = (
   message: string,
   placeholder: string,
@@ -68,4 +75,4 @@ const text = (
     catch: () => new Error('Erreur lors de la saisie'),
   });
 
-export { select, multiselect, text, print_title, end, log };
+export { select, multiselect, text, autocompleteMultiselect, print_title, end, log };
