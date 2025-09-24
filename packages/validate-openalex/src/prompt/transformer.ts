@@ -28,9 +28,9 @@ const sortOptions = (a: { label?: string; value: string }, b: { label?: string; 
   a.label && b.label ? a.label.localeCompare(b.label) : a.value.localeCompare(b.value);
 
 /**
- * Convertit une liste d'événements en options pour les prompts.
- * @param events Liste d'événements à convertir
- * @returns Des options triées (label ou value) et sans doublons
+ * Converts a list of events to options for prompts.
+ * @param events List of events to convert
+ * @returns Sorted options (by label or value) without duplicates
  */
 const events2options = (
   events: (Partial<IEvent> & { value: string; label?: string })[],
