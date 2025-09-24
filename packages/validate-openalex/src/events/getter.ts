@@ -19,8 +19,10 @@ import type { IEvent } from './types';
  * // returns ['b', 'c']
  * intersect(['a', 'b', 'c'], ['b', 'c', 'd']);
  */
-const intersect = (arr1: string[], arr2: string[]): string[] =>
-  arr1.filter(value => arr2.includes(value));
+const intersect = (arr1: string[], arr2: string[]): string[] => {
+  const set2 = new Set(arr2);
+  return arr1.filter(value => set2.has(value));
+};
 
 /**
  * Extract OpenAlex IDs for an author identified by an ORCID from a set of events.
