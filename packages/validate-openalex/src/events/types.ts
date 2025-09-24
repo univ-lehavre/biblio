@@ -4,7 +4,7 @@ type Status = 'pending' | 'accepted' | 'rejected';
 
 type IEntity = 'author' | 'institution' | 'work';
 
-type IField = 'id' | 'display_name_alternatives' | 'affiliation' | 'work';
+type IField = 'id' | 'display_name_alternatives' | 'affiliation' | 'work' | 'openalexID';
 
 interface IEventMeta {
   createdAt: string;

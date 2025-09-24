@@ -1,3 +1,5 @@
+import { OpenAlexID } from './branded';
+
 interface IInstitution {
   id: string;
   ror: string;
@@ -32,6 +34,11 @@ interface AuthorshipInstitution {
   lineage: string[];
 }
 
+interface AffiliationAuthorshipResult {
+  raw_affiliation_string: string;
+  institution_ids: string[];
+}
+
 interface Authorship {
   author_position: string;
   author: {
@@ -42,10 +49,11 @@ interface Authorship {
   institutions: AuthorshipInstitution[];
   raw_author_name: string;
   raw_affiliation_strings: string[];
+  affiliations: AffiliationAuthorshipResult[];
 }
 
 interface WorksResult {
-  id: string;
+  id: OpenAlexID;
   doi: string;
   title: string;
   display_name: string;

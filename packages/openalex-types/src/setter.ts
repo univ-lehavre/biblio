@@ -2,12 +2,15 @@ import { Brand } from 'effect';
 import type { OpenAlexID, ORCID } from './branded';
 
 const asORCID = Brand.refined<ORCID>(
-  s => s.length > 0 && s.startsWith('https://orcid.org/'),
+  s =>
+    s.length > 0 &&
+    s.startsWith('https://orcid.org/') &&
+    /\d{4}-\d{4}-\d{4}-\d{3}(\d|X)/.test(s.slice(18)),
   s => Brand.error(`Invalid ORCID format: ${s}`),
 );
 
 const asOpenAlexID = Brand.refined<OpenAlexID>(
-  s => s.length > 0 && s.startsWith('https://openalex.org/'),
+  s => s.length > 0 && s.startsWith('https://openalex.org/') && /[A-Z]\d+/.test(s.slice(21)),
   s => Brand.error(`Invalid OpenAlex ID format: ${s}`),
 );
 

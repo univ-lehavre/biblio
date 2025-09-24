@@ -1,6 +1,6 @@
 import { uniqueSorted } from '../tools';
 import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
-import type { IEvent } from './types';
+import type { IEvent, Status } from './types';
 
 /**
  * Return the intersection of two string arrays.
@@ -80,4 +80,55 @@ const getOpenAlexIDs = (orcid: ORCID, events: IEvent[]): string[] => {
   return uniques;
 };
 
-export { getOpenAlexIDs };
+const getStatusOfAuthorDisplayNameAlternative = (
+  name: string,
+  orcid: string,
+  events: IEvent[],
+): Status | undefined => {
+  const event = events.find(
+    e =>
+      e.id === orcid &&
+      e.entity === 'author' &&
+      e.field === 'display_name_alternatives' &&
+      e.value === name,
+  );
+  return event?.status;
+};
+
+const getStatusOfAffiliation = (
+  institutionID: string,
+  orcid: string,
+  events: IEvent[],
+): Status | undefined => {
+  const event = events.find(
+    e =>
+      e.id === orcid &&
+      e.entity === 'author' &&
+      e.field === 'affiliation' &&
+      e.value === institutionID,
+  );
+  return event?.status;
+};
+
+const existsAcceptedAuthorDisplayNameAlternative = (
+  name: string,
+  orcid: string,
+  events: IEvent[],
+): boolean => {
+  const event = events.find(
+    e =>
+      e.id === orcid &&
+      e.entity === 'author' &&
+      e.field === 'display_name_alternatives' &&
+      e.value === name &&
+      e.status === 'accepted',
+  );
+  return event !== undefined;
+};
+
+export {
+  getOpenAlexIDs,
+  existsAcceptedAuthorDisplayNameAlternative,
+  getStatusOfAuthorDisplayNameAlternative,
+  getStatusOfAffiliation,
+};
