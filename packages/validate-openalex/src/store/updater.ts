@@ -13,7 +13,7 @@ const updateEventsStoreWithNewEvents = (
   });
 
 /**
- * @param newEvents Nouveaux événements à ajouter au store
+ * @param newEvents New events to add to the store
  * @returns An Effect that updates the EventsStore with the new events, ensuring no duplicates.
  */
 const updateEventsStore = (newEvents: IEvent[]): Effect.Effect<void, never, EventsStore> =>
