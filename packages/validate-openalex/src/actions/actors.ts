@@ -1,8 +1,10 @@
 import { Effect } from 'effect';
 import { getORCID } from '../context';
-import { searchAuthorByName, searchAuthorByORCID } from '../fetch';
 import { setEventsStore } from '../store/setter';
+import { getAuthorAlternativeStrings } from './tester';
 import { text, select, events2options } from '../prompt';
+import { asORCID } from '@univ-lehavre/biblio-openalex-types';
+import { searchAuthorByName, searchAuthorByORCID } from '../fetch';
 import { ContextStore, EventsStore, updateContextStore, updateEventsStore } from '../store';
 import {
   buildAuthorResultsPendingEvents,
@@ -11,14 +13,13 @@ import {
   isInteresting,
   updateNewEventsWithExistingMetadata,
 } from '../events';
+import type { AuthorsResult, ORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { ConfigError } from 'effect/ConfigError';
 import type { IEvent } from '../events/types';
-import { AuthorsResult } from '@univ-lehavre/biblio-openalex-types';
-import { getAuthorAlternativeStrings } from './tester';
 
 const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
-    const orcid = (yield* text(
+    const orcid_raw = (yield* text(
       'Saisissez l’ORCID d’un chercheur',
       '0000-0000-0000-0000',
       (value: string | undefined) => {
@@ -29,16 +30,20 @@ const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextSto
     ))
       .toString()
       .trim();
+    const orcid = asORCID(`https://orcid.org/${orcid_raw}`);
     yield* updateContextStore({ type: 'author', id: orcid });
     const authors = yield* searchAuthorByORCID([orcid]);
     const items = yield* buildAuthorResultsPendingEvents(authors);
     yield* updateEventsStore(items);
   });
 
-const extendsEventsWithAlternativeStrings = () =>
+const extendsEventsWithAlternativeStrings = (): Effect.Effect<
+  void,
+  Error | ConfigError,
+  ContextStore | EventsStore
+> =>
   Effect.gen(function* () {
-    const orcid: string | undefined = yield* getORCID();
-    if (!orcid) throw new Error('No ORCID in context');
+    const orcid: ORCID = yield* getORCID();
     const authorAlternativeStringEvents: IEvent[] = yield* getAuthorAlternativeStrings();
     const options = events2options(authorAlternativeStringEvents);
     const selected: symbol | string = yield* select(
@@ -79,19 +84,18 @@ const extendsEventsWithAlternativeStrings = () =>
     if (uniques.length > 0) yield* updateEventsStore(uniques);
   });
 
-const hasEventsForThisORCID = (): Effect.Effect<boolean, never, ContextStore | EventsStore> =>
+const hasEventsForThisORCID = (): Effect.Effect<boolean, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
-    const orcid: string | undefined = yield* getORCID();
-    if (!orcid) return false;
+    const orcid: string = yield* getORCID();
     const events: IEvent[] = yield* getEvents();
     if (events.length === 0) return false;
     const hasSome: boolean = events.some(event => event.entity === 'author' && event.id === orcid);
     return hasSome;
   });
 
-const removeAuthorPendings = () =>
+const removeAuthorPendings = (): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
-    const orcid: string | undefined = yield* getORCID();
+    const orcid: ORCID = yield* getORCID();
     const events = yield* getEvents();
     const notPendings = events.filter(
       event => !isInteresting(event, { id: orcid, status: 'pending' }),

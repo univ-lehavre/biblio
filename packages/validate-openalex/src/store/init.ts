@@ -1,7 +1,7 @@
 import { v7 } from 'uuid';
 import { Context, Effect, Ref } from 'effect';
 import type { IEvent } from '../events/types';
-import type { IContext } from './types';
+import type { IContext } from '../context/types';
 
 const initialEvents: IEvent[] = [];
 

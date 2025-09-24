@@ -20,6 +20,7 @@
   "dependencies": {
     "@clack/prompts": "^1.0.0-alpha.4",
     "@univ-lehavre/biblio-validate-openalex": "workspace:^",
+    "@univ-lehavre/biblio-openalex-types": "workspace:^",
     "effect": "^3.17.13",
     "picocolors": "^1.1.1"
   },

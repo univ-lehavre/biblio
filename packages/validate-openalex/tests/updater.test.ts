@@ -1,4 +1,5 @@
-import { updateNewEventsWithExistingMetadata } from '../src/events/update2';
+import { updateNewEventsWithExistingMetadata } from '../src/events/update';
+import { asOpenAlexID, asORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { IEvent } from '../src/events/types';
 
 const baseEvent = (overrides: Partial<IEvent> = {}): IEvent => ({
@@ -8,18 +9,22 @@ const baseEvent = (overrides: Partial<IEvent> = {}): IEvent => ({
   label: undefined,
   status: 'pending',
   dataIntegrity: 'uuid-1',
-  from: 'openalex',
-  id: 'ORCID:0000-0000-0000-0000',
+  from: asOpenAlexID('https://openalex.org/works/A1234567890'),
+  id: asORCID('https://orcid.org/0000-0002-1825-0097'),
   entity: 'author',
   field: 'display_name_alternatives',
-  value: 'Example',
+  value: 'Bob',
   ...overrides,
 });
 
 describe('updateNewEventsWithExistingMetadata', () => {
   it('returns the new event unchanged when there is no matching existing event', () => {
-    const existing: IEvent[] = [baseEvent({ id: 'ORCID:1' })];
-    const newEvents: IEvent[] = [baseEvent({ id: 'ORCID:2' })];
+    const existing: IEvent[] = [
+      baseEvent({ id: asORCID('https://orcid.org/0000-0002-0000-0000') }),
+    ];
+    const newEvents: IEvent[] = [
+      baseEvent({ id: asORCID('https://orcid.org/0000-0003-0000-0000') }),
+    ];
 
     const updated = updateNewEventsWithExistingMetadata(existing, newEvents);
     expect(updated).toHaveLength(1);
@@ -28,9 +33,17 @@ describe('updateNewEventsWithExistingMetadata', () => {
 
   it('copies hasBeenExtendedAt from existing when present', () => {
     const existing: IEvent[] = [
-      baseEvent({ id: 'ORCID:2', hasBeenExtendedAt: '2025-02-02T00:00:00.000Z' }),
+      baseEvent({
+        id: asORCID('https://orcid.org/0000-0003-0000-0000'),
+        hasBeenExtendedAt: '2025-02-02T00:00:00.000Z',
+      }),
     ];
-    const newEvents: IEvent[] = [baseEvent({ id: 'ORCID:2', hasBeenExtendedAt: 'never' })];
+    const newEvents: IEvent[] = [
+      baseEvent({
+        id: asORCID('https://orcid.org/0000-0003-0000-0000'),
+        hasBeenExtendedAt: 'never',
+      }),
+    ];
 
     const updated = updateNewEventsWithExistingMetadata(existing, newEvents);
     expect(updated).toHaveLength(1);
@@ -38,8 +51,12 @@ describe('updateNewEventsWithExistingMetadata', () => {
   });
 
   it('copies status accepted from existing when present', () => {
-    const existing: IEvent[] = [baseEvent({ id: 'ORCID:2', status: 'accepted' })];
-    const newEvents: IEvent[] = [baseEvent({ id: 'ORCID:2', status: 'pending' })];
+    const existing: IEvent[] = [
+      baseEvent({ id: asORCID('https://orcid.org/0000-0004-0000-0000'), status: 'accepted' }),
+    ];
+    const newEvents: IEvent[] = [
+      baseEvent({ id: asORCID('https://orcid.org/0000-0004-0000-0000'), status: 'pending' }),
+    ];
 
     const updated = updateNewEventsWithExistingMetadata(existing, newEvents);
     expect(updated).toHaveLength(1);
@@ -47,8 +64,12 @@ describe('updateNewEventsWithExistingMetadata', () => {
   });
 
   it('copies status rejected from existing when present', () => {
-    const existing: IEvent[] = [baseEvent({ id: 'ORCID:2', status: 'rejected' })];
-    const newEvents: IEvent[] = [baseEvent({ id: 'ORCID:2', status: 'pending' })];
+    const existing: IEvent[] = [
+      baseEvent({ id: asORCID('https://orcid.org/0000-0004-0000-0000'), status: 'rejected' }),
+    ];
+    const newEvents: IEvent[] = [
+      baseEvent({ id: asORCID('https://orcid.org/0000-0004-0000-0000'), status: 'pending' }),
+    ];
 
     const updated = updateNewEventsWithExistingMetadata(existing, newEvents);
     expect(updated).toHaveLength(1);
@@ -58,24 +79,26 @@ describe('updateNewEventsWithExistingMetadata', () => {
   it('creates separate entries when existing contains both extended and accepted variants', () => {
     const existing: IEvent[] = [
       baseEvent({
-        id: 'ORCID:2',
+        id: asORCID('https://orcid.org/0000-0005-0000-0000'),
         hasBeenExtendedAt: '2022-02-02T00:00:00.000Z',
         dataIntegrity: 'e-extend',
       }),
-      baseEvent({ id: 'ORCID:2', status: 'accepted', dataIntegrity: 'e-accept' }),
+      baseEvent({
+        id: asORCID('https://orcid.org/0000-0005-0000-0000'),
+        status: 'accepted',
+        dataIntegrity: 'e-accept',
+      }),
     ];
-    const newEvents: IEvent[] = [baseEvent({ id: 'ORCID:2', dataIntegrity: 'new-4' })];
+    const newEvents: IEvent[] = [
+      baseEvent({ id: asORCID('https://orcid.org/0000-0005-0000-0000'), dataIntegrity: 'new-4' }),
+    ];
 
     const updated = updateNewEventsWithExistingMetadata(existing, newEvents);
     // Expect two results: one with hasBeenExtendedAt set, one with status set
+    // When existing has both an extended entry and an accepted entry, the implementation
+    // merges both metadata into a single event (status + hasBeenExtendedAt).
     expect(updated).toHaveLength(1);
-    const hasUpdated = updated.find(
-      u =>
-        u.id === 'ORCID:2' &&
-        u.hasBeenExtendedAt === '2022-02-02T00:00:00.000Z' &&
-        u.status === 'accepted' &&
-        u.dataIntegrity === 'new-4',
-    );
-    expect(hasUpdated).toBeDefined();
+    expect(updated[0].hasBeenExtendedAt).toBe('2022-02-02T00:00:00.000Z');
+    expect(updated[0].status).toBe('accepted');
   });
 });

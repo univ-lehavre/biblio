@@ -1,7 +1,7 @@
 import { Effect, Ref } from 'effect';
 import { ContextStore, EventsStore } from '../store';
 import type { IEvent } from '../events/types';
-import type { IContext } from './types';
+import type { IContext } from '../context/types';
 import { filterDuplicates, getEvents } from '../events';
 
 const updateEventsStoreWithNewEvents = (

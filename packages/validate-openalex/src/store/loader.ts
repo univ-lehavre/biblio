@@ -2,7 +2,7 @@ import { Effect, Ref } from 'effect';
 import { existsSync, readFileSync } from 'fs';
 import { ContextStore, EventsStore } from '.';
 import type { IEvent } from '../events/types';
-import type { IContext } from './types';
+import type { IContext } from '../context/types';
 import { getContext } from '../context';
 
 const readFile = (file: string) => {

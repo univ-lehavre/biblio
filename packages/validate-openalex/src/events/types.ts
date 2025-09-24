@@ -1,3 +1,5 @@
+import type { OpenAlexID, ORCID } from '@univ-lehavre/biblio-openalex-types';
+
 type Status = 'pending' | 'accepted' | 'rejected';
 
 type IEntity = 'author' | 'institution' | 'work';
@@ -15,9 +17,9 @@ interface IEventMeta {
 
 interface IEventData {
   /** Source des données : OpenAlexID */
-  from: string;
+  from: OpenAlexID;
   /** ORCID, ROR, DOI relatif à l'entité définie */
-  id: string;
+  id: ORCID;
   entity: IEntity;
   field: IField;
   value: string;

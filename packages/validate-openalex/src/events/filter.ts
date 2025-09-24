@@ -1,3 +1,4 @@
+import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { IEvent } from './types';
 
 const isInteresting = (event: IEvent, opts: Partial<IEvent>): boolean => {
@@ -18,7 +19,7 @@ const filterPending = (events: IEvent[], opts: Partial<IEvent>): IEvent[] =>
     status: 'pending',
   });
 
-const filterAcceptedAuthorDisplayNameAlternatives = (events: IEvent[], orcid: string): IEvent[] =>
+const filterAcceptedAuthorDisplayNameAlternatives = (events: IEvent[], orcid: ORCID): IEvent[] =>
   filterEventsByAttributes(events, {
     id: orcid,
     entity: 'author',

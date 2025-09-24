@@ -1,12 +1,15 @@
+import { Effect } from 'effect';
 import { log } from '@clack/prompts';
-import type { Action } from '@univ-lehavre/biblio-validate-openalex';
 import {
   action2option,
   actions,
   active_actions,
   getAffiliations,
   getDisplayNameAlternatives,
+  getEvents,
   getOpenAlexIDs,
+  getORCID,
+  isAuthorContext,
   loadStores,
   print_title,
   provideContextStore,
@@ -14,7 +17,8 @@ import {
   saveStores,
   select,
 } from '@univ-lehavre/biblio-validate-openalex';
-import { Effect } from 'effect';
+import type { Action, IEvent } from '@univ-lehavre/biblio-validate-openalex';
+import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 
 const start = () =>
   Effect.gen(function* () {
@@ -24,7 +28,10 @@ const start = () =>
 
 const dashboard = () =>
   Effect.gen(function* () {
-    const openalexIDs = yield* getOpenAlexIDs();
+    if (!(yield* isAuthorContext())) return;
+    const orcid: ORCID = yield* getORCID();
+    const events: IEvent[] = yield* getEvents();
+    const openalexIDs = getOpenAlexIDs(orcid, events);
     const display_name_alternatives = yield* getDisplayNameAlternatives();
     const affiliations = yield* getAffiliations();
     if (openalexIDs !== undefined && openalexIDs.length > 0)
@@ -39,7 +46,7 @@ const dashboard = () =>
 
 const ask = () =>
   Effect.gen(function* () {
-    // console.clear();
+    console.clear();
     yield* print_title();
     yield* dashboard();
     const actives: Action[] = yield* active_actions();
@@ -58,4 +65,6 @@ const ask = () =>
 
 const runnable = start().pipe(provideEventsStore(), provideContextStore());
 
-Effect.runPromiseExit(runnable).then(console.log).catch(console.error);
+Effect.runPromiseExit(runnable)
+  .then(stdout => console.log(JSON.stringify(stdout, null, 2)))
+  .catch(cause => console.error(JSON.stringify(cause, null, 2)));

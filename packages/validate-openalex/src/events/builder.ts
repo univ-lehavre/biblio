@@ -1,11 +1,13 @@
 import { Effect } from 'effect';
-import { getContext } from '../context';
+import { getORCID } from '../context';
 import { ContextStore, EventsStore } from '../store';
-import { getEventData, getEvents } from './getter';
+import { getEventData, getEvents } from './getter-effect';
 import { buildIntegrity } from '../tools';
 import type { AuthorsResult, IInstitution } from '../fetch/types';
 import type { IEvent } from './types';
 import { updateNewEventsWithExistingMetadata } from '.';
+import { asOpenAlexID } from '@univ-lehavre/biblio-openalex-types';
+import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 
 const buildEvent = (
   partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'>,
@@ -39,13 +41,13 @@ const buildPendingAuthorEvent = (
 
 const buildAuthorResultsPendingEvents = (
   authors: AuthorsResult[],
-): Effect.Effect<IEvent[], never, ContextStore | EventsStore> =>
+): Effect.Effect<IEvent[], Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const items: IEvent[] = [];
-    const orcid: string | undefined = (yield* getContext()).id;
+    const orcid: ORCID = yield* getORCID();
     if (!orcid) throw new Error('No orcid in context');
     for (const author of authors) {
-      const openalexID = author.id;
+      const openalexID = asOpenAlexID(author.id);
       // Traitement des données personnelles de l'auteur
       for (const display_name_alternative of author.display_name_alternatives ?? []) {
         const event: IEvent = yield* buildPendingAuthorEvent({

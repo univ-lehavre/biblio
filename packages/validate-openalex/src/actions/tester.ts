@@ -2,8 +2,9 @@ import { Effect } from 'effect';
 import { getContext } from '../context';
 import { getEvents, hasPending, isInteresting } from '../events';
 import { ContextStore, EventsStore } from '../store';
+import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { IEntity, IField, IEvent } from '../events/types';
-import type { IContext } from '../store/types';
+import type { IContext } from '../context/types';
 
 const hasPendings = (
   entity: IEntity,
@@ -53,7 +54,7 @@ const hasAcceptedValues = () =>
     );
   });
 
-const filterAuthorAlternativeStringsToExtend = (id: string): Partial<IEvent> => ({
+const filterAuthorAlternativeStringsToExtend = (id: ORCID): Partial<IEvent> => ({
   hasBeenExtendedAt: 'never',
   id,
   entity: 'author',

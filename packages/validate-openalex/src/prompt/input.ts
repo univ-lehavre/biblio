@@ -11,10 +11,10 @@ import {
   text as text_prompt,
   autocompleteMultiselect as autocompleteMultiselect_prompt,
 } from '@clack/prompts';
-import type { IContext } from '../store/types';
+import type { IContext } from '../context/types';
 import { hasEventsForThisORCID } from '../actions';
 
-const print_title = (): Effect.Effect<void, never, ContextStore | EventsStore> =>
+const print_title = (): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const { id }: IContext = yield* getContext();
     const hasORCIDEvents: boolean = id ? yield* hasEventsForThisORCID() : false;

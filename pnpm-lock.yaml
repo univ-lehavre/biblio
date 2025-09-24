@@ -71,6 +71,9 @@ importers:
       '@clack/prompts':
         specifier: ^1.0.0-alpha.4
         version: 1.0.0-alpha.4
+      '@univ-lehavre/biblio-openalex-types':
+        specifier: workspace:^
+        version: link:../openalex-types
       '@univ-lehavre/biblio-validate-openalex':
         specifier: workspace:^
         version: link:../validate-openalex
@@ -80,9 +83,6 @@ importers:
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
-      tsx:
-        specifier: ^4.20.5
-        version: 4.20.5
     devDependencies:
       '@univ-lehavre/typescript-config':
         specifier: ^2.0.0
