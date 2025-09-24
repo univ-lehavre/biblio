@@ -40,9 +40,9 @@ const filterDuplicates = (existing: IEvent[], updated: IEvent[]): IEvent[] => {
 };
 
 /**
- * Supprime les événements en double dans une liste donnée (en se basant sur la propriété `dataIntegrity`).
- * @param newItems Un tableau avec des nouveaux événements
- * @returns Un tableau ne contenant que les événements uniques (sans doublons).
+ * Removes duplicate events in a given list (based on the `dataIntegrity` property).
+ * @param newItems An array with new events
+ * @returns An array containing only unique events (without duplicates).
  */
 const removeDuplicates = (newItems: IEvent[]): IEvent[] => {
   const seen = new Set<string>();
