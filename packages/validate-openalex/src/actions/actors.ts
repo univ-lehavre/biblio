@@ -11,6 +11,7 @@ import {
   getEvents,
   getManyEvent,
   isInteresting,
+  removeDuplicates,
   updateNewEventsWithExistingMetadata,
 } from '../events';
 import type { AuthorsResult, ORCID } from '@univ-lehavre/biblio-openalex-types';
@@ -73,14 +74,7 @@ const extendsEventsWithAlternativeStrings = (): Effect.Effect<
         newItem => !events.some(event => event.dataIntegrity === newItem.dataIntegrity),
       ),
     );
-
-    const seen = new Set<string>();
-    const uniques = filteredNewItems.filter(item => {
-      if (seen.has(item.dataIntegrity)) return false;
-      seen.add(item.dataIntegrity);
-      return true;
-    });
-
+    const uniques = removeDuplicates(filteredNewItems);
     if (uniques.length > 0) yield* updateEventsStore(uniques);
   });
 
