@@ -28,10 +28,10 @@ const filterAcceptedAuthorDisplayNameAlternatives = (events: IEvent[], orcid: OR
   });
 
 /**
- * Filtre les événements en double (en se ) avant de les ajouter au store.
+ * Filtre les événements en double (en se basant sur la propriété `dataIntegrity`) avant de les ajouter au store.
  * @param existing Existing events in the store
  * @param updated New events to add
- * @returns
+ * @returns A new array containing the updated events and the existing events that do not have the same `dataIntegrity` as any updated event.
  */
 const filterDuplicates = (existing: IEvent[], updated: IEvent[]): IEvent[] => {
   const uuids = updated.map(e => e.dataIntegrity);
