@@ -1,5 +1,6 @@
 import { uniqueSorted } from '../tools';
-import { IEvent } from './types';
+import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
+import type { IEvent } from './types';
 
 /**
  * Return the intersection of two string arrays.
@@ -47,10 +48,8 @@ const intersect = (arr1: string[], arr2: string[]): string[] =>
  * // returns ['A1', 'A2'] if both appear in accepted affiliation and display_name_alternatives events
  * getOpenAlexIDs('0000-0001-2345-6789', events);
  */
-const getOpenAlexIDs = (orcid: string, events: IEvent[]): string[] => {
+const getOpenAlexIDs = (orcid: ORCID, events: IEvent[]): string[] => {
   if (events.length === 0) return [];
-  if (orcid === undefined) return [];
-  if (!orcid.startsWith('https://orcid.org/')) return [];
 
   const affiliations = events
     .filter(
