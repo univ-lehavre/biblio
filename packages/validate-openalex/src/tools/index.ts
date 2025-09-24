@@ -15,7 +15,7 @@ const buildIntegrity = (data: unknown): Effect.Effect<string, never, ContextStor
     return digest;
   });
 
-// Une fonction prenant un string[] et retournant un tableau avec des chaînes uniques et triées
+// A function that takes a string[] and returns an array with unique and sorted strings
 const uniqueSorted = (values: string[]): string[] => {
   if (values.length === 0) return [];
   const unique: string[] = Array.from(new Set(values));
