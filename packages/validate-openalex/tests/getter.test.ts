@@ -39,7 +39,7 @@ describe('getOpenAlexIDs', () => {
       }),
     ];
 
-    expect(getOpenAlexIDs('https://orcid.org/0000-0002-0001-0001', events)).toEqual([]);
+    expect(getOpenAlexIDs(asORCID('https://orcid.org/0000-0002-0001-0001'), events)).toEqual([]);
   });
 
   it('returns unique sorted intersection of affiliations and display_name_alternatives with status accepted', () => {
@@ -83,7 +83,7 @@ describe('getOpenAlexIDs', () => {
     ];
 
     // uniqueSorted mock sorts strings ascending
-    expect(getOpenAlexIDs('https://orcid.org/0000-0002-0002-0002', events)).toEqual([
+    expect(getOpenAlexIDs(asORCID('https://orcid.org/0000-0002-0002-0002'), events)).toEqual([
       'https://openalex.org/A2',
       'https://openalex.org/A3',
     ]);
@@ -114,6 +114,6 @@ describe('getOpenAlexIDs', () => {
       },
     ];
 
-    expect(getOpenAlexIDs('https://orcid.org/0000-0002-0003-0003', events)).toEqual([]);
+    expect(getOpenAlexIDs(asORCID('https://orcid.org/0000-0002-0003-0003'), events)).toEqual([]);
   });
 });
