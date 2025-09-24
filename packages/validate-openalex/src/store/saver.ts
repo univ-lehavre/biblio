@@ -5,7 +5,7 @@ import { getContext } from '../context';
 import { copyFileSync, existsSync, writeFileSync } from 'fs';
 import { ContextStore, EventsStore } from '.';
 
-const timestamp = (): string => new Date().toISOString().replaceAll(/[:.]/g, '-');
+const timestamp = (): string => new Date().toISOString().replace(/[:.]/g, '-');
 
 const writeFile = (value: unknown, file: string, backup: boolean): void => {
   if (backup && existsSync(file)) copyFileSync(file, `${timestamp()}-${file}`);
