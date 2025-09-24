@@ -1,5 +1,11 @@
 # @univ-lehavre/openalex-types
 
+## 1.1.0
+
+### Minor Changes
+
+- d0aab43: Ajout de branded types pour ORCID et OpenAlexID
+
 ## 1.0.2
 
 ### Patch Changes

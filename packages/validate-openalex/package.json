@@ -1,6 +1,6 @@
 {
   "name": "@univ-lehavre/biblio-validate-openalex",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Un ensemble d’outils pour la validation de données bibliographiques en TypeScript",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",

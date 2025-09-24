@@ -1,5 +1,16 @@
 # @univ-lehavre/validate-openalex
 
+## 0.2.0
+
+### Minor Changes
+
+- 6f9f937: Ajout de tests, de fonctions de tri de tableaux de string, modification des actions et refactor
+
+### Patch Changes
+
+- Updated dependencies [d0aab43]
+  - @univ-lehavre/biblio-openalex-types@1.1.0
+
 ## 0.1.1
 
 ### Patch Changes
