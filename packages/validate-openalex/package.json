@@ -4,7 +4,7 @@
   "description": "Un ensemble d’outils pour la validation de données bibliographiques en TypeScript",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
-  "repository": "https://github.com/univ-lehavre/bibliographic",
+  "repository": "https://github.com/univ-lehavre/biblio",
   "scripts": {
     "build": "preconstruct build",
     "dev": "preconstruct watch",
@@ -14,7 +14,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
-    "start:only": "node ./dist/univ-lehavre-validate-openalex.cjs.js",
+    "test": "jest",
+    "start:only": "node ./dist/univ-lehavre-biblio-validate-openalex.cjs.js",
     "start": "run-s build start:only"
   },
   "dependencies": {

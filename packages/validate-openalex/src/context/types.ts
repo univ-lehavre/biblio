@@ -1,3 +1,4 @@
+import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { IEntity } from '../events/types';
 
 type IContextType = IEntity | 'none';
@@ -5,8 +6,7 @@ type IContextType = IEntity | 'none';
 interface IContext {
   type: IContextType;
   // Description
-  id: string | undefined;
-  label?: string;
+  id: ORCID | undefined;
   // Stockage du contexte et des évènements
   backup: boolean;
   context_file: string;

@@ -2,7 +2,8 @@ import { Effect, Ref } from 'effect';
 import { existsSync, readFileSync } from 'fs';
 import { ContextStore, EventsStore } from '.';
 import type { IEvent } from '../events/types';
-import type { IContext } from './types';
+import type { IContext } from '../context/types';
+import { getContext } from '../context';
 
 const readFile = (file: string) => {
   if (existsSync(file)) {
@@ -13,8 +14,9 @@ const readFile = (file: string) => {
   }
 };
 
-const loadContextStore = (file: string = 'context.json') =>
+const loadContextStore = () =>
   Effect.gen(function* () {
+    const file = (yield* getContext()).context_file;
     const parsed: IContext = readFile(file) as IContext;
     if (parsed) {
       const store = yield* ContextStore;
@@ -22,8 +24,9 @@ const loadContextStore = (file: string = 'context.json') =>
     }
   });
 
-const loadEventsStore = (file: string = 'events.json') =>
+const loadEventsStore = () =>
   Effect.gen(function* () {
+    const file = (yield* getContext()).events_file;
     const parsed = readFile(file) as IEvent[];
     if (parsed) {
       const store = yield* EventsStore;

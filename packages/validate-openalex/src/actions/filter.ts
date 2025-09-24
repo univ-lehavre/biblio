@@ -1,16 +1,21 @@
 import { Effect } from 'effect';
 import { actions } from '.';
+import { ContextStore, EventsStore } from '../store';
 import type { Action } from './types';
 
-const active_actions = () =>
+const active_actions = (): Effect.Effect<Action[], Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const items: Action[] = [];
     for (const action of actions) {
-      if (!action.visible) {
+      if (action.visible === undefined) {
         items.push(action);
       } else {
-        const visible = yield* action.visible();
-        if (visible) items.push(action);
+        let nbr = 0;
+        for (const visible of action.visible) {
+          const isViewable = yield* visible();
+          if (isViewable) nbr++;
+        }
+        if (nbr === action.visible.length) items.push(action);
       }
     }
     return items;

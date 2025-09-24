@@ -1,6 +1,7 @@
 import { Effect, Ref } from 'effect';
 import { ContextStore } from '../store';
-import type { IContext } from '../store/types';
+import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
+import type { IContext } from './types';
 
 const getContext = (): Effect.Effect<IContext, never, ContextStore> =>
   Effect.gen(function* () {
@@ -9,12 +10,18 @@ const getContext = (): Effect.Effect<IContext, never, ContextStore> =>
     return context;
   });
 
-const getORCID = () =>
+const isAuthorContext = () =>
   Effect.gen(function* () {
-    const context = yield* getContext();
-    if (context.type !== 'author')
-      throw new Error(`Context is of type ${context.type}. ORCID needs a context of type author.`);
-    return context.id as string;
+    const { type }: IContext = yield* getContext();
+    return type === 'author';
   });
 
-export { getContext, getORCID };
+const getORCID = (): Effect.Effect<ORCID, Error, ContextStore> =>
+  Effect.gen(function* () {
+    const { type, id }: IContext = yield* getContext();
+    if (type !== 'author') throw new Error('Context type is not author');
+    if (!id) throw new Error('No ORCID in context');
+    return id;
+  });
+
+export { getContext, getORCID, isAuthorContext };

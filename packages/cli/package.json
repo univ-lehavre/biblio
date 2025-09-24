@@ -1,7 +1,7 @@
 {
-  "name": "@univ-lehavre/biblio-openalex-types",
-  "version": "1.0.2",
-  "description": "Un ensemble d’outils pour le téléchargement de fichiers en TypeScript",
+  "name": "@univ-lehavre/biblio-cli",
+  "version": "0.0.0",
+  "description": "La ligne de commande",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
   "repository": "https://github.com/univ-lehavre/biblio",
@@ -13,15 +13,20 @@
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
-    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix"
+    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
+    "start:only": "node ./dist/univ-lehavre-biblio-cli.cjs.js",
+    "start": "run-s build start:only"
   },
   "dependencies": {
     "@clack/prompts": "^1.0.0-alpha.4",
+    "@univ-lehavre/biblio-validate-openalex": "workspace:^",
+    "@univ-lehavre/biblio-openalex-types": "workspace:^",
     "effect": "^3.17.13",
-    "qs": "^6.14.0"
+    "picocolors": "^1.1.1"
   },
   "devDependencies": {
-    "@univ-lehavre/typescript-config": "^2.0.0"
+    "@univ-lehavre/typescript-config": "^2.0.0",
+    "npm-run-all": "^4.1.5"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
@@ -31,17 +36,17 @@
     "dist",
     "CHANGELOG.md"
   ],
-  "main": "dist/univ-lehavre-biblio-openalex-types.cjs.js",
-  "module": "dist/univ-lehavre-biblio-openalex-types.esm.js",
+  "main": "dist/univ-lehavre-biblio-cli.cjs.js",
+  "module": "dist/univ-lehavre-biblio-cli.esm.js",
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/univ-lehavre-biblio-openalex-types.cjs.mjs",
-        "default": "./dist/univ-lehavre-biblio-openalex-types.cjs.js"
+        "import": "./dist/univ-lehavre-biblio-cli.cjs.mjs",
+        "default": "./dist/univ-lehavre-biblio-cli.cjs.js"
       },
-      "module": "./dist/univ-lehavre-biblio-openalex-types.esm.js",
-      "import": "./dist/univ-lehavre-biblio-openalex-types.cjs.mjs",
-      "default": "./dist/univ-lehavre-biblio-openalex-types.cjs.js"
+      "module": "./dist/univ-lehavre-biblio-cli.esm.js",
+      "import": "./dist/univ-lehavre-biblio-cli.cjs.mjs",
+      "default": "./dist/univ-lehavre-biblio-cli.cjs.js"
     },
     "./package.json": "./package.json"
   },

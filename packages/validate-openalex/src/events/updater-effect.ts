@@ -1,8 +1,8 @@
 import { Effect } from 'effect';
-import { getEvents } from './getter';
+import { getEvents } from './getter-effect';
+import { updateEventsStore } from '../store';
 import { filterPending } from './filter';
 import type { IEvent, Status } from './types';
-import { updateEventsStore } from '../store';
 
 const updateEventStatusBasedOnAcceptedValues = (
   events: IEvent[],

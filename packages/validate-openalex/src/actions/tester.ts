@@ -1,23 +1,100 @@
 import { Effect } from 'effect';
 import { getContext } from '../context';
-import { getEvents, hasPending } from '../events';
+import { getEvents, hasPending, isInteresting } from '../events';
 import { ContextStore, EventsStore } from '../store';
+import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { IEntity, IField, IEvent } from '../events/types';
-import type { IContext } from '../store/types';
+import type { IContext } from '../context/types';
 
-const isVisible = (
+const hasPendings = (
   entity: IEntity,
-  field: IField,
+  field?: IField,
 ): Effect.Effect<boolean, never, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const { type, id }: IContext = yield* getContext();
     if (type !== entity) return false;
     const events: IEvent[] = yield* getEvents();
-    return hasPending(events, {
-      id,
-      entity,
-      field,
-    });
+    return field === undefined
+      ? events.some(event => isInteresting(event, { id, entity, status: 'pending' }))
+      : hasPending(events, {
+          id,
+          entity,
+          field,
+        });
   });
 
-export { isVisible };
+const notHasPendings = (
+  entity: IEntity,
+  field?: IField,
+): Effect.Effect<boolean, never, ContextStore | EventsStore> =>
+  Effect.gen(function* () {
+    const has = yield* hasPendings(entity, field);
+    return !has;
+  });
+
+const hasAcceptedValues = () =>
+  Effect.gen(function* () {
+    const { type, id }: IContext = yield* getContext();
+    if (type !== 'author') return false;
+    const events: IEvent[] = yield* getEvents();
+    return events.some(
+      event =>
+        isInteresting(event, {
+          id,
+          entity: 'author',
+          field: 'display_name_alternatives',
+          status: 'accepted',
+        }) &&
+        isInteresting(event, {
+          id,
+          entity: 'author',
+          field: 'affiliation',
+          status: 'accepted',
+        }),
+    );
+  });
+
+const filterAuthorAlternativeStringsToExtend = (id: ORCID): Partial<IEvent> => ({
+  hasBeenExtendedAt: 'never',
+  id,
+  entity: 'author',
+  field: 'display_name_alternatives',
+  status: 'accepted',
+});
+
+const getAuthorAlternativeStrings = (): Effect.Effect<
+  IEvent[],
+  never,
+  ContextStore | EventsStore
+> =>
+  Effect.gen(function* () {
+    const { type, id }: IContext = yield* getContext();
+    if (type !== 'author') return [];
+    if (id === undefined) return [];
+    const events: IEvent[] = yield* getEvents();
+    return events.filter(event => isInteresting(event, filterAuthorAlternativeStringsToExtend(id)));
+  });
+
+const hasAuthorAlternativeStrings = (): Effect.Effect<boolean, never, ContextStore | EventsStore> =>
+  Effect.gen(function* () {
+    const { type, id }: IContext = yield* getContext();
+    if (type !== 'author') return false;
+    if (id === undefined) return false;
+    const events: IEvent[] = yield* getEvents();
+    return events.some(event => isInteresting(event, filterAuthorAlternativeStringsToExtend(id)));
+  });
+
+const isContext = (entity: IEntity): Effect.Effect<boolean, never, ContextStore | EventsStore> =>
+  Effect.gen(function* () {
+    const { type }: IContext = yield* getContext();
+    return type === entity;
+  });
+
+export {
+  hasPendings,
+  hasAcceptedValues,
+  isContext,
+  notHasPendings,
+  hasAuthorAlternativeStrings,
+  getAuthorAlternativeStrings,
+};

@@ -1,23 +1,24 @@
 import color from 'picocolors';
 import { Effect } from 'effect';
 import { getContext } from '../context';
-import { ContextStore } from '../store';
+import { ContextStore, EventsStore } from '../store';
 import {
   type Option,
-  log,
   intro,
   outro,
   select as select_prompt,
   multiselect as multiselect_prompt,
   text as text_prompt,
+  autocompleteMultiselect as autocompleteMultiselect_prompt,
 } from '@clack/prompts';
-import type { IContext } from '../store/types';
+import type { IContext } from '../context/types';
+import { hasEventsForThisORCID } from '../actions';
 
-const print_title = (): Effect.Effect<void, never, ContextStore> =>
+const print_title = (): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
-    const context: IContext = yield* getContext();
-    const title = context.id !== undefined ? `${context.label} (${context.id})` : 'OpenAlex';
-    console.clear();
+    const { id }: IContext = yield* getContext();
+    const hasORCIDEvents: boolean = id ? yield* hasEventsForThisORCID() : false;
+    const title: string = id && hasORCIDEvents ? `ORCID ${id}` : 'OpenAlex';
     intro(`${color.bgCyan(color.black(` ${title} `))}\n`);
   });
 
@@ -44,6 +45,19 @@ const multiselect = (message: string, required: boolean, options: Option<string>
     catch: cause => new Error('Erreur lors de la sélection', { cause }),
   });
 
+const autocompleteMultiselect = (message: string, required: boolean, options: Option<string>[]) =>
+  Effect.tryPromise({
+    try: () =>
+      autocompleteMultiselect_prompt({
+        message,
+        options,
+        required,
+        placeholder: "Taper pour filtrer l'option...",
+        maxItems: 20,
+      }),
+    catch: cause => new Error('Erreur lors de la sélection', { cause }),
+  });
+
 const text = (
   message: string,
   placeholder: string,
@@ -59,4 +73,4 @@ const text = (
     catch: () => new Error('Erreur lors de la saisie'),
   });
 
-export { select, multiselect, text, print_title, end, log };
+export { select, multiselect, text, autocompleteMultiselect, print_title, end };

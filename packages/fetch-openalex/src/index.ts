@@ -79,12 +79,20 @@ const fetchAPI = <T>(
     }),
   );
 
+/**
+ * Fetch data from the OpenAlex API.
+ * @param entity 'authors' | 'works' | 'institutions'
+ * @param opts FetchOpenAlexAPIOptions
+ * @param total_pages
+ * @param start_page
+ * @returns Effect.Effect<OpenalexResponse<T>, StatusError | FetchError | ConfigError, never>
+ */
 const fetchOpenAlexAPI = <T>(
   entity: 'authors' | 'works' | 'institutions',
   opts: FetchOpenAlexAPIOptions,
   total_pages: number = Infinity,
   start_page: number = 1,
-) =>
+): Effect.Effect<OpenalexResponse<T>, StatusError | FetchError | ConfigError, never> =>
   Effect.gen(function* () {
     const { per_page, openalex_api_url } = yield* getEnv();
     const url = new URL(`${openalex_api_url}/${entity}`);
@@ -98,4 +106,4 @@ const fetchOpenAlexAPI = <T>(
     return response;
   });
 
-export { fetchOpenAlexAPI };
+export { fetchOpenAlexAPI, StatusError, FetchError };

@@ -1,13 +1,16 @@
 import { Effect } from 'effect';
-import { getContext } from '../context';
-import { ContextStore } from '../store';
-import { getEventData } from './getter';
+import { getORCID } from '../context';
+import { ContextStore, EventsStore } from '../store';
+import { getEventData, getEvents } from './getter-effect';
 import { buildIntegrity } from '../tools';
 import type { AuthorsResult, IInstitution } from '../fetch/types';
 import type { IEvent } from './types';
+import { updateNewEventsWithExistingMetadata } from '.';
+import { asOpenAlexID } from '@univ-lehavre/biblio-openalex-types';
+import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 
 const buildEvent = (
-  partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt'>,
+  partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'>,
 ): Effect.Effect<IEvent, never, ContextStore> =>
   Effect.gen(function* () {
     const dataIntegrity: string = yield* buildIntegrity(getEventData(partial));
@@ -17,12 +20,16 @@ const buildEvent = (
       dataIntegrity,
       createdAt,
       updatedAt: createdAt,
+      hasBeenExtendedAt: 'never',
     };
     return event;
   });
 
 const buildPendingAuthorEvent = (
-  partial: Omit<IEvent, 'status' | 'dataIntegrity' | 'createdAt' | 'updatedAt'>,
+  partial: Omit<
+    IEvent,
+    'status' | 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'
+  >,
 ): Effect.Effect<IEvent, never, ContextStore> =>
   Effect.gen(function* () {
     const event: IEvent = yield* buildEvent({
@@ -34,22 +41,14 @@ const buildPendingAuthorEvent = (
 
 const buildAuthorResultsPendingEvents = (
   authors: AuthorsResult[],
-): Effect.Effect<IEvent[], never, ContextStore> =>
+): Effect.Effect<IEvent[], Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const items: IEvent[] = [];
-    const orcid: string | undefined = (yield* getContext()).id;
+    const orcid: ORCID = yield* getORCID();
     if (!orcid) throw new Error('No orcid in context');
     for (const author of authors) {
-      const openalexID = author.id;
+      const openalexID = asOpenAlexID(author.id);
       // Traitement des données personnelles de l'auteur
-      const display_name: IEvent = yield* buildPendingAuthorEvent({
-        from: openalexID,
-        id: orcid,
-        entity: 'author',
-        field: 'display_name',
-        value: author.display_name,
-      });
-      items.push(display_name);
       for (const display_name_alternative of author.display_name_alternatives ?? []) {
         const event: IEvent = yield* buildPendingAuthorEvent({
           from: openalexID,
@@ -74,7 +73,9 @@ const buildAuthorResultsPendingEvents = (
         items.push(event);
       }
     }
-    return items;
+    const events = yield* getEvents();
+    const updated = updateNewEventsWithExistingMetadata(events, items);
+    return updated;
   });
 
 export { buildAuthorResultsPendingEvents };
