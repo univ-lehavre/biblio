@@ -13,6 +13,7 @@ const updateEventsStoreWithNewEvents = (
   });
 
 /**
+ * Updates the EventsStore with new events, ensuring no duplicates.
  * @param newEvents New events to add to the store
  * @returns An Effect that updates the EventsStore with the new events, ensuring no duplicates.
  */
