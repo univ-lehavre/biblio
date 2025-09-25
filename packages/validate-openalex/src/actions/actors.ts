@@ -103,79 +103,14 @@ const removeAuthorPendings = (): Effect.Effect<void, Error, ContextStore | Event
     yield* setEventsStore(notPendings);
   });
 
-// Helper: Validate authorship
-const validateAuthorship = function* (
-  orcid: ORCID,
-  authorOpenalexID: string,
-  work: WorksResult
-): Generator<any, { valid: boolean; authorship?: any }, any> {
-  const authorships = work.authorships;
-  if (authorships.length === 0) return { valid: false };
-  const authorship = authorships.find(author => author.author.id === authorOpenalexID);
-  if (authorship === undefined) {
-    const event = yield* buildEvent({
-      from: work.id,
-      id: orcid,
-      entity: 'work',
-      field: 'id',
-      value: work.id,
-      label: buildReference(work),
-      status: 'rejected',
-    });
-    yield* updateEventsStore([event]);
-    return { valid: false };
-  }
-  return { valid: true, authorship };
-};
-
-// Helper: Process display name alternatives
-const processDisplayNameAlternatives = function* (
-  orcid: ORCID,
-  work: WorksResult,
-  authorship: any
-): Generator<any, boolean, any> {
-  const status = getStatusOfAuthorDisplayNameAlternative(
-    authorship.raw_author_name,
-    orcid,
-    yield* getEvents(),
-  );
-  if (status === 'rejected') {
-    const event = yield* buildEvent({
-      from: work.id,
-      id: orcid,
-      entity: 'work',
-      field: 'id',
-      value: work.id,
-      label: buildReference(work),
-      status: 'rejected',
-    });
-    yield* updateEventsStore([event]);
-    return false;
-  } else if (status === undefined) {
-    const confirmed = yield* confirm(
-      `Acceptez-vous d'ajouter "${authorship.raw_author_name}" comme forme imprimée pour l'ORCID ${orcid} ?`,
-    );
-    if (typeof confirmed !== 'boolean') throw new Error('Réponse invalide');
-    if (confirmed) {
+const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
+  Effect.gen(function* () {
+    // On regarde chaque publication
+    const authorships = work.authorships;
+    if (authorships.length === 0) return;
+    const authorship = authorships.find(author => author.author.id === authorOpenalexID);
+    if (authorship === undefined) {
       const event = yield* buildEvent({
-        from: work.id,
-        id: orcid,
-        entity: 'author',
-        field: 'display_name_alternatives',
-        value: authorship.raw_author_name,
-        status: 'accepted',
-      });
-      yield* updateEventsStore([event]);
-    } else {
-      const event = yield* buildEvent({
-        from: work.id,
-        id: orcid,
-        entity: 'author',
-        field: 'display_name_alternatives',
-        value: authorship.raw_author_name,
-        status: 'rejected',
-      });
-      const event2 = yield* buildEvent({
         from: work.id,
         id: orcid,
         entity: 'work',
@@ -184,24 +119,63 @@ const processDisplayNameAlternatives = function* (
         label: buildReference(work),
         status: 'rejected',
       });
-      yield* updateEventsStore([event, event2]);
-      return false;
+      yield* updateEventsStore([event]);
+      return;
     }
-  }
-  return true;
-};
-
-// Main function refactored
-const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
-  Effect.gen(function* () {
-    // Validate authorship
-    const { valid, authorship } = yield* validateAuthorship(orcid, authorOpenalexID, work);
-    if (!valid) return;
-    // Process display name alternatives
-    const displayNameOk = yield* processDisplayNameAlternatives(orcid, work, authorship);
-    if (!displayNameOk) return;
-    // ... (rest of checkWork logic, e.g., processAffiliations, createWorkEvents, etc.)
-  });
+    const status = getStatusOfAuthorDisplayNameAlternative(
+      authorship.raw_author_name,
+      orcid,
+      yield* getEvents(),
+    );
+    if (status === 'rejected') {
+      const event = yield* buildEvent({
+        from: work.id,
+        id: orcid,
+        entity: 'work',
+        field: 'id',
+        value: work.id,
+        label: buildReference(work),
+        status: 'rejected',
+      });
+      yield* updateEventsStore([event]);
+      return;
+    } else if (status === undefined) {
+      const confirmed = yield* confirm(
+        `Acceptez-vous d'ajouter "${authorship.raw_author_name}" comme forme imprimée pour l'ORCID ${orcid} ?`,
+      );
+      if (typeof confirmed !== 'boolean') throw new Error('Réponse invalide');
+      if (confirmed) {
+        const event = yield* buildEvent({
+          from: work.id,
+          id: orcid,
+          entity: 'author',
+          field: 'display_name_alternatives',
+          value: authorship.raw_author_name,
+          status: 'accepted',
+        });
+        yield* updateEventsStore([event]);
+      } else {
+        const event = yield* buildEvent({
+          from: work.id,
+          id: orcid,
+          entity: 'author',
+          field: 'display_name_alternatives',
+          value: authorship.raw_author_name,
+          status: 'rejected',
+        });
+        const event2 = yield* buildEvent({
+          from: work.id,
+          id: orcid,
+          entity: 'work',
+          field: 'id',
+          value: work.id,
+          label: buildReference(work),
+          status: 'rejected',
+        });
+        yield* updateEventsStore([event, event2]);
+        return;
+      }
+    }
     // On passe aux affiliations
     for (const affiliation of authorship.affiliations) {
       const raw_affiliation_string = affiliation.raw_affiliation_string;
