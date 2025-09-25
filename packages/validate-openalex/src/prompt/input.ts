@@ -6,6 +6,7 @@ import {
   type Option,
   intro,
   outro,
+  confirm as confirm_prompt,
   select as select_prompt,
   multiselect as multiselect_prompt,
   text as text_prompt,
@@ -23,6 +24,15 @@ const print_title = (): Effect.Effect<void, Error, ContextStore | EventsStore> =
   });
 
 const end = () => outro(`${color.bgGreen(color.black(` Fin `))}`);
+
+const confirm = (message: string) =>
+  Effect.tryPromise({
+    try: () =>
+      confirm_prompt({
+        message,
+      }),
+    catch: cause => new Error('Erreur lors de la confirmation', { cause }),
+  });
 
 const select = (message: string, options: Option<string>[]) =>
   Effect.tryPromise({
@@ -73,4 +83,4 @@ const text = (
     catch: () => new Error('Erreur lors de la saisie'),
   });
 
-export { select, multiselect, text, autocompleteMultiselect, print_title, end };
+export { select, multiselect, text, autocompleteMultiselect, print_title, end, confirm };

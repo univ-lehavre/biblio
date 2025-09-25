@@ -7,7 +7,7 @@ import type { AuthorsResult, IInstitution } from '../fetch/types';
 import type { IEvent } from './types';
 import { updateNewEventsWithExistingMetadata } from '.';
 import { asOpenAlexID } from '@univ-lehavre/biblio-openalex-types';
-import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
+import type { ORCID, WorksResult } from '@univ-lehavre/biblio-openalex-types';
 
 const buildEvent = (
   partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'>,
@@ -78,4 +78,13 @@ const buildAuthorResultsPendingEvents = (
     return updated;
   });
 
-export { buildAuthorResultsPendingEvents };
+const buildReference = (work: WorksResult) => {
+  const authors = work.authorships
+    .flatMap(a => a.author)
+    .map(au => au.display_name)
+    .join(', ');
+  const ref = `${authors} (${work.publication_year}). ${work.title}. DOI: ${work.doi}. OpenAlex ID: ${work.id}`;
+  return ref;
+};
+
+export { buildAuthorResultsPendingEvents, buildEvent, buildReference };

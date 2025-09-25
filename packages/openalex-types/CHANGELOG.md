@@ -1,5 +1,18 @@
 # @univ-lehavre/openalex-types
 
+## 2.0.0
+
+### Major Changes
+
+- 8e89142: - packages/openalex-types/src/setter.ts Adds regex validation for ORCID and OpenAlex ID formats
+  - packages/openalex-types/src/api-results.ts Adds AffiliationAuthorshipResult interface and updates WorksResult
+
+## 1.1.0
+
+### Minor Changes
+
+- d0aab43: Ajout de branded types pour ORCID et OpenAlexID
+
 ## 1.0.2
 
 ### Patch Changes

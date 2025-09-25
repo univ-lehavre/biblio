@@ -1,5 +1,12 @@
 # @univ-lehavre/fetch-openalex
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [8e89142]
+  - @univ-lehavre/biblio-openalex-types@2.0.0
+
 ## 0.2.0
 
 ### Minor Changes

@@ -71,7 +71,7 @@ const actions: Action[] = [
     action: () => extendsEventsWithAlternativeStrings(),
   },
   {
-    name: 'Télécharger les travaux de ce chercheur',
+    name: 'Fiabiliser les identifiants OpenAlex d’auteurs avec les publications de ce chercheur',
     visible: [() => hasAcceptedValues()],
     action: () => extendsToWorks(),
   },

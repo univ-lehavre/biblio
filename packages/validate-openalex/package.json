@@ -1,6 +1,6 @@
 {
   "name": "@univ-lehavre/biblio-validate-openalex",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "Un ensemble d’outils pour la validation de données bibliographiques en TypeScript",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
@@ -14,7 +14,6 @@
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
-    "test": "jest",
     "start:only": "node ./dist/univ-lehavre-biblio-validate-openalex.cjs.js",
     "start": "run-s build start:only"
   },

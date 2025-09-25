@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
 import { getContext } from '../context';
-import { getEvents, hasPending, isInteresting } from '../events';
+import { getEvents, getOpenAlexIDs, hasPending, isInteresting } from '../events';
 import { ContextStore, EventsStore } from '../store';
 import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { IEntity, IField, IEvent } from '../events/types';
@@ -36,22 +36,9 @@ const hasAcceptedValues = () =>
   Effect.gen(function* () {
     const { type, id }: IContext = yield* getContext();
     if (type !== 'author') return false;
+    if (id === undefined) return false;
     const events: IEvent[] = yield* getEvents();
-    return events.some(
-      event =>
-        isInteresting(event, {
-          id,
-          entity: 'author',
-          field: 'display_name_alternatives',
-          status: 'accepted',
-        }) &&
-        isInteresting(event, {
-          id,
-          entity: 'author',
-          field: 'affiliation',
-          status: 'accepted',
-        }),
-    );
+    return getOpenAlexIDs(id, events).length > 0;
   });
 
 const filterAuthorAlternativeStringsToExtend = (id: ORCID): Partial<IEvent> => ({
