@@ -26,10 +26,10 @@
     "test": "turbo run test",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
-    "changeset:add": "pnpm dlx @changesets/cli",
+    "changeset": "pnpm dlx @changesets/cli",
     "changeset:version": "pnpm dlx @changesets/cli version",
     "changeset:publish": "pnpm dlx @changesets/cli publish",
-    "broadcast": "run-s build:checked changeset:add changeset:version changeset:publish"
+    "broadcast": "run-s build:checked changeset:version changeset:publish"
   },
   "devDependencies": {
     "@babel/cli": "^7.28.3",
