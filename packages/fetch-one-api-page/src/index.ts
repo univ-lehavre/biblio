@@ -44,7 +44,6 @@ const buildHeaders = (user_agent: string): Headers => {
  * @param params Parameters to add to the URL
  * @param user_agent The name of the application making the request
  * @throws {FetchError} If the fetch function fails
- * @throws {StatusError} If the response status is not OK
  * @returns An Effect that resolves to the JSON response or an error
  */
 const fetchOnePage = <T>(
