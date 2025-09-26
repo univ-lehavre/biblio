@@ -23,6 +23,7 @@
     "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix"
   },
   "dependencies": {
+    "@univ-lehavre/biblio-fetch-one-api-page": "workspace:^",
     "@univ-lehavre/biblio-openalex-types": "workspace:^",
     "@clack/prompts": "^1.0.0-alpha.4",
     "effect": "^3.17.13",
