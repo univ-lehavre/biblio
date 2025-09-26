@@ -1,12 +1,49 @@
-import { Effect, RateLimiter } from 'effect';
-import { fetch_one_page } from './fetch-one-page';
 import { getEnv } from './config';
-import { ConfigError } from 'effect/ConfigError';
-import { FetchError, StatusError } from './errors';
-import { FetchOpenAlexAPIOptions, OpenalexResponse, Query } from './types';
+import { Effect, RateLimiter } from 'effect';
+import { fetchOnePage } from './fetch-one-page';
 import { log, spinner, SpinnerResult } from '@clack/prompts';
+import { FetchError, StatusError } from './errors';
+import type { ConfigError } from 'effect/ConfigError';
+import type { Env, FetchAPIOptions, Query } from './types';
 
-const exhaust = <T>(
+interface APIResponse<T> {
+  meta: {
+    count: number;
+    page: number;
+    per_page: number;
+  };
+  results: T[];
+}
+
+class API<T> {
+  private totalPages: number = Infinity;
+  private count: number = 0;
+
+  constructor(
+    private readonly maxItems: number,
+    private page: number,
+    readonly logStart: () => void,
+    readonly logCompletion: () => void,
+    private readonly logProgress: (count: number) => void,
+    private readonly logMaxItemsReached: () => void,
+  ) {}
+
+  AddNewResponse(response: APIResponse<T>): T[] {
+    this.page += 1;
+    this.count += response.results.length;
+    this.logProgress(this.count);
+    if (this.count >= this.maxItems) this.logMaxItemsReached();
+    if (this.totalPages === Infinity)
+      this.totalPages = Math.ceil(response.meta.count / response.meta.per_page);
+    return response.results;
+  }
+
+  getTotalPages(): number {
+    return this.totalPages;
+  }
+}
+
+const fetchAllPages = <T>(
   ratelimiter: RateLimiter.RateLimiter,
   start_page: number,
   total_pages: number,
@@ -23,7 +60,7 @@ const exhaust = <T>(
       Effect.gen(function* () {
         params.page = state;
         const response = yield* ratelimiter(
-          fetch_one_page<OpenalexResponse<T>>(base_url, params, user_agent),
+          fetchOnePage<OpenalexResponse<T>>(base_url, params, user_agent),
         );
         count += response.results.length;
         if (count > 10000) {
@@ -49,25 +86,21 @@ const fetchAPI = <T>(
   params: Query,
   total_pages: number = Infinity,
   start_page: number = 1,
-): Effect.Effect<OpenalexResponse<T>, ConfigError | StatusError | FetchError, never> =>
+) =>
   Effect.scoped(
     Effect.gen(function* () {
-      const { user_agent, rate_limit } = yield* getEnv();
+      const { user_agent, rate_limit }: Env = yield* getEnv();
       const ratelimiter: RateLimiter.RateLimiter = yield* RateLimiter.make(rate_limit);
-      const spin = spinner();
-      spin.start('Fouille des données d’OpenAlex');
-      const raw = yield* exhaust<T>(
+      const raw = yield* fetchAllPages<T>(
         ratelimiter,
         start_page,
         total_pages,
         params,
         user_agent,
         base_url,
-        spin,
       );
       const results = raw.flat();
-      spin.stop(`${results.length} items téléchargés d’OpenAlex`);
-      const result: OpenalexResponse<T> = {
+      const result = {
         meta: {
           count: results.length,
           page: 1,
@@ -80,29 +113,24 @@ const fetchAPI = <T>(
   );
 
 /**
- * Fetch data from the OpenAlex API.
- * @param entity 'authors' | 'works' | 'institutions'
- * @param opts FetchOpenAlexAPIOptions
- * @param total_pages
- * @param start_page
+ * Fetch data from the API.
+ * @param entity type of entity to fetch: 'authors', 'works', 'institutions', etc.
+ * @param opts FetchAPIOptions
+ * @param total_pages maximum number of pages to fetch
+ * @param start_page page to start fetching from
  * @returns Effect.Effect<OpenalexResponse<T>, StatusError | FetchError | ConfigError, never>
  */
 const fetchOpenAlexAPI = <T>(
   entity: 'authors' | 'works' | 'institutions',
-  opts: FetchOpenAlexAPIOptions,
+  opts: FetchAPIOptions,
   total_pages: number = Infinity,
   start_page: number = 1,
-): Effect.Effect<OpenalexResponse<T>, StatusError | FetchError | ConfigError, never> =>
+) =>
   Effect.gen(function* () {
-    const { per_page, openalex_api_url } = yield* getEnv();
-    const url = new URL(`${openalex_api_url}/${entity}`);
-    const { filter, search } = opts;
-    const params: Query = {
-      filter,
-      search,
-      per_page,
-    };
-    const response: OpenalexResponse<T> = yield* fetchAPI<T>(url, params, total_pages, start_page);
+    const { per_page, api_url } = yield* getEnv();
+    const url = new URL(`${api_url}/${entity}`);
+    const params: Query = { ...opts, per_page };
+    const response: T = yield* fetchAPI<T>(url, params, total_pages, start_page);
     return response;
   });
 
