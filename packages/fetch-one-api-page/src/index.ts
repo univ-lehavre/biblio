@@ -1,6 +1,8 @@
 import qs from 'qs';
 import { Effect, Data } from 'effect';
-import type { Query } from './types';
+
+type QueryValue = string | number | boolean | Array<string | number | boolean> | undefined;
+type Query = Record<string, QueryValue>;
 
 /**
  * Error thrown when the fetch function fails.
@@ -40,20 +42,20 @@ const buildHeaders = (userAgent: string): Headers => {
 
 /**
  * Fetch one page of results from an API endpoint.
- * @param baseUrl The base URL of the API endpoint
+ * @param endpointURL The base URL of the API endpoint
  * @param params Parameters to add to the URL
  * @param userAgent The name of the application making the request
  * @throws {FetchError} If the fetch function fails
  * @returns An Effect that resolves to the JSON response or an error
  */
 const fetchOnePage = <T>(
-  baseUrl: URL,
+  endpointURL: URL,
   params: Query,
   userAgent: string,
 ): Effect.Effect<T, FetchError, never> =>
   Effect.tryPromise({
     try: async () => {
-      const url: URL = buildURL(baseUrl, params);
+      const url: URL = buildURL(endpointURL, params);
       const headers: Headers = buildHeaders(userAgent);
       const response: Response = await fetch(url, {
         method: 'GET',
@@ -65,5 +67,4 @@ const fetchOnePage = <T>(
     catch: (cause: unknown) => new FetchError('An unknown error occurred during fetch', { cause }),
   });
 
-export { fetchOnePage, buildHeaders, buildURL, FetchError };
-export * from './types';
+export { fetchOnePage, buildHeaders, buildURL, FetchError, type Query };
