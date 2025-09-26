@@ -66,3 +66,4 @@ const fetchOnePage = <T>(
   });
 
 export { fetchOnePage, buildHeaders, buildURL, FetchError };
+export * from './types';
