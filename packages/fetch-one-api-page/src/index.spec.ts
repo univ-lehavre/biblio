@@ -1,7 +1,6 @@
 import { Effect } from 'effect';
 import { buildHeaders, buildURL, fetchOnePage } from '.';
 import { it, describe, expect } from '@effect/vitest';
-import {} from '@effect/vitest/utils';
 
 describe('buildHeaders', () => {
   it('should build headers with User-Agent', () => {
