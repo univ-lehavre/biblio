@@ -1,15 +1,17 @@
-import { Config, Effect } from 'effect';
-import { ConfigError } from 'effect/ConfigError';
-import { Env } from './types';
+import { Config, Effect, RateLimiter } from 'effect';
 
-const getEnv = (): Effect.Effect<Env, ConfigError, never> =>
+/**
+ * Get the configuration from environment variables.
+ * @returns An Effect that resolves to the environment configuration or an error
+ */
+const getEnv = () =>
   Effect.gen(function* () {
-    const user_agent = yield* Config.string('USER_AGENT');
-    const rate_limit_stringified = yield* Config.string('RATE_LIMIT');
-    const openalex_api_url = yield* Config.string('OPENALEX_API_URL');
-    const per_page = yield* Config.number('PER_PAGE');
-    const rate_limit = JSON.parse(rate_limit_stringified);
-    return { user_agent, rate_limit, per_page, openalex_api_url };
+    const user_agent: string = yield* Config.string('USER_AGENT');
+    const rate_limit_stringified: string = yield* Config.string('RATE_LIMIT');
+    const api_url: string = yield* Config.string('API_URL');
+    const per_page: number = yield* Config.number('RESULTS_PER_PAGE');
+    const rate_limit: RateLimiter.RateLimiter.Options = JSON.parse(rate_limit_stringified);
+    return { user_agent, rate_limit, per_page, api_url };
   });
 
 export { getEnv };
