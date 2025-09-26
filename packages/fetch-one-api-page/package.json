@@ -1,0 +1,73 @@
+{
+  "name": "@univ-lehavre/biblio-fetch-one-api-page",
+  "version": "0.0.0",
+  "description": "A monadic API fetch library for paginated requests",
+  "author": "Pierre-Olivier Chasset",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/univ-lehavre/biblio.git",
+    "directory": "packages/fetch-one-api-page"
+  },
+  "bugs": {
+    "url": "https://github.com/univ-lehavre/biblio/issues"
+  },
+  "scripts": {
+    "build": "preconstruct build",
+    "dev": "preconstruct watch",
+    "clean": "rm -fR dist",
+    "types:check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
+    "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
+    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
+    "test:watch": "vitest watch",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "effect": "^3.17.13",
+    "qs": "^6.14.0"
+  },
+  "devDependencies": {
+    "@types/qs": "^6.14.0",
+    "@univ-lehavre/typescript-config": "^2.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "main": "dist/univ-lehavre-biblio-fetch-one-api-page.cjs.js",
+  "module": "dist/univ-lehavre-biblio-fetch-one-api-page.esm.js",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/univ-lehavre-biblio-fetch-one-api-page.cjs.mjs",
+        "default": "./dist/univ-lehavre-biblio-fetch-one-api-page.cjs.js"
+      },
+      "module": "./dist/univ-lehavre-biblio-fetch-one-api-page.esm.js",
+      "import": "./dist/univ-lehavre-biblio-fetch-one-api-page.cjs.mjs",
+      "default": "./dist/univ-lehavre-biblio-fetch-one-api-page.cjs.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "babel": {
+    "targets": {
+      "node": "22.19"
+    },
+    "presets": [
+      "@babel/preset-env"
+    ],
+    "overrides": [
+      {
+        "test": "**/*.ts",
+        "presets": [
+          "@babel/preset-typescript"
+        ]
+      }
+    ]
+  }
+}
