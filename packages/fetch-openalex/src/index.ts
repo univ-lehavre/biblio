@@ -6,6 +6,11 @@ import { FetchError, StatusError } from './errors';
 import type { ConfigError } from 'effect/ConfigError';
 import type { Env, FetchAPIOptions, Query } from './types';
 
+interface FetchAPIOptions {
+  filter?: string;
+  search?: string;
+}
+
 interface APIResponse<T> {
   meta: {
     count: number;
@@ -91,16 +96,20 @@ const fetchAPI = <T>(
     Effect.gen(function* () {
       const { user_agent, rate_limit }: Env = yield* getEnv();
       const ratelimiter: RateLimiter.RateLimiter = yield* RateLimiter.make(rate_limit);
-      const raw = yield* fetchAllPages<T>(
+      const spin = spinner();
+      spin.start('Fouille des données d’OpenAlex');
+      const raw = yield* exhaust<T>(
         ratelimiter,
         start_page,
         total_pages,
         params,
         user_agent,
         base_url,
+        spin,
       );
       const results = raw.flat();
-      const result = {
+      spin.stop(`${results.length} items téléchargés d’OpenAlex`);
+      const result: OpenalexResponse<T> = {
         meta: {
           count: results.length,
           page: 1,
