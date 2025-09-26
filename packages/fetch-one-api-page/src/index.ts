@@ -20,9 +20,9 @@ class FetchError extends Data.TaggedError('FetchError') {
  * @param params Parameters to add to the URL
  * @returns The full URL with query parameters
  */
-const buildURL = (base_url: URL, params: Query): URL => {
+const buildURL = (baseUrl: URL, params: Query): URL => {
   const search_params: string = qs.stringify(params);
-  const url_string: string = `${base_url.toString()}?${search_params}`;
+  const url_string: string = `${baseUrl.toString()}?${search_params}`;
   const url: URL = new URL(url_string);
   return url;
 };
@@ -32,29 +32,29 @@ const buildURL = (base_url: URL, params: Query): URL => {
  * @param user_agent The name of the application making the request
  * @returns Headers with the User-Agent set
  */
-const buildHeaders = (user_agent: string): Headers => {
+const buildHeaders = (userAgent: string): Headers => {
   const headers: Headers = new Headers();
-  headers.append('User-Agent', user_agent);
+  headers.append('User-Agent', userAgent);
   return headers;
 };
 
 /**
  * Fetch one page of results from an API endpoint.
- * @param base_url The base URL of the API endpoint
+ * @param baseUrl The base URL of the API endpoint
  * @param params Parameters to add to the URL
- * @param user_agent The name of the application making the request
+ * @param userAgent The name of the application making the request
  * @throws {FetchError} If the fetch function fails
  * @returns An Effect that resolves to the JSON response or an error
  */
 const fetchOnePage = <T>(
-  base_url: URL,
+  baseUrl: URL,
   params: Query,
-  user_agent: string,
+  userAgent: string,
 ): Effect.Effect<T, FetchError, never> =>
   Effect.tryPromise({
     try: async () => {
-      const url: URL = buildURL(base_url, params);
-      const headers: Headers = buildHeaders(user_agent);
+      const url: URL = buildURL(baseUrl, params);
+      const headers: Headers = buildHeaders(userAgent);
       const response: Response = await fetch(url, {
         method: 'GET',
         headers,
