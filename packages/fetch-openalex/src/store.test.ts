@@ -48,10 +48,9 @@ describe('Store', () => {
       assertEquals(state2.fetchedCount, 15);
     }));
 
-  it('hasMorePages returns true while page <= totalPages (default Infinite)', () => {
+  it('hasMorePages returns true while page <= totalPages (default Infinite)', () =>
     Effect.gen(function* () {
       const store = yield* Effect.andThen(Ref.make(initialState), s => new Store<Dummy>(s));
-      assertTrue(store.hasMorePages());
-    });
-  });
+      assertTrue(yield* store.hasMorePages());
+    }));
 });
