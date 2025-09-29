@@ -20,7 +20,9 @@
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
-    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix"
+    "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
+    "test": "vitest run",
+    "test:watch": "vitest watch"
   },
   "dependencies": {
     "@univ-lehavre/biblio-fetch-one-api-page": "workspace:^",
