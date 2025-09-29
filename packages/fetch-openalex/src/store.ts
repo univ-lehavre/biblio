@@ -74,4 +74,4 @@ class Store<T> {
   }
 }
 
-export { Store, initialState, type IState };
+export { Store, initialState, type IState, type APIResponse };
