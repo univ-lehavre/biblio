@@ -1,6 +1,6 @@
-import { Effect, RateLimiter } from 'effect';
-import { FetchError, fetchOnePage, type Query } from '@univ-lehavre/biblio-fetch-one-api-page';
 import { Scope } from 'effect/Scope';
+import { Effect, RateLimiter, Queue } from 'effect';
+import { FetchError, fetchOnePage, type Query } from '@univ-lehavre/biblio-fetch-one-api-page';
 
 interface FetchAPIOptions {
   filter?: string;
@@ -26,35 +26,8 @@ const curryFetch = <T>(
     return (q: Query) => ratelimiter(fetchOnePage<APIResponse<T>>(endpointURL, q, userAgent));
   });
 
-interface FetchAllPagesOptions<T> {
-  curriedFetch: (params: Query) => Effect.Effect<APIResponse<T>, FetchError, never>;
-  params: Query;
-  count: number;
-  startPage: number;
-  totalPages: number;
-  logProgress?: (count: number, totalCounts: number, page: number, totalPages: number) => void;
-}
-
-const fetchAllPages = <T>(opts: FetchAllPagesOptions<T>) =>
-  Effect.loop(opts.startPage, {
-    while: state => state <= opts.totalPages,
-    step: state => state + 1,
-    body: state =>
-      Effect.gen(function* () {
-        opts.params.page = state;
-        const response = yield* opts.curriedFetch(opts.params);
-        opts.count += response.results.length;
-        opts.totalPages =
-          opts.totalPages === Infinity
-            ? Math.ceil(response.meta.count / response.meta.per_page)
-            : opts.totalPages;
-        opts.logProgress?.(opts.count, response.meta.count, state, opts.totalPages);
-        const result = response.results;
-        return result;
-      }),
-  });
-
-interface FetchAPIConfig {
+interface FetchAPIConfig<T> {
+  queue: Queue.Queue<T>;
   userAgent: string;
   rateLimit: RateLimiter.RateLimiter.Options;
   apiURL: string;
@@ -68,34 +41,37 @@ interface FetchAPIConfig {
   logProgress?: (count: number, totalCounts: number, page: number, totalPages: number) => void;
 }
 
-const fetchAPI = <T>(opts: FetchAPIConfig) =>
+const fetchAPIQueue = <T>(opts: FetchAPIConfig<T>) =>
   Effect.scoped(
     Effect.gen(function* () {
       const url = new URL(`${opts.apiURL}/${opts.endpoint}`);
       const params: Query = { ...opts.fetchAPIOptions, perPage: opts.perPage ?? 200 };
       const curriedFetch: (params: Query) => Effect.Effect<APIResponse<T>, FetchError, never> =
         yield* curryFetch<T>(url, opts.userAgent, opts.rateLimit);
-      opts.logStart?.();
-      const raw = yield* fetchAllPages<T>({
-        curriedFetch,
-        params,
-        count: 0,
-        startPage: opts.startPage ?? 1,
-        totalPages: opts.totalPages ?? Infinity,
-        logProgress: opts.logProgress,
+
+      const worker = Effect.gen(function* () {
+        opts.logStart?.();
+        let count = 0;
+        let totalPages = opts.totalPages ?? Infinity;
+        for (let page = opts.startPage ?? 1; page <= totalPages; page++) {
+          params.page = page;
+          const response = yield* curriedFetch(params);
+          opts.queue.offerAll(response.results);
+          count += response.results.length;
+          totalPages =
+            totalPages === Infinity
+              ? Math.ceil(response.meta.count / response.meta.per_page)
+              : totalPages;
+          // offer each item to the queue
+          opts.logProgress?.(count, response.meta.count, page, totalPages);
+        }
+        opts.logEnd?.(count);
+        // signal completion
       });
-      const results = raw.flat();
-      opts.logEnd?.(results.length);
-      const result: APIResponse<T> = {
-        meta: {
-          count: results.length,
-          page: 1,
-          per_page: results.length,
-        },
-        results: results,
-      };
-      return result;
+
+      // run worker in background
+      yield* Effect.fork(worker);
     }),
   );
 
-export { fetchAPI };
+export { fetchAPIQueue };
