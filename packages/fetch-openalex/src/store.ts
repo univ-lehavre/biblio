@@ -17,7 +17,7 @@ interface IState {
 }
 
 const initialState: IState = {
-  page: 0,
+  page: 1,
   totalPages: Infinity,
   fetchedItems: 0,
 };

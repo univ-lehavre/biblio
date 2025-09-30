@@ -13,9 +13,9 @@ describe('Store', () => {
       const store = yield* Effect.andThen(Ref.make(initialState), s => new Store<Dummy>(s));
       expect(store).toBeDefined();
       const page = yield* store.page;
-      assertEquals(page, 0);
+      assertEquals(page, 1);
       const state = yield* store.current;
-      assertEquals(state.page, 0);
+      assertEquals(state.page, 1);
       assertEquals(state.totalPages, Infinity);
       assertEquals(state.fetchedItems, 0);
     }),
@@ -27,7 +27,7 @@ describe('Store', () => {
       expect(store).toBeDefined();
       yield* store.incPage();
       const state = yield* store.current;
-      assertEquals(state.page, 1);
+      assertEquals(state.page, 2);
     }),
   );
 
@@ -200,7 +200,7 @@ describe('Store', () => {
 
         assertEquals(finalState.fetchedItems, 15);
 
-        assertEquals(finalState.page, 2);
+        assertEquals(finalState.page, 3);
       }),
   );
 });

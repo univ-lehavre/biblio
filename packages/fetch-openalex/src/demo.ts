@@ -26,7 +26,7 @@ const getEnv = (): Effect.Effect<EnvConfig, ConfigError, never> =>
 const program = Effect.gen(function* () {
   const queue = yield* Queue.unbounded<WorksResult>();
   const initialState: IState = {
-    page: 0,
+    page: 1,
     maxPages: 10,
     totalPages: Infinity,
     fetchedItems: 0,
@@ -43,9 +43,11 @@ const program = Effect.gen(function* () {
     queue,
     store,
   };
-  // Return normally a queue, but we already give it, so
+
   const spin = spinner();
+  console.clear();
   spin.start('Fetching items from OpenAlex...');
+
   const web = fetchAPIQueue<WorksResult>(opts);
   const supervisor = Effect.gen(function* () {
     while (yield* store.hasMorePages()) {
@@ -54,8 +56,8 @@ const program = Effect.gen(function* () {
       spin.message(state.fetchedItems + ' items fetched...');
     }
   });
-
   yield* Effect.all([web, supervisor], { concurrency: 'unbounded', discard: true });
+
   const state = yield* store.current;
   spin.stop(`Fetched ${state.fetchedItems} items from OpenAlex`);
 });

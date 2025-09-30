@@ -24,11 +24,9 @@ const fetchAPIQueue = <T>(opts: FetchAPIConfig<T>): Effect.Effect<Queue.Queue<T>
       const url: URL = new URL(`${opts.apiURL}/${opts.endpoint}`);
       const params: Query = { ...opts.fetchAPIOptions, per_page: opts.perPage };
 
-      // const ratelimiter: RateLimiter.RateLimiter = yield* RateLimiter.make(opts.rateLimit);
-      // const curriedFetch = (q: Query): Effect.Effect<APIResponse<T>, FetchError, never> =>
-      //   ratelimiter(fetchOnePage<APIResponse<T>>(url, q, opts.userAgent));
+      const ratelimiter: RateLimiter.RateLimiter = yield* RateLimiter.make(opts.rateLimit);
       const curriedFetch = (q: Query): Effect.Effect<APIResponse<T>, FetchError, never> =>
-        fetchOnePage<APIResponse<T>>(url, q, opts.userAgent);
+        ratelimiter(fetchOnePage<APIResponse<T>>(url, q, opts.userAgent));
 
       const queue: Queue.Queue<T> = opts.queue ?? (yield* Queue.unbounded<T>());
       const store: Store<T> =
@@ -36,11 +34,11 @@ const fetchAPIQueue = <T>(opts: FetchAPIConfig<T>): Effect.Effect<Queue.Queue<T>
 
       const worker: Effect.Effect<void, FetchError, never> = Effect.gen(function* () {
         while (yield* store.hasMorePages()) {
-          yield* store.incPage();
           params.page = yield* store.page;
           const response: APIResponse<T> = yield* curriedFetch(params);
           yield* queue.offerAll(response.results);
           yield* store.addNewItems(response);
+          yield* store.incPage();
         }
       });
 
