@@ -11,6 +11,7 @@ interface APIResponse<T> {
 
 interface IState {
   page: number;
+  maxPages?: number;
   totalPages: number;
   fetchedItems: number;
 }
@@ -67,7 +68,9 @@ class Store<T> {
   hasMorePages(): Effect.Effect<boolean, never, never> {
     return Effect.gen(this, function* () {
       const s = yield* Ref.get(this.state);
-      return s.page <= s.totalPages;
+      const max = s.maxPages ?? Infinity;
+      const min = Math.min(s.totalPages, max);
+      return s.page <= min;
     });
   }
 }
