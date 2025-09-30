@@ -22,12 +22,15 @@
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
     "test": "vitest run",
-    "test:watch": "vitest watch"
+    "test:watch": "vitest watch",
+    "demo": "tsx ./src/demo.ts"
   },
   "dependencies": {
+    "@clack/prompts": "^1.0.0-alpha.4",
+    "@effect/experimental": "^0.56.0",
+    "@effect/platform-node": "^0.98.0",
     "@univ-lehavre/biblio-fetch-one-api-page": "workspace:^",
     "@univ-lehavre/biblio-openalex-types": "workspace:^",
-    "@clack/prompts": "^1.0.0-alpha.4",
     "effect": "^3.17.13",
     "qs": "^6.14.0"
   },

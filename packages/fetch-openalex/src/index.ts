@@ -1,40 +1,45 @@
 import { Effect, RateLimiter, Queue, Ref } from 'effect';
 import { FetchError, fetchOnePage, type Query } from '@univ-lehavre/biblio-fetch-one-api-page';
-import { Store, APIResponse, initialState } from './store';
+import { Store, APIResponse, initialState, IState } from './store';
 
 interface FetchAPIOptions {
   filter?: string;
   search?: string;
 }
 
-interface FetchAPIConfig {
+interface FetchAPIConfig<T> {
   userAgent: string;
   rateLimit: RateLimiter.RateLimiter.Options;
   apiURL: string;
   endpoint: string;
   fetchAPIOptions: FetchAPIOptions;
   perPage: number;
+  store?: Store<T>;
+  queue?: Queue.Queue<T>;
 }
 
-const fetchAPIQueue = <T>(opts: FetchAPIConfig): Effect.Effect<Queue.Queue<T>, never, never> =>
+const fetchAPIQueue = <T>(opts: FetchAPIConfig<T>): Effect.Effect<Queue.Queue<T>, never, never> =>
   Effect.scoped(
     Effect.gen(function* () {
       const url: URL = new URL(`${opts.apiURL}/${opts.endpoint}`);
-      const params: Query = { ...opts.fetchAPIOptions, perPage: opts.perPage };
+      const params: Query = { ...opts.fetchAPIOptions, per_page: opts.perPage };
 
-      const ratelimiter: RateLimiter.RateLimiter = yield* RateLimiter.make(opts.rateLimit);
+      // const ratelimiter: RateLimiter.RateLimiter = yield* RateLimiter.make(opts.rateLimit);
+      // const curriedFetch = (q: Query): Effect.Effect<APIResponse<T>, FetchError, never> =>
+      //   ratelimiter(fetchOnePage<APIResponse<T>>(url, q, opts.userAgent));
       const curriedFetch = (q: Query): Effect.Effect<APIResponse<T>, FetchError, never> =>
-        ratelimiter(fetchOnePage<APIResponse<T>>(url, q, opts.userAgent));
+        fetchOnePage<APIResponse<T>>(url, q, opts.userAgent);
 
-      const queue: Queue.Queue<T> = yield* Queue.unbounded<T>();
-      const store: Store<T> = yield* Effect.andThen(Ref.make(initialState), s => new Store<T>(s));
+      const queue: Queue.Queue<T> = opts.queue ?? (yield* Queue.unbounded<T>());
+      const store: Store<T> =
+        opts.store ?? (yield* Effect.andThen(Ref.make(initialState), s => new Store<T>(s)));
 
       const worker: Effect.Effect<void, FetchError, never> = Effect.gen(function* () {
         while (yield* store.hasMorePages()) {
           yield* store.incPage();
           params.page = yield* store.page;
           const response: APIResponse<T> = yield* curriedFetch(params);
-          queue.offerAll(response.results);
+          yield* queue.offerAll(response.results);
           yield* store.addNewItems(response);
         }
       });
@@ -45,4 +50,12 @@ const fetchAPIQueue = <T>(opts: FetchAPIConfig): Effect.Effect<Queue.Queue<T>, n
     }),
   );
 
-export { fetchAPIQueue, Store, initialState };
+export {
+  fetchAPIQueue,
+  Store,
+  initialState,
+  type FetchAPIOptions,
+  type FetchAPIConfig,
+  type APIResponse,
+  type IState,
+};
