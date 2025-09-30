@@ -41,24 +41,21 @@ const buildHeaders = (userAgent: string): Headers => {
 };
 
 /**
- * Fetch one page of results from an API endpoint.
- * @param endpointURL The base URL of the API endpoint
- * @param params Parameters to add to the URL
- * @param userAgent The name of the application making the request
- * @throws {FetchError} If the fetch function fails
- * @returns An Effect that resolves to the JSON response or an error
+ * Fetch JSON data from a URL.
+ * @param url The URL to fetch
+ * @param method The HTTP method to use
+ * @param headers The headers to include in the request
+ * @returns The JSON response from the server
  */
-const fetchOnePage = <T>(
-  endpointURL: URL,
-  params: Query,
-  userAgent: string,
+const fetchJSON = <T>(
+  url: URL,
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  headers: Headers,
 ): Effect.Effect<T, FetchError, never> =>
   Effect.tryPromise({
     try: async () => {
-      const url: URL = buildURL(endpointURL, params);
-      const headers: Headers = buildHeaders(userAgent);
       const response: Response = await fetch(url, {
-        method: 'GET',
+        method,
         headers,
       });
       const json = (await response.json()) as T;
@@ -67,4 +64,26 @@ const fetchOnePage = <T>(
     catch: (cause: unknown) => new FetchError('An unknown error occurred during fetch', { cause }),
   });
 
-export { fetchOnePage, buildHeaders, buildURL, FetchError, type Query };
+/**
+ * Fetch one page of results from an API endpoint.
+ * @param endpointURL The base URL of the API endpoint
+ * @param params Parameters to add to the URL
+ * @param userAgent The name of the application making the request
+ * @throws {FetchError} If the fetch function fails
+ * @returns An Effect that resolves to the JSON response or an error
+ */
+const fetchOnePage = <T>(endpointURL: URL, params: Query, userAgent: string) =>
+  Effect.gen(function* () {
+    yield* Effect.logDebug(
+      `Starting fetchOnePage with parameters: ${JSON.stringify({ endpointURL, params, userAgent }, null, 2)}`,
+    );
+    const url: URL = buildURL(endpointURL, params);
+    const headers: Headers = buildHeaders(userAgent);
+    yield* Effect.logInfo(`Fetching URL: ${url.toString()}`);
+    yield* Effect.logDebug(`Using headers: ${headers}`);
+    const json = yield* fetchJSON<T>(url, 'GET', headers);
+    yield* Effect.logDebug(`Received response: ${json}`);
+    return json;
+  });
+
+export { fetchOnePage, fetchJSON, buildHeaders, buildURL, FetchError, type Query };
