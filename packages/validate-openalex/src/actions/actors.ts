@@ -19,7 +19,12 @@ import {
   removeDuplicates,
   updateNewEventsWithExistingMetadata,
 } from '../events';
-import type { AuthorsResult, ORCID, WorksResult } from '@univ-lehavre/biblio-openalex-types';
+import type {
+  AuthorsResult,
+  OpenAlexID,
+  ORCID,
+  WorksResult,
+} from '@univ-lehavre/biblio-openalex-types';
 import type { ConfigError } from 'effect/ConfigError';
 import type { IEvent, Status } from '../events/types';
 import { IContext } from '../context/types';
@@ -103,7 +108,7 @@ const removeAuthorPendings = (): Effect.Effect<void, Error, ContextStore | Event
     yield* setEventsStore(notPendings);
   });
 
-const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
+const checkWork = (orcid: ORCID, authorOpenalexID: OpenAlexID, work: WorksResult) =>
   Effect.gen(function* () {
     // On regarde chaque publication
     const authorships = work.authorships;
@@ -111,7 +116,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
     const authorship = authorships.find(author => author.author.id === authorOpenalexID);
     if (authorship === undefined) {
       const event = yield* buildEvent({
-        from: work.id,
+        from: authorOpenalexID,
         id: orcid,
         entity: 'work',
         field: 'id',
@@ -129,7 +134,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
     );
     if (status === 'rejected') {
       const event = yield* buildEvent({
-        from: work.id,
+        from: authorOpenalexID,
         id: orcid,
         entity: 'work',
         field: 'id',
@@ -146,7 +151,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
       if (typeof confirmed !== 'boolean') throw new Error('Réponse invalide');
       if (confirmed) {
         const event = yield* buildEvent({
-          from: work.id,
+          from: authorOpenalexID,
           id: orcid,
           entity: 'author',
           field: 'display_name_alternatives',
@@ -156,7 +161,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
         yield* updateEventsStore([event]);
       } else {
         const event = yield* buildEvent({
-          from: work.id,
+          from: authorOpenalexID,
           id: orcid,
           entity: 'author',
           field: 'display_name_alternatives',
@@ -164,7 +169,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
           status: 'rejected',
         });
         const event2 = yield* buildEvent({
-          from: work.id,
+          from: authorOpenalexID,
           id: orcid,
           entity: 'work',
           field: 'id',
@@ -190,7 +195,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
           const toPush: IEvent[] = [];
           toPush.push(
             yield* buildEvent({
-              from: work.id,
+              from: authorOpenalexID,
               id: orcid,
               entity: 'work',
               field: 'id',
@@ -201,7 +206,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
           );
           toPush.push(
             yield* buildEvent({
-              from: work.id,
+              from: authorOpenalexID,
               id: orcid, // Irrelevant here
               entity: 'institution',
               field: 'display_name_alternatives',
@@ -220,7 +225,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
             const toPush: IEvent[] = [];
             toPush.push(
               yield* buildEvent({
-                from: work.id,
+                from: authorOpenalexID,
                 id: orcid, // Irrelevant here
                 entity: 'institution',
                 field: 'display_name_alternatives',
@@ -233,7 +238,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
             const toPush: IEvent[] = [];
             toPush.push(
               yield* buildEvent({
-                from: work.id,
+                from: authorOpenalexID,
                 id: orcid, // Irrelevant here
                 entity: 'institution',
                 field: 'display_name_alternatives',
@@ -243,7 +248,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
             );
             toPush.push(
               yield* buildEvent({
-                from: work.id,
+                from: authorOpenalexID,
                 id: orcid,
                 entity: 'work',
                 field: 'id',
@@ -255,7 +260,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
             for (const institutionID of affiliation.institution_ids) {
               toPush.push(
                 yield* buildEvent({
-                  from: work.id,
+                  from: authorOpenalexID,
                   id: orcid,
                   entity: 'author',
                   field: 'affiliation',
@@ -274,7 +279,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
       // si il refuse, on émet un événement de rejet pour la publication et de la forme imprimée de l’affiliation
     }
     const event: IEvent = yield* buildEvent({
-      from: work.id,
+      from: authorOpenalexID,
       id: orcid,
       entity: 'work',
       field: 'id',
@@ -283,7 +288,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
       status: 'accepted',
     });
     const event2: IEvent = yield* buildEvent({
-      from: work.id,
+      from: authorOpenalexID,
       id: orcid,
       entity: 'author',
       field: 'openalexID',
@@ -297,10 +302,10 @@ const extendsToWorks = () =>
   Effect.gen(function* () {
     const { id }: IContext = yield* getContext();
     if (id === undefined) return;
-    const openalexIDs = getOpenAlexIDs(id, yield* getEvents());
+    const openalexIDs: OpenAlexID[] = getOpenAlexIDs(id, yield* getEvents());
     for (const authorOpenalexID of openalexIDs) {
       // On travaille sur un chercheur
-      const works = yield* searchWorksByAuthorIDs([authorOpenalexID]);
+      const works: readonly WorksResult[] = yield* searchWorksByAuthorIDs([authorOpenalexID]);
       if (works.length === 0) continue;
       for (const work of works) {
         yield* checkWork(id, authorOpenalexID, work);

@@ -1,5 +1,5 @@
 import { uniqueSorted } from '../tools';
-import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
+import type { OpenAlexID, ORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { IEvent, Status } from './types';
 
 /**
@@ -19,7 +19,7 @@ import type { IEvent, Status } from './types';
  * // returns ['b', 'c']
  * intersect(['a', 'b', 'c'], ['b', 'c', 'd']);
  */
-const intersect = (arr1: string[], arr2: string[]): string[] => {
+const intersect = <T>(arr1: T[], arr2: T[]): T[] => {
   const set2 = new Set(arr2);
   return arr1.filter(value => set2.has(value));
 };
@@ -50,7 +50,7 @@ const intersect = (arr1: string[], arr2: string[]): string[] => {
  * // returns ['A1', 'A2'] if both appear in accepted affiliation and display_name_alternatives events
  * getOpenAlexIDs('0000-0001-2345-6789', events);
  */
-const getOpenAlexIDs = (orcid: ORCID, events: IEvent[]): string[] => {
+const getOpenAlexIDs = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => {
   if (events.length === 0) return [];
 
   const affiliations = events
@@ -73,10 +73,40 @@ const getOpenAlexIDs = (orcid: ORCID, events: IEvent[]): string[] => {
     )
     .map(e => e.from);
 
-  const intersection = intersect(affiliations, display_name_alternatives);
+  const intersection = intersect<OpenAlexID>(affiliations, display_name_alternatives);
 
-  const uniques = uniqueSorted(intersection);
+  const uniques = uniqueSorted<OpenAlexID>(intersection);
 
+  return uniques;
+};
+
+const getAcceptedWorks = (
+  orcid: ORCID,
+  events: IEvent[],
+): {
+  id: string;
+  title: string | undefined;
+}[] => {
+  if (events.length === 0) return [];
+  const works: {
+    id: string;
+    title: string | undefined;
+  }[] = events
+    .filter(
+      e => e.id === orcid && e.entity === 'work' && e.field === 'id' && e.status === 'accepted',
+    )
+    .map(e => ({ id: e.value, title: e.label }));
+  return works;
+};
+
+const getOpenAlexIDsBasedOnAcceptedWorks = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => {
+  if (events.length === 0) return [];
+  const works: OpenAlexID[] = events
+    .filter(
+      e => e.id === orcid && e.entity === 'work' && e.field === 'id' && e.status === 'accepted',
+    )
+    .map(e => e.from);
+  const uniques: OpenAlexID[] = uniqueSorted<OpenAlexID>(works);
   return uniques;
 };
 
@@ -131,4 +161,6 @@ export {
   existsAcceptedAuthorDisplayNameAlternative,
   getStatusOfAuthorDisplayNameAlternative,
   getStatusOfAffiliation,
+  getOpenAlexIDsBasedOnAcceptedWorks,
+  getAcceptedWorks,
 };
