@@ -222,7 +222,7 @@ const checkWork = (
           return;
         } else if (status === undefined) {
           const selected = yield* confirm(
-            `${raw_affiliation_string}: Est-ce une affiliation valide pour ce chercheur ?`,
+            `Est-ce une affiliation valide pour ce chercheur ? ${raw_affiliation_string}`,
           );
           if (typeof selected !== 'boolean') throw new Error('Réponse invalide');
           if (selected) {

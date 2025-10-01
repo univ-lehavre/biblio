@@ -4,11 +4,8 @@ import {
   action2option,
   actions,
   active_actions,
-  getAcceptedWorks,
-  getAffiliations,
-  getDisplayNameAlternatives,
   getEvents,
-  getOpenAlexIDsBasedOnAcceptedWorks,
+  getStatuses,
   getORCID,
   isAuthorContext,
   loadStores,
@@ -17,9 +14,11 @@ import {
   provideEventsStore,
   saveStores,
   select,
+  getGlobalStatuses,
+  getStatusesByValue,
 } from '@univ-lehavre/biblio-validate-openalex';
 import type { Action, IEvent } from '@univ-lehavre/biblio-validate-openalex';
-import type { OpenAlexID, ORCID } from '@univ-lehavre/biblio-openalex-types';
+import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 import { NodeRuntime } from '@effect/platform-node';
 import { DevTools } from '@effect/experimental';
 
@@ -34,21 +33,45 @@ const dashboard = () =>
     if (!(yield* isAuthorContext())) return;
     const orcid: ORCID = yield* getORCID();
     const events: IEvent[] = yield* getEvents();
-    const acceptedWorks = getAcceptedWorks(orcid, events);
-    const openalexIDs: OpenAlexID[] = getOpenAlexIDsBasedOnAcceptedWorks(orcid, events);
-    const display_name_alternatives: string[] = yield* getDisplayNameAlternatives();
-    const affiliations: string[] = yield* getAffiliations();
     const board: string[] = [];
-    if (openalexIDs !== undefined && openalexIDs.length > 0)
-      board.push(`${openalexIDs.length} identifiants OpenAlex d’auteurs`);
-    if (display_name_alternatives.length > 0)
-      board.push(`${display_name_alternatives.length} Display Name Alternatives`);
-    if (affiliations.length > 0) board.push(`${affiliations.length} Affiliations`);
-    if (openalexIDs !== undefined && acceptedWorks.length > 0)
-      board.push(`${acceptedWorks.length} articles validés`);
+
+    const authors: string | null = getStatuses(orcid, 'author', 'id', events);
+    if (authors !== null) board.push(`${authors} auteurs`);
+
+    const display_name_alternatives: string | null = getStatusesByValue(
+      orcid,
+      'author',
+      'display_name_alternatives',
+      events,
+    );
+    if (display_name_alternatives !== null)
+      board.push(`${display_name_alternatives} formes imprimées d’auteurs`);
+
+    const affiliations: string | null = getStatusesByValue(orcid, 'author', 'affiliation', events);
+    if (affiliations !== null) board.push(`${affiliations} affiliations`);
+
+    const institutions: string | null = getStatuses(orcid, 'institution', 'id', events);
+    if (institutions !== null) board.push(`${institutions} institutions`);
+
+    const affiliations_display_name_alternatives: string | null = getStatusesByValue(
+      orcid,
+      'institution',
+      'display_name_alternatives',
+
+      events,
+    );
+    if (affiliations_display_name_alternatives !== null)
+      board.push(`${affiliations_display_name_alternatives} formes imprimées d’institutions`);
+
+    const works: string | null = getStatuses(orcid, 'work', 'id', events);
+    if (works !== null) board.push(`${works} articles`);
+
+    const global = getGlobalStatuses(orcid, events);
+    if (global !== null) board.push(`${global} objets`);
+
     if (board.length > 0)
       note(board.join('\n'), 'Tableau de bord', {
-        format: (line: string) => `→ ${line}`,
+        format: (line: string) => `${line}`,
       });
   });
 
