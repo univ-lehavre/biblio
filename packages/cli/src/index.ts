@@ -4,10 +4,11 @@ import {
   action2option,
   actions,
   active_actions,
+  getAcceptedWorks,
   getAffiliations,
   getDisplayNameAlternatives,
   getEvents,
-  getOpenAlexIDs,
+  getOpenAlexIDsBasedOnAcceptedWorks,
   getORCID,
   isAuthorContext,
   loadStores,
@@ -18,7 +19,7 @@ import {
   select,
 } from '@univ-lehavre/biblio-validate-openalex';
 import type { Action, IEvent } from '@univ-lehavre/biblio-validate-openalex';
-import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
+import type { OpenAlexID, ORCID } from '@univ-lehavre/biblio-openalex-types';
 
 const start = () =>
   Effect.gen(function* () {
@@ -31,17 +32,20 @@ const dashboard = () =>
     if (!(yield* isAuthorContext())) return;
     const orcid: ORCID = yield* getORCID();
     const events: IEvent[] = yield* getEvents();
-    const openalexIDs = getOpenAlexIDs(orcid, events);
-    const display_name_alternatives = yield* getDisplayNameAlternatives();
-    const affiliations = yield* getAffiliations();
+    const acceptedWorks = getAcceptedWorks(orcid, events);
+    const openalexIDs: OpenAlexID[] = getOpenAlexIDsBasedOnAcceptedWorks(orcid, events);
+    const display_name_alternatives: string[] = yield* getDisplayNameAlternatives();
+    const affiliations: string[] = yield* getAffiliations();
     if (openalexIDs !== undefined && openalexIDs.length > 0)
-      log.info(`${openalexIDs.length} OpenAlex IDs : ${openalexIDs.join(', ')}`);
+      log.info(`${openalexIDs.length} identifiants OpenAlex d’auteurs : ${openalexIDs.join(', ')}`);
     if (display_name_alternatives.length > 0)
       log.info(
         `${display_name_alternatives.length} Display Name Alternatives : ${display_name_alternatives.join(', ')}`,
       );
     if (affiliations.length > 0)
       log.info(`${affiliations.length} Affiliations : ${affiliations.join(', ')}`);
+    if (openalexIDs !== undefined && acceptedWorks.length > 0)
+      log.info(`${acceptedWorks.length} articles validés`);
   });
 
 const ask = () =>
@@ -51,7 +55,10 @@ const ask = () =>
     yield* dashboard();
     const actives: Action[] = yield* active_actions();
     const options = actives.map(action2option);
-    const selected_action_value = (yield* select('Que souhaitez-vous faire ?', options)).toString();
+    const selected_action_value: string = (yield* select(
+      'Que souhaitez-vous faire ?',
+      options,
+    )).toString();
     const action: Action | undefined = actions.find(
       action => action.name === selected_action_value,
     );
