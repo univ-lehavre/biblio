@@ -40,7 +40,7 @@ const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextSto
     const orcid = asORCID(`https://orcid.org/${orcid_raw}`);
     yield* updateContextStore({ type: 'author', id: orcid });
     const authors = yield* searchAuthorByORCID([orcid]);
-    const items = yield* buildAuthorResultsPendingEvents(authors);
+    const items = yield* buildAuthorResultsPendingEvents([...authors]);
     yield* updateEventsStore(items);
   });
 
@@ -70,8 +70,8 @@ const extendsEventsWithAlternativeStrings = (): Effect.Effect<
     const updatedEvents = eventsToUpdate.map(event => ({ ...event, hasBeenExtendedAt }));
     yield* updateEventsStore(updatedEvents);
 
-    const authors: AuthorsResult[] = yield* searchAuthorByName([selected]);
-    const newItems: IEvent[] = yield* buildAuthorResultsPendingEvents(authors);
+    const authors: readonly AuthorsResult[] = yield* searchAuthorByName([selected]);
+    const newItems: IEvent[] = yield* buildAuthorResultsPendingEvents([...authors]);
     const events: IEvent[] = yield* getEvents();
     // remove from newItems the events that are already in events
     const filteredNewItems = updateNewEventsWithExistingMetadata(

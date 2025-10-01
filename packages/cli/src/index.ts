@@ -20,27 +20,6 @@ import {
 import type { Action, IEvent } from '@univ-lehavre/biblio-validate-openalex';
 import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 
-// interface EnvConfig {
-//   userAgent: string;
-//   rateLimit: RateLimiter.RateLimiter.Options;
-//   perPage: number;
-//   apiUrl: string;
-// }
-
-/**
- * Get the configuration from environment variables.
- * @returns An Effect that resolves to the environment configuration or an error
- */
-// const getEnv = (): Effect.Effect<EnvConfig, ConfigError, never> =>
-//   Effect.gen(function* () {
-//     const userAgent: string = yield* Config.string('USER_AGENT');
-//     const rateLimitStringified: string = yield* Config.string('RATE_LIMIT');
-//     const apiUrl: string = yield* Config.string('API_URL');
-//     const perPage: number = yield* Config.number('RESULTS_PER_PAGE');
-//     const rateLimit: RateLimiter.RateLimiter.Options = JSON.parse(rateLimitStringified);
-//     return { userAgent, rateLimit, perPage, apiUrl };
-//   });
-
 const start = () =>
   Effect.gen(function* () {
     yield* loadStores();

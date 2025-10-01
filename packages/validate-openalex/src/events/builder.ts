@@ -3,11 +3,15 @@ import { getORCID } from '../context';
 import { ContextStore, EventsStore } from '../store';
 import { getEventData, getEvents } from './getter-effect';
 import { buildIntegrity } from '../tools';
-import type { AuthorsResult, IInstitution } from '../fetch/types';
 import type { IEvent } from './types';
 import { updateNewEventsWithExistingMetadata } from '.';
 import { asOpenAlexID } from '@univ-lehavre/biblio-openalex-types';
-import type { ORCID, WorksResult } from '@univ-lehavre/biblio-openalex-types';
+import type {
+  AuthorsResult,
+  IInstitution,
+  ORCID,
+  WorksResult,
+} from '@univ-lehavre/biblio-openalex-types';
 
 const buildEvent = (
   partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'>,
