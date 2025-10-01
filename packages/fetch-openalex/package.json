@@ -23,7 +23,8 @@
     "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "demo": "tsx ./src/demo.ts"
+    "demo": "tsx ./src/demo.ts",
+    "demo:simple": "tsx ./src/demo-simple.ts"
   },
   "dependencies": {
     "@clack/prompts": "^1.0.0-alpha.4",

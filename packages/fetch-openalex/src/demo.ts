@@ -27,7 +27,7 @@ const program = Effect.gen(function* () {
   const queue = yield* Queue.unbounded<WorksResult>();
   const initialState: IState = {
     page: 1,
-    maxPages: 10,
+    maxPages: 11,
     totalPages: Infinity,
     fetchedItems: 0,
   };
@@ -39,7 +39,7 @@ const program = Effect.gen(function* () {
     apiURL: env.apiUrl,
     endpoint: 'works',
     fetchAPIOptions: { filter: 'type:article' },
-    perPage: 10,
+    perPage: 3,
     queue,
     store,
   };
@@ -48,7 +48,6 @@ const program = Effect.gen(function* () {
   console.clear();
   spin.start('Fetching items from OpenAlex...');
 
-  const web = fetchAPIQueue<WorksResult>(opts);
   const supervisor = Effect.gen(function* () {
     while (yield* store.hasMorePages()) {
       yield* Effect.sleep('100 millis');
@@ -56,10 +55,11 @@ const program = Effect.gen(function* () {
       spin.message(state.fetchedItems + ' items fetched...');
     }
   });
-  yield* Effect.all([web, supervisor], { concurrency: 'unbounded', discard: true });
+  const { worker } = yield* fetchAPIQueue<WorksResult>(opts);
+  yield* Effect.all([worker, supervisor], { concurrency: 'unbounded', discard: true });
 
-  const state = yield* store.current;
-  spin.stop(`Fetched ${state.fetchedItems} items from OpenAlex`);
+  const size = yield* queue.size;
+  spin.stop(`Fetched ${size} items from OpenAlex`);
 });
 
 const DevToolsLive = DevTools.layer();
