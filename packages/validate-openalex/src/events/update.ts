@@ -1,7 +1,7 @@
 import { isInteresting } from './filter';
 import type { IEvent } from './types';
 
-const updateNewEventsWithExistingMetadata = (existing: IEvent[], newEvents: IEvent[]) => {
+const updateNewEventsWithExistingMetadata = (existing: IEvent[], newEvents: IEvent[]): IEvent[] => {
   const updatedEvents: IEvent[] = [];
   for (const newEvent of newEvents) {
     const matched = existing.filter(e =>

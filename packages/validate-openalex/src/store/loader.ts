@@ -5,26 +5,26 @@ import type { IEvent } from '../events/types';
 import type { IContext } from '../context/types';
 import { getContext } from '../context';
 
-const readFile = (file: string) => {
+const readFile = <T>(file: string): T | null => {
   if (existsSync(file)) {
     const data = readFileSync(file, 'utf-8');
-    return JSON.parse(data);
+    return JSON.parse(data) as T;
   } else {
     return null;
   }
 };
 
-const loadContextStore = () =>
+const loadContextStore = (): Effect.Effect<void, never, ContextStore> =>
   Effect.gen(function* () {
-    const file = (yield* getContext()).context_file;
+    const file: string = (yield* getContext()).context_file;
     const parsed: IContext = readFile(file) as IContext;
     if (parsed) {
-      const store = yield* ContextStore;
+      const store: Ref.Ref<IContext> = yield* ContextStore;
       yield* Ref.set(store, parsed);
     }
   });
 
-const loadEventsStore = () =>
+const loadEventsStore = (): Effect.Effect<void, never, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const file = (yield* getContext()).events_file;
     const parsed = readFile(file) as IEvent[];
@@ -34,7 +34,7 @@ const loadEventsStore = () =>
     }
   });
 
-const loadStores = () =>
+const loadStores = (): Effect.Effect<void, never, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     yield* loadContextStore();
     yield* loadEventsStore();

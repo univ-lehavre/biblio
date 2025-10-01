@@ -153,6 +153,9 @@ importers:
       '@clack/prompts':
         specifier: ^1.0.0-alpha.4
         version: 1.0.0-alpha.4
+      '@univ-lehavre/biblio-fetch-one-api-page':
+        specifier: workspace:^
+        version: link:../fetch-one-api-page
       '@univ-lehavre/biblio-fetch-openalex':
         specifier: workspace:^
         version: link:../fetch-openalex

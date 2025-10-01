@@ -10,7 +10,7 @@ const getContext = (): Effect.Effect<IContext, never, ContextStore> =>
     return context;
   });
 
-const isAuthorContext = () =>
+const isAuthorContext = (): Effect.Effect<boolean, never, ContextStore> =>
   Effect.gen(function* () {
     const { type }: IContext = yield* getContext();
     return type === 'author';

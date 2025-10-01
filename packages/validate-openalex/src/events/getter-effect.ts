@@ -1,5 +1,5 @@
 import { Effect, Ref } from 'effect';
-import { EventsStore } from '../store';
+import { ContextStore, EventsStore } from '../store';
 import type { IEvent, IEventData } from './types';
 import { getORCID } from '../context';
 import { uniqueSorted } from '../tools';
@@ -44,7 +44,7 @@ const getEvents = (): Effect.Effect<IEvent[], never, EventsStore> =>
     return events;
   });
 
-const getDisplayNameAlternatives = () =>
+const getDisplayNameAlternatives = (): Effect.Effect<string[], Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const orcid: string | undefined = yield* getORCID();
     if (orcid === undefined) return [];
@@ -62,7 +62,7 @@ const getDisplayNameAlternatives = () =>
     );
   });
 
-const getAffiliations = () =>
+const getAffiliations = (): Effect.Effect<string[], Error, EventsStore | ContextStore> =>
   Effect.gen(function* () {
     const orcid: string | undefined = yield* getORCID();
     if (orcid === undefined) return [];

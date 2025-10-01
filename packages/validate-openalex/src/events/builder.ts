@@ -82,7 +82,7 @@ const buildAuthorResultsPendingEvents = (
     return updated;
   });
 
-const buildReference = (work: WorksResult) => {
+const buildReference = (work: WorksResult): string => {
   const authors = work.authorships
     .flatMap(a => a.author)
     .map(au => au.display_name)

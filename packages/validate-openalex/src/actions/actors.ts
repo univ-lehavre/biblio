@@ -108,7 +108,11 @@ const removeAuthorPendings = (): Effect.Effect<void, Error, ContextStore | Event
     yield* setEventsStore(notPendings);
   });
 
-const checkWork = (orcid: ORCID, authorOpenalexID: OpenAlexID, work: WorksResult) =>
+const checkWork = (
+  orcid: ORCID,
+  authorOpenalexID: OpenAlexID,
+  work: WorksResult,
+): Effect.Effect<void, Error, EventsStore | ContextStore> =>
   Effect.gen(function* () {
     // On regarde chaque publication
     const authorships = work.authorships;
@@ -298,7 +302,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: OpenAlexID, work: WorksResult
     yield* updateEventsStore([event, event2]);
   });
 
-const extendsToWorks = () =>
+const extendsToWorks = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const { id }: IContext = yield* getContext();
     if (id === undefined) return;
