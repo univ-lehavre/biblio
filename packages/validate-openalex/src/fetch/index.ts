@@ -15,7 +15,7 @@ const filterByORCID = (orcid: string[]): FetchOpenAlexAPIOptions => ({
 });
 
 const filterAuthorshipByIDs = (ids: string[]): FetchOpenAlexAPIOptions => ({
-  filter: `author.id:${ids.join('|')}`,
+  filter: `type:article,author.id:${ids.join('|')}`,
 });
 
 const buildFetchOptions = (
