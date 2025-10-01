@@ -1,8 +1,12 @@
 import { Effect } from 'effect';
-import { FetchError, fetchOpenAlexAPI, StatusError } from '@univ-lehavre/biblio-fetch-openalex';
-import type { AuthorsResult, FetchOpenAlexAPIOptions } from './types';
-import type { ConfigError } from 'effect/ConfigError';
-import { WorksResult } from '@univ-lehavre/biblio-openalex-types';
+import { FetchAPIMinimalConfig, fetchAPIResults } from '@univ-lehavre/biblio-fetch-openalex';
+import {
+  type AuthorsResult,
+  type FetchOpenAlexAPIOptions,
+  type WorksResult,
+} from '@univ-lehavre/biblio-openalex-types';
+import { getEnv, type EnvConfig } from '../config';
+import { type ConfigError } from 'effect/ConfigError';
 
 const searchAuthor = (names: string[]): FetchOpenAlexAPIOptions => ({ search: names.join('|') });
 
@@ -14,39 +18,43 @@ const filterAuthorshipByIDs = (ids: string[]): FetchOpenAlexAPIOptions => ({
   filter: `author.id:${ids.join('|')}`,
 });
 
-const fetchAuthor = (
-  values: string[],
-  callback: (values: string[]) => FetchOpenAlexAPIOptions,
-): Effect.Effect<AuthorsResult[], StatusError | FetchError | ConfigError, never> =>
+const buildFetchOptions = (
+  endpoint: string,
+  fetchAPIOptions: FetchOpenAlexAPIOptions,
+): Effect.Effect<FetchAPIMinimalConfig, ConfigError, never> =>
   Effect.gen(function* () {
-    const opts = callback(values);
-    const authors = yield* fetchOpenAlexAPI<AuthorsResult>('authors', opts);
-    return authors.results;
+    const { userAgent, rateLimit, perPage, apiURL }: EnvConfig = yield* getEnv();
+    const fetchParams: FetchAPIMinimalConfig = {
+      userAgent,
+      rateLimit,
+      apiURL,
+      endpoint,
+      fetchAPIOptions,
+      perPage,
+    };
+    return fetchParams;
   });
 
-const fetchWork = (
-  values: string[],
-  callback: (values: string[]) => FetchOpenAlexAPIOptions,
-): Effect.Effect<WorksResult[], StatusError | FetchError | ConfigError, never> =>
+const fetchAuthor = (values: string[], callback: (values: string[]) => FetchOpenAlexAPIOptions) =>
   Effect.gen(function* () {
-    const opts = callback(values);
-    const works = yield* fetchOpenAlexAPI<WorksResult>('works', opts);
-    return works.results;
+    const params: FetchOpenAlexAPIOptions = callback(values);
+    const opts: FetchAPIMinimalConfig = yield* buildFetchOptions('authors', params);
+    const authors = yield* fetchAPIResults<AuthorsResult>(opts);
+    return authors;
   });
 
-const searchAuthorByName = (
-  names: string[],
-): Effect.Effect<AuthorsResult[], StatusError | FetchError | ConfigError, never> =>
-  fetchAuthor(names, searchAuthor);
+const fetchWork = (values: string[], callback: (values: string[]) => FetchOpenAlexAPIOptions) =>
+  Effect.gen(function* () {
+    const params: FetchOpenAlexAPIOptions = callback(values);
+    const opts: FetchAPIMinimalConfig = yield* buildFetchOptions('works', params);
+    const works = yield* fetchAPIResults<WorksResult>(opts);
+    return works;
+  });
 
-const searchAuthorByORCID = (
-  orcid: string[],
-): Effect.Effect<AuthorsResult[], StatusError | FetchError | ConfigError, never> =>
-  fetchAuthor(orcid, filterByORCID);
+const searchAuthorByName = (names: string[]) => fetchAuthor(names, searchAuthor);
 
-const searchWorksByAuthorIDs = (
-  ids: string[],
-): Effect.Effect<WorksResult[], StatusError | FetchError | ConfigError, never> =>
-  fetchWork(ids, filterAuthorshipByIDs);
+const searchAuthorByORCID = (orcid: string[]) => fetchAuthor(orcid, filterByORCID);
+
+const searchWorksByAuthorIDs = (ids: string[]) => fetchWork(ids, filterAuthorshipByIDs);
 
 export { searchAuthorByName, searchAuthorByORCID, searchWorksByAuthorIDs };
