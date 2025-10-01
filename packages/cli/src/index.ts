@@ -1,5 +1,5 @@
-import { Effect } from 'effect';
-import { log } from '@clack/prompts';
+import { Effect, Logger, LogLevel } from 'effect';
+import { note } from '@clack/prompts';
 import {
   action2option,
   actions,
@@ -20,6 +20,8 @@ import {
 } from '@univ-lehavre/biblio-validate-openalex';
 import type { Action, IEvent } from '@univ-lehavre/biblio-validate-openalex';
 import type { OpenAlexID, ORCID } from '@univ-lehavre/biblio-openalex-types';
+import { NodeRuntime } from '@effect/platform-node';
+import { DevTools } from '@effect/experimental';
 
 const start = () =>
   Effect.gen(function* () {
@@ -36,16 +38,18 @@ const dashboard = () =>
     const openalexIDs: OpenAlexID[] = getOpenAlexIDsBasedOnAcceptedWorks(orcid, events);
     const display_name_alternatives: string[] = yield* getDisplayNameAlternatives();
     const affiliations: string[] = yield* getAffiliations();
+    const board: string[] = [];
     if (openalexIDs !== undefined && openalexIDs.length > 0)
-      log.info(`${openalexIDs.length} identifiants OpenAlex d’auteurs : ${openalexIDs.join(', ')}`);
+      board.push(`${openalexIDs.length} identifiants OpenAlex d’auteurs`);
     if (display_name_alternatives.length > 0)
-      log.info(
-        `${display_name_alternatives.length} Display Name Alternatives : ${display_name_alternatives.join(', ')}`,
-      );
-    if (affiliations.length > 0)
-      log.info(`${affiliations.length} Affiliations : ${affiliations.join(', ')}`);
+      board.push(`${display_name_alternatives.length} Display Name Alternatives`);
+    if (affiliations.length > 0) board.push(`${affiliations.length} Affiliations`);
     if (openalexIDs !== undefined && acceptedWorks.length > 0)
-      log.info(`${acceptedWorks.length} articles validés`);
+      board.push(`${acceptedWorks.length} articles validés`);
+    if (board.length > 0)
+      note(board.join('\n'), 'Tableau de bord', {
+        format: (line: string) => `→ ${line}`,
+      });
   });
 
 const ask = () =>
@@ -72,6 +76,10 @@ const ask = () =>
 
 const runnable = start().pipe(provideEventsStore(), provideContextStore());
 
-Effect.runPromiseExit(runnable)
-  .then(stdout => console.log(JSON.stringify(stdout, null, 2)))
-  .catch(cause => console.error(JSON.stringify(cause, null, 2)));
+const DevToolsLive = DevTools.layer();
+
+runnable.pipe(
+  Logger.withMinimumLogLevel(LogLevel.None),
+  Effect.provide(DevToolsLive),
+  NodeRuntime.runMain,
+);

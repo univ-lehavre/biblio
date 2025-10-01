@@ -65,6 +65,12 @@ importers:
       '@clack/prompts':
         specifier: ^1.0.0-alpha.4
         version: 1.0.0-alpha.4
+      '@effect/experimental':
+        specifier: ^0.56.0
+        version: 0.56.0(@effect/platform@0.92.0(effect@3.17.13))(effect@3.17.13)
+      '@effect/platform-node':
+        specifier: ^0.98.0
+        version: 0.98.0(@effect/cluster@0.50.0(@effect/platform@0.92.0(effect@3.17.13))(@effect/rpc@0.71.0(@effect/platform@0.92.0(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.46.0(@effect/experimental@0.56.0(@effect/platform@0.92.0(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.92.0(effect@3.17.13))(effect@3.17.13))(@effect/workflow@0.11.0(@effect/platform@0.92.0(effect@3.17.13))(@effect/rpc@0.71.0(@effect/platform@0.92.0(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.92.0(effect@3.17.13))(@effect/rpc@0.71.0(@effect/platform@0.92.0(effect@3.17.13))(effect@3.17.13))(@effect/sql@0.46.0(@effect/experimental@0.56.0(@effect/platform@0.92.0(effect@3.17.13))(effect@3.17.13))(@effect/platform@0.92.0(effect@3.17.13))(effect@3.17.13))(effect@3.17.13)
       '@univ-lehavre/biblio-openalex-types':
         specifier: workspace:^
         version: link:../openalex-types
