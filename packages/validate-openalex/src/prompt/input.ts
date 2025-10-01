@@ -19,7 +19,7 @@ const print_title = (): Effect.Effect<void, Error, ContextStore | EventsStore> =
   Effect.gen(function* () {
     const { id }: IContext = yield* getContext();
     const hasORCIDEvents: boolean = id ? yield* hasEventsForThisORCID() : false;
-    const title: string = id && hasORCIDEvents ? `ORCID ${id}` : 'OpenAlex';
+    const title: string = id && hasORCIDEvents ? `${id}` : 'OpenAlex';
     intro(`${color.bgCyan(color.black(` ${title} `))}\n`);
   });
 
