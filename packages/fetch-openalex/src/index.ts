@@ -1,18 +1,14 @@
 import { Effect, RateLimiter, Queue, Ref, Chunk } from 'effect';
 import { FetchError, fetchOnePage, type Query } from '@univ-lehavre/biblio-fetch-one-api-page';
 import { Store, type APIResponse, initialState, type IState } from './store';
-
-interface FetchAPIOptions {
-  filter?: string;
-  search?: string;
-}
+import { type FetchOpenAlexAPIOptions } from '@univ-lehavre/biblio-openalex-types';
 
 interface FetchAPIMinimalConfig {
   userAgent: string;
   rateLimit: RateLimiter.RateLimiter.Options;
   apiURL: string;
   endpoint: string;
-  fetchAPIOptions: FetchAPIOptions;
+  fetchAPIOptions: FetchOpenAlexAPIOptions;
   perPage: number;
   maxPages?: number;
 }
@@ -78,7 +74,6 @@ export {
   fetchAPIResults,
   Store,
   initialState,
-  type FetchAPIOptions,
   type FetchAPIMinimalConfig,
   type FetchAPIConfig,
   type APIResponse,
