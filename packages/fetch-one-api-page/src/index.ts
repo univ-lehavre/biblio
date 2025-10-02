@@ -16,6 +16,15 @@ class FetchError extends Data.TaggedError('FetchError') {
   }
 }
 
+class ResponseParseError extends Data.TaggedError('ResponseParseError') {
+  constructor(message: string, opts?: { cause?: unknown }) {
+    super();
+    this.message = message;
+    this.name = 'ResponseParseError';
+    if (opts?.cause) this.cause = opts.cause;
+  }
+}
+
 /**
  * Build the full URL with query parameters.
  * @param base_url The base URL of the API endpoint
@@ -40,6 +49,37 @@ const buildHeaders = (userAgent: string): Headers => {
   return headers;
 };
 
+const URLToResponse = (
+  url: URL,
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  headers: Headers,
+): Effect.Effect<Response, FetchError, never> =>
+  Effect.tryPromise({
+    try: async () => {
+      const response: Response = await fetch(url, {
+        method,
+        headers,
+      });
+      return response;
+    },
+    catch: (cause: unknown) => new FetchError('An unknown error occurred during fetch', { cause }),
+  });
+
+const responseToJSON = <T>(response: Response) =>
+  Effect.tryPromise({
+    try: async () => {
+      const contentType = response.headers.get('content-type');
+      if (contentType && !contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new ResponseParseError(text);
+      }
+      const json = (await response.json()) as T;
+      return json;
+    },
+    catch: (cause: unknown) =>
+      new ResponseParseError('An unknown error occurred during fetch', { cause }),
+  });
+
 /**
  * Fetch JSON data from a URL.
  * @param url The URL to fetch
@@ -51,17 +91,11 @@ const fetchJSON = <T>(
   url: URL,
   method: 'GET' | 'POST' | 'PUT' | 'DELETE',
   headers: Headers,
-): Effect.Effect<T, FetchError, never> =>
-  Effect.tryPromise({
-    try: async () => {
-      const response: Response = await fetch(url, {
-        method,
-        headers,
-      });
-      const json = (await response.json()) as T;
-      return json;
-    },
-    catch: (cause: unknown) => new FetchError('An unknown error occurred during fetch', { cause }),
+): Effect.Effect<T, FetchError | ResponseParseError, never> =>
+  Effect.gen(function* () {
+    const response: Response = yield* URLToResponse(url, method, headers);
+    const json: T = yield* responseToJSON<T>(response);
+    return json;
   });
 
 /**

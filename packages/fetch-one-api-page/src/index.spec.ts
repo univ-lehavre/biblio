@@ -31,6 +31,7 @@ describe('fetchJSON', () => {
       const mockData = { ok: true, items: [1, 2, 3] };
       globalThis.fetch = (async () =>
         Promise.resolve({
+          headers: new Headers({ 'content-type': 'application/json' }),
           json: async () => mockData,
         } as unknown as Response)) as typeof fetch;
 
@@ -57,6 +58,56 @@ describe('fetchJSON', () => {
         const cause = (either.left as unknown as { cause?: unknown }).cause;
         expect(cause).toBeInstanceOf(Error);
         expect((cause as Error).message).toBe('network fail');
+      }
+    }),
+  );
+
+  it.effect('should return ResponseParseError when content-type is not application/json', () =>
+    Effect.gen(function* () {
+      const mockText = 'not json';
+      globalThis.fetch = (async () =>
+        Promise.resolve({
+          headers: new Headers({ 'content-type': 'text/plain' }),
+          text: async () => mockText,
+        } as unknown as Response)) as typeof fetch;
+
+      const url = new URL('https://api.example.com/test');
+      const headers = new Headers();
+
+      const either = yield* Effect.either(fetchJSON<unknown>(url, 'GET', headers));
+      expect(either._tag).toBe('Left');
+      if (either._tag === 'Left') {
+        expect(either.left.name).toBe('ResponseParseError');
+        // The outer Effect.tryPromise wraps thrown errors; check the cause for the original message
+        expect(either.left.message).toBe('An unknown error occurred during fetch');
+        const cause = (either.left as unknown as { cause?: unknown }).cause;
+        expect(cause).toBeDefined();
+        expect((cause as Error).message).toBe(mockText);
+      }
+    }),
+  );
+
+  it.effect('should return ResponseParseError when response.json throws', () =>
+    Effect.gen(function* () {
+      globalThis.fetch = (async () =>
+        Promise.resolve({
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: async () => {
+            throw new Error('bad json');
+          },
+        } as unknown as Response)) as typeof fetch;
+
+      const url = new URL('https://api.example.com/test');
+      const headers = new Headers();
+
+      const either = yield* Effect.either(fetchJSON<unknown>(url, 'GET', headers));
+      expect(either._tag).toBe('Left');
+      if (either._tag === 'Left') {
+        expect(either.left.name).toBe('ResponseParseError');
+        expect(either.left.message).toBe('An unknown error occurred during fetch');
+        const cause = (either.left as unknown as { cause?: unknown }).cause;
+        expect(cause).toBeInstanceOf(Error);
+        expect((cause as Error).message).toBe('bad json');
       }
     }),
   );
