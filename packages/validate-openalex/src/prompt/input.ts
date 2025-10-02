@@ -19,13 +19,13 @@ const print_title = (): Effect.Effect<void, Error, ContextStore | EventsStore> =
   Effect.gen(function* () {
     const { id }: IContext = yield* getContext();
     const hasORCIDEvents: boolean = id ? yield* hasEventsForThisORCID() : false;
-    const title: string = id && hasORCIDEvents ? `ORCID ${id}` : 'OpenAlex';
+    const title: string = id && hasORCIDEvents ? `${id}` : 'OpenAlex';
     intro(`${color.bgCyan(color.black(` ${title} `))}\n`);
   });
 
-const end = () => outro(`${color.bgGreen(color.black(` Fin `))}`);
+const end = (): void => outro(`${color.bgGreen(color.black(` Fin `))}`);
 
-const confirm = (message: string) =>
+const confirm = (message: string): Effect.Effect<boolean | symbol, Error, never> =>
   Effect.tryPromise({
     try: () =>
       confirm_prompt({
@@ -34,7 +34,10 @@ const confirm = (message: string) =>
     catch: cause => new Error('Erreur lors de la confirmation', { cause }),
   });
 
-const select = (message: string, options: Option<string>[]) =>
+const select = (
+  message: string,
+  options: Option<string>[],
+): Effect.Effect<string | symbol, Error, never> =>
   Effect.tryPromise({
     try: () =>
       select_prompt({
@@ -44,7 +47,11 @@ const select = (message: string, options: Option<string>[]) =>
     catch: cause => new Error('Erreur lors de la sélection', { cause }),
   });
 
-const multiselect = (message: string, required: boolean, options: Option<string>[]) =>
+const multiselect = (
+  message: string,
+  required: boolean,
+  options: Option<string>[],
+): Effect.Effect<symbol | string[], Error, never> =>
   Effect.tryPromise({
     try: () =>
       multiselect_prompt({
@@ -55,7 +62,11 @@ const multiselect = (message: string, required: boolean, options: Option<string>
     catch: cause => new Error('Erreur lors de la sélection', { cause }),
   });
 
-const autocompleteMultiselect = (message: string, required: boolean, options: Option<string>[]) =>
+const autocompleteMultiselect = (
+  message: string,
+  required: boolean,
+  options: Option<string>[],
+): Effect.Effect<symbol | string[], Error, never> =>
   Effect.tryPromise({
     try: () =>
       autocompleteMultiselect_prompt({
@@ -72,7 +83,7 @@ const text = (
   message: string,
   placeholder: string,
   validate: (value: string | undefined) => string | undefined | Error,
-) =>
+): Effect.Effect<string | symbol, Error, never> =>
   Effect.tryPromise({
     try: () =>
       text_prompt({

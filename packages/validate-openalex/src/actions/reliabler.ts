@@ -21,7 +21,10 @@ const updateDate = (event: IEvent): IEvent => ({
   updatedAt: new Date().toISOString(),
 });
 
-const updateEventsStoreBasedOnAcceptedValues = (values: string[], opts: Partial<IEvent>) =>
+const updateEventsStoreBasedOnAcceptedValues = (
+  values: string[],
+  opts: Partial<IEvent>,
+): Effect.Effect<void, never, EventsStore> =>
   Effect.gen(function* () {
     const events = yield* getEvents();
     const updated = updateEventStatusBasedOnAcceptedValues(events, values, opts).map(updateDate);

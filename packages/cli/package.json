@@ -4,7 +4,14 @@
   "description": "La ligne de commande",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
-  "repository": "https://github.com/univ-lehavre/biblio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/univ-lehavre/biblio.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/univ-lehavre/biblio/issues"
+  },
   "scripts": {
     "build": "preconstruct build",
     "dev": "preconstruct watch",
@@ -21,6 +28,8 @@
     "@clack/prompts": "^1.0.0-alpha.4",
     "@univ-lehavre/biblio-validate-openalex": "workspace:^",
     "@univ-lehavre/biblio-openalex-types": "workspace:^",
+    "@effect/experimental": "^0.56.0",
+    "@effect/platform-node": "^0.98.0",
     "effect": "^3.17.13",
     "picocolors": "^1.1.1"
   },

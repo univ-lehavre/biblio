@@ -7,6 +7,4 @@ export * from './store';
 export * from './tools';
 export type * from './actions/types';
 export type * from './events/types';
-export type * from './fetch/types';
-export type * from './prompt/types';
 export type * from './context/types';

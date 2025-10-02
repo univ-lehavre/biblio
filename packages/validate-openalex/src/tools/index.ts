@@ -16,9 +16,9 @@ const buildIntegrity = (data: unknown): Effect.Effect<string, never, ContextStor
   });
 
 // A function that takes a string[] and returns an array with unique and sorted strings
-const uniqueSorted = (values: string[]): string[] => {
+const uniqueSorted = <T>(values: T[]): T[] => {
   if (values.length === 0) return [];
-  const unique: string[] = Array.from(new Set(values));
+  const unique: T[] = Array.from(new Set(values));
   return unique.sort();
 };
 
