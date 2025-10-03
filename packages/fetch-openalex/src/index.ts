@@ -1,5 +1,10 @@
 import { Effect, RateLimiter, Queue, Ref, Chunk } from 'effect';
-import { FetchError, fetchOnePage, type Query } from '@univ-lehavre/biblio-fetch-one-api-page';
+import {
+  FetchError,
+  fetchOnePage,
+  ResponseParseError,
+  type Query,
+} from '@univ-lehavre/biblio-fetch-one-api-page';
 import { Store, type APIResponse, initialState, type IState } from './store';
 import { type FetchOpenAlexAPIOptions } from '@univ-lehavre/biblio-openalex-types';
 
@@ -19,24 +24,16 @@ interface FetchAPIConfig<T> extends FetchAPIMinimalConfig {
   queue?: Queue.Queue<T>;
 }
 
-const fetchAPIQueue = <T>(
-  opts: FetchAPIConfig<T>,
-): Effect.Effect<
-  {
-    store: Store<T>;
-    queue: Queue.Queue<T>;
-    worker: Effect.Effect<void, FetchError, never>;
-  },
-  never,
-  never
-> =>
+const fetchAPIQueue = <T>(opts: FetchAPIConfig<T>) =>
   Effect.scoped(
     Effect.gen(function* () {
       const url: URL = new URL(`${opts.apiURL}/${opts.endpoint}`);
       const params: Query = { ...opts.fetchAPIOptions, per_page: opts.perPage };
 
       const ratelimiter: RateLimiter.RateLimiter = yield* RateLimiter.make(opts.rateLimit);
-      const curriedFetch = (q: Query): Effect.Effect<APIResponse<T>, FetchError, never> =>
+      const curriedFetch = (
+        q: Query,
+      ): Effect.Effect<APIResponse<T>, FetchError | ResponseParseError, never> =>
         ratelimiter(fetchOnePage<APIResponse<T>>(url, q, opts.userAgent));
 
       const queue: Queue.Queue<T> = opts.queue ?? (yield* Queue.unbounded<T>());
@@ -45,15 +42,17 @@ const fetchAPIQueue = <T>(
       const store: Store<T> =
         opts.store ?? (yield* Effect.andThen(Ref.make(initialState), s => new Store<T>(s)));
 
-      const worker: Effect.Effect<void, FetchError, never> = Effect.gen(function* () {
-        while (yield* store.hasMorePages()) {
-          params.page = yield* store.page;
-          const response: APIResponse<T> = yield* curriedFetch(params);
-          yield* queue.offerAll(response.results);
-          yield* store.addNewItems(response);
-          yield* store.incPage();
-        }
-      });
+      const worker: Effect.Effect<void, FetchError | ResponseParseError, never> = Effect.gen(
+        function* () {
+          while (yield* store.hasMorePages()) {
+            params.page = yield* store.page;
+            const response: APIResponse<T> = yield* curriedFetch(params);
+            yield* queue.offerAll(response.results);
+            yield* store.addNewItems(response);
+            yield* store.incPage();
+          }
+        },
+      );
 
       return { store, queue, worker };
     }),
@@ -61,7 +60,7 @@ const fetchAPIQueue = <T>(
 
 const fetchAPIResults = <T>(
   opts: FetchAPIMinimalConfig,
-): Effect.Effect<readonly T[], FetchError, never> =>
+): Effect.Effect<readonly T[], FetchError | ResponseParseError, never> =>
   Effect.gen(function* () {
     const { queue, worker } = yield* fetchAPIQueue<T>({ ...opts });
     yield* Effect.all([worker], { concurrency: 'unbounded', discard: true });
