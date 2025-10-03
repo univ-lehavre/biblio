@@ -28,6 +28,7 @@ import type {
 import type { ConfigError } from 'effect/ConfigError';
 import type { IEvent, Status } from '../events/types';
 import { IContext } from '../context/types';
+import { log } from '@clack/prompts';
 
 const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
@@ -308,6 +309,7 @@ const extendsToWorks = (): Effect.Effect<void, Error | ConfigError, ContextStore
     if (id === undefined) return;
     const openalexIDs: OpenAlexID[] = getOpenAlexIDs(id, yield* getEvents());
     for (const authorOpenalexID of openalexIDs) {
+      log.info(`Recherche des publications pour l’identifiant OpenAlex ${authorOpenalexID}`);
       // On travaille sur un chercheur
       const works: readonly WorksResult[] = yield* searchWorksByAuthorIDs([authorOpenalexID]);
       if (works.length === 0) continue;
