@@ -120,4 +120,12 @@ const fetchOnePage = <T>(endpointURL: URL, params: Query, userAgent: string) =>
     return json;
   });
 
-export { fetchOnePage, fetchJSON, buildHeaders, buildURL, FetchError, type Query };
+export {
+  fetchOnePage,
+  fetchJSON,
+  buildHeaders,
+  buildURL,
+  FetchError,
+  ResponseParseError,
+  type Query,
+};
