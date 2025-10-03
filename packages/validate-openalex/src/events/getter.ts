@@ -1,6 +1,6 @@
 import color from 'picocolors';
 import { uniqueSorted } from '../tools';
-import type { OpenAlexID, ORCID } from '@univ-lehavre/biblio-openalex-types';
+import { asOpenAlexID, type OpenAlexID, type ORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { IEntity, IEvent, IField, Status } from './types';
 
 /**
@@ -135,6 +135,83 @@ const getStatuses = (
 
   return status;
 };
+
+const getOpenAlexIDByStatus = (orcid: ORCID, events: IEvent[]) => {
+  const statuses = events
+    .filter(
+      e =>
+        e.id === orcid &&
+        e.entity === 'author' &&
+        (e.field === 'affiliation' || e.field === 'display_name_alternatives'),
+    )
+    .map(e => ({ openalexID: e.from, status: e.status, entity: e.entity, field: e.field }));
+
+  // Pour attribuer un statut global à chaque OpenAlexID, on utilise la règle suivante :
+  // - Si un OpenAlexID a au moins un statut "accepted", pour les fields "affiliation" ou "display_name_alternatives" de l’entité "author", alors son statut global est "accepted".
+  // - Sinon, s’il a au moins un statut "pending" pour ces mêmes fields, alors son statut global est "pending".
+  // - Sinon, s’il a au moins un statut "rejected" pour ces mêmes fields, alors son statut global est "rejected".
+  // - Si un OpenAlexID n’a que des statuts pour d’autres fields ou entités, on l’ignore.
+  // On ignore les events qui ne concernent pas l’entité "author" et les fields "affiliation" ou "display_name_alternatives"
+
+  // pour chaque OpenAlexID, on vérifie si les couples ("affiliation" et "display_name_alternatives") existent avec un même statut "accepted" ou "pending"
+  const grouped: { [key: string]: Set<string> } = {};
+  statuses.forEach(({ openalexID, status, entity, field }) => {
+    if (!grouped[openalexID]) {
+      grouped[openalexID] = new Set();
+    }
+    grouped[openalexID].add(`${entity}|${field}|${status}`);
+  });
+
+  const result: Map<OpenAlexID, Status> = new Map();
+
+  Object.keys(grouped).forEach(openalexID => {
+    const statusSet = grouped[openalexID];
+    const hasAcceptedAffiliation = statusSet.has('author|affiliation|accepted');
+    const hasAcceptedDisplayName = statusSet.has('author|display_name_alternatives|accepted');
+    const hasPendingAffiliation = statusSet.has('author|affiliation|pending');
+    const hasPendingDisplayName = statusSet.has('author|display_name_alternatives|pending');
+    const hasRejectedAffiliation = statusSet.has('author|affiliation|rejected');
+    const hasRejectedDisplayName = statusSet.has('author|display_name_alternatives|rejected');
+
+    if (hasAcceptedAffiliation && hasAcceptedDisplayName) {
+      result.set(asOpenAlexID(openalexID), 'accepted');
+    } else if (hasPendingAffiliation && hasPendingDisplayName) {
+      result.set(asOpenAlexID(openalexID), 'pending');
+    } else if (hasRejectedAffiliation || hasRejectedDisplayName) {
+      result.set(asOpenAlexID(openalexID), 'rejected');
+    } else if (hasPendingAffiliation || hasPendingDisplayName) {
+      result.set(asOpenAlexID(openalexID), 'pending');
+    } else if (hasAcceptedAffiliation || hasAcceptedDisplayName) {
+      result.set(asOpenAlexID(openalexID), 'accepted');
+    } else {
+      throw new Error(
+        `Unexpected status combination for OpenAlexID ${openalexID} : ${Array.from(statusSet).join(', ')}`,
+      );
+    }
+  });
+
+  return result;
+};
+
+const getOpenAlexIDByStatusDashboard = (orcid: ORCID, events: IEvent[]) => {
+  const statuses = getOpenAlexIDByStatus(orcid, events);
+  const accepted = Array.from(statuses.values()).filter(status => status === 'accepted').length;
+  const pending = Array.from(statuses.values()).filter(status => status === 'pending').length;
+  const rejected = Array.from(statuses.values()).filter(status => status === 'rejected').length;
+
+  const maxDigits = 4;
+
+  const values = [
+    color.blueBright(String(accepted === 0 ? '·' : accepted).padStart(maxDigits, ' ')),
+    color.yellowBright(String(pending === 0 ? '·' : pending).padStart(maxDigits, ' ')),
+    color.redBright(String(rejected === 0 ? '·' : rejected).padStart(maxDigits, ' ')),
+  ].join(' ');
+
+  const status = accepted === 0 && pending === 0 && rejected === 0 ? null : values;
+
+  return status;
+};
+
 const getGlobalStatuses = (id: ORCID, events: IEvent[]): string | null => {
   const statuses: {
     [key: string]: number;
@@ -275,4 +352,6 @@ export {
   getStatuses,
   getStatusesByValue,
   getGlobalStatuses,
+  getOpenAlexIDByStatus,
+  getOpenAlexIDByStatusDashboard,
 };

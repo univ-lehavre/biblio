@@ -16,6 +16,7 @@ import {
   select,
   getGlobalStatuses,
   getStatusesByValue,
+  getOpenAlexIDByStatusDashboard,
 } from '@univ-lehavre/biblio-validate-openalex';
 import type { Action, IEvent } from '@univ-lehavre/biblio-validate-openalex';
 import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
@@ -35,8 +36,8 @@ const dashboard = () =>
     const events: IEvent[] = yield* getEvents();
     const board: string[] = [];
 
-    const authors: string | null = getStatuses(orcid, 'author', 'id', events);
-    if (authors !== null) board.push(`${authors} auteurs`);
+    const authors: string | null = getOpenAlexIDByStatusDashboard(orcid, events);
+    if (authors !== null) board.push(`${authors} identifiants OpenAlex d’auteurs`);
 
     const display_name_alternatives: string | null = getStatusesByValue(
       orcid,
