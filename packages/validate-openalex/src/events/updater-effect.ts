@@ -1,6 +1,6 @@
 import { Effect } from 'effect';
 import { getEvents } from './getter-effect';
-import { EventsStore, updateEventsStore } from '../store';
+import { ContextStore, EventsStore, updateEventsStore } from '../store';
 import { filterPending } from './filter';
 import type { IEvent, Status } from './types';
 
@@ -23,7 +23,7 @@ const updateDate = (event: IEvent): IEvent => ({
 const updateEventsStoreBasedOnAcceptedValues = (
   values: string[],
   opts: Partial<IEvent>,
-): Effect.Effect<void, never, EventsStore> =>
+): Effect.Effect<void, never, EventsStore | ContextStore> =>
   Effect.gen(function* () {
     const events = yield* getEvents();
     const updated = updateEventStatusBasedOnAcceptedValues(events, values, opts).map(updateDate);

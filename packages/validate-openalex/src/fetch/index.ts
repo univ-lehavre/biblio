@@ -1,7 +1,7 @@
 import { Effect } from 'effect';
 import { getEnv, type EnvConfig } from '../config';
 import { type ConfigError } from 'effect/ConfigError';
-import { FetchError } from '@univ-lehavre/biblio-fetch-one-api-page';
+import { FetchError, ResponseParseError } from '@univ-lehavre/biblio-fetch-one-api-page';
 import { FetchAPIMinimalConfig, fetchAPIResults } from '@univ-lehavre/biblio-fetch-openalex';
 import {
   type AuthorsResult,
@@ -39,7 +39,7 @@ const buildFetchOptions = (
 const fetchAuthor = (
   values: string[],
   callback: (values: string[]) => FetchOpenAlexAPIOptions,
-): Effect.Effect<readonly AuthorsResult[], ConfigError | FetchError, never> =>
+): Effect.Effect<readonly AuthorsResult[], ConfigError | FetchError | ResponseParseError, never> =>
   Effect.gen(function* () {
     const params: FetchOpenAlexAPIOptions = callback(values);
     const opts: FetchAPIMinimalConfig = yield* buildFetchOptions('authors', params);
@@ -50,7 +50,7 @@ const fetchAuthor = (
 const fetchWork = (
   values: string[],
   callback: (values: string[]) => FetchOpenAlexAPIOptions,
-): Effect.Effect<readonly WorksResult[], ConfigError | FetchError, never> =>
+): Effect.Effect<readonly WorksResult[], ConfigError | FetchError | ResponseParseError, never> =>
   Effect.gen(function* () {
     const params: FetchOpenAlexAPIOptions = callback(values);
     const opts: FetchAPIMinimalConfig = yield* buildFetchOptions('works', params);
@@ -60,17 +60,17 @@ const fetchWork = (
 
 const searchAuthorByName = (
   names: string[],
-): Effect.Effect<readonly AuthorsResult[], ConfigError | FetchError, never> =>
+): Effect.Effect<readonly AuthorsResult[], ConfigError | FetchError | ResponseParseError, never> =>
   fetchAuthor(names, searchAuthor);
 
 const searchAuthorByORCID = (
   orcid: string[],
-): Effect.Effect<readonly AuthorsResult[], ConfigError | FetchError, never> =>
+): Effect.Effect<readonly AuthorsResult[], ConfigError | FetchError | ResponseParseError, never> =>
   fetchAuthor(orcid, filterByORCID);
 
 const searchWorksByAuthorIDs = (
   ids: string[],
-): Effect.Effect<readonly WorksResult[], ConfigError | FetchError, never> =>
+): Effect.Effect<readonly WorksResult[], ConfigError | FetchError | ResponseParseError, never> =>
   fetchWork(ids, filterAuthorshipByIDs);
 
 export { searchAuthorByName, searchAuthorByORCID, searchWorksByAuthorIDs };

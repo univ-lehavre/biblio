@@ -17,7 +17,8 @@ const buildEvent = (
   partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'>,
 ): Effect.Effect<IEvent, never, ContextStore> =>
   Effect.gen(function* () {
-    const dataIntegrity: string = yield* buildIntegrity(getEventData(partial));
+    const data = getEventData(partial);
+    const dataIntegrity: string = yield* buildIntegrity(data);
     const createdAt: string = new Date().toISOString();
     const event: IEvent = {
       ...partial,
@@ -82,12 +83,14 @@ const buildAuthorResultsPendingEvents = (
     return updated;
   });
 
-const buildReference = (work: WorksResult): string => {
+const buildReference = (work: WorksResult, full: boolean = false): string => {
   const authors = work.authorships
     .flatMap(a => a.author)
     .map(au => au.display_name)
     .join(', ');
-  const ref = `${authors} (${work.publication_year}). ${work.title}. DOI: ${work.doi}. OpenAlex ID: ${work.id}`;
+  const ref = full
+    ? `${authors} (${work.publication_year}). ${work.title}. DOI: ${work.doi}. OpenAlex ID: ${work.id}`
+    : `${work.title}`;
   return ref;
 };
 

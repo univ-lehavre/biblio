@@ -1,6 +1,12 @@
 import { isInteresting } from './filter';
 import type { IEvent } from './types';
 
+/**
+ * Updates new events with status and hasbeenextended metadata from existing events.
+ * @param existing Existing events to check against
+ * @param newEvents New events to update
+ * @returns Updated events
+ */
 const updateNewEventsWithExistingMetadata = (existing: IEvent[], newEvents: IEvent[]): IEvent[] => {
   const updatedEvents: IEvent[] = [];
   for (const newEvent of newEvents) {
