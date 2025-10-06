@@ -109,6 +109,54 @@ const hasAcceptedAuthorDisplayNameAlternatives = () =>
     return names.length > 0;
   });
 
+const getAcceptedAuthorAffiliations = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return [];
+    const names: string[] = events
+      .filter(
+        e =>
+          e.id === id &&
+          e.entity === 'author' &&
+          e.field === 'affiliation' &&
+          e.status === 'accepted',
+      )
+      .map(e => `${e.label} (${e.value})`);
+    const uniques = uniqueSorted<string>(names);
+    return uniques;
+  });
+
+const hasAcceptedAuthorAffiliations = () =>
+  Effect.gen(function* () {
+    const names = yield* getAcceptedAuthorAffiliations();
+    return names.length > 0;
+  });
+
+const getAcceptedAuthorInstitutions = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return [];
+    const names: string[] = events
+      .filter(
+        e =>
+          e.id === id &&
+          e.entity === 'institution' &&
+          e.field === 'display_name_alternatives' &&
+          e.status === 'accepted',
+      )
+      .map(e => `${e.label} (${e.value})`);
+    const uniques = uniqueSorted<string>(names);
+    return uniques;
+  });
+
+const hasAcceptedAuthorInstitutions = () =>
+  Effect.gen(function* () {
+    const names = yield* getAcceptedAuthorInstitutions();
+    return names.length > 0;
+  });
+
 const getAcceptedWorks = (
   orcid: ORCID,
   events: IEvent[],
@@ -406,6 +454,8 @@ export {
   existsAcceptedAuthorDisplayNameAlternative,
   getAcceptedWorks,
   getAcceptedAuthorDisplayNameAlternatives,
+  getAcceptedAuthorAffiliations,
+  getAcceptedAuthorInstitutions,
   getGlobalStatuses,
   getOpenAlexIDs,
   getOpenAlexIDByStatus,
@@ -416,4 +466,6 @@ export {
   getStatusOfAffiliation,
   getStatusOfAuthorDisplayNameAlternative,
   hasAcceptedAuthorDisplayNameAlternatives,
+  hasAcceptedAuthorAffiliations,
+  hasAcceptedAuthorInstitutions,
 };

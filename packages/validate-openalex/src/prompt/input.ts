@@ -15,7 +15,7 @@ import {
 } from '@clack/prompts';
 import type { IContext } from '../context/types';
 import { hasEventsForThisORCID } from '../actions';
-import { getAcceptedAuthorDisplayNameAlternatives } from '../events';
+import { getAcceptedAuthorAffiliations, getAcceptedAuthorDisplayNameAlternatives } from '../events';
 
 const print_title = (): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
@@ -110,6 +110,20 @@ const listAcceptedAuthorDisplayNameAlternatives = () =>
     yield* confirm('Souhaitez-vous continuer ?');
   });
 
+const listAcceptedAuthorAffiliations = () =>
+  Effect.gen(function* () {
+    const affiliations: string[] = yield* getAcceptedAuthorAffiliations();
+    taskLog('Affiliations acceptées', affiliations);
+    yield* confirm('Souhaitez-vous continuer ?');
+  });
+
+const listAcceptedAuthorInstitutions = () =>
+  Effect.gen(function* () {
+    const institutions: string[] = yield* getAcceptedAuthorAffiliations();
+    taskLog('Institutions acceptées', institutions);
+    yield* confirm('Souhaitez-vous continuer ?');
+  });
+
 export {
   select,
   multiselect,
@@ -120,4 +134,6 @@ export {
   confirm,
   taskLog,
   listAcceptedAuthorDisplayNameAlternatives,
+  listAcceptedAuthorAffiliations,
+  listAcceptedAuthorInstitutions,
 };

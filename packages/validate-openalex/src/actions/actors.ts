@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Effect, Either } from 'effect';
 import { getContext, getORCID } from '../context';
 import { setEventsStore } from '../store/setter';
 import { getAuthorAlternativeStrings } from './tester';
@@ -29,6 +29,7 @@ import type { ConfigError } from 'effect/ConfigError';
 import type { IEvent, Status } from '../events/types';
 import { IContext } from '../context/types';
 import { log } from '@clack/prompts';
+import { getAffiliationLabel } from '../oa/getter';
 
 const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
@@ -141,6 +142,7 @@ const checkWork = (
       entity: 'author',
       field: 'display_name_alternatives',
       value: authorship.raw_author_name,
+      label: authorship.author.display_name,
       status: isRejected ? 'rejected' : 'accepted',
     });
     yield* updateEventsStore([event]);
@@ -163,13 +165,16 @@ const checkWork = (
           if (typeof selected !== 'boolean') throw new Error('Réponse invalide');
           if (!selected) isRejected = true;
         }
+        const label = getAffiliationLabel(work, institutionID);
         yield* updateEventsStore([
           yield* buildEvent({
             from: authorOpenalexID,
             id: orcid,
             entity: 'author',
             field: 'affiliation',
+            label: Either.isRight(label) ? label.right : undefined,
             value: institutionID,
+
             status: isRejected ? 'rejected' : 'accepted',
           }),
           yield* buildEvent({
@@ -178,6 +183,7 @@ const checkWork = (
             entity: 'institution',
             field: 'id',
             value: institutionID,
+            label: Either.isRight(label) ? label.right : undefined,
             status: isRejected ? 'rejected' : 'accepted',
           }),
           yield* buildEvent({
@@ -186,6 +192,7 @@ const checkWork = (
             entity: 'institution',
             field: 'display_name_alternatives',
             value: raw_affiliation_string,
+            label: Either.isRight(label) ? label.right : undefined,
             status: isRejected ? 'rejected' : 'accepted',
           }),
         ]);

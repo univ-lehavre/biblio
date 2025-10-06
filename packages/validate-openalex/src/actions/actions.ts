@@ -11,8 +11,16 @@ import {
   hasAcceptedValues,
 } from '.';
 import type { Action } from './types';
-import { hasAcceptedAuthorDisplayNameAlternatives } from '../events';
-import { listAcceptedAuthorDisplayNameAlternatives } from '../prompt';
+import {
+  hasAcceptedAuthorAffiliations,
+  hasAcceptedAuthorDisplayNameAlternatives,
+  hasAcceptedAuthorInstitutions,
+} from '../events';
+import {
+  listAcceptedAuthorAffiliations,
+  listAcceptedAuthorDisplayNameAlternatives,
+  listAcceptedAuthorInstitutions,
+} from '../prompt';
 
 /**
  * TODO  
@@ -81,6 +89,16 @@ const actions: Action[] = [
     name: 'Lister les formes imprimées de ce chercheur',
     visible: [() => hasAcceptedAuthorDisplayNameAlternatives()],
     action: () => listAcceptedAuthorDisplayNameAlternatives(),
+  },
+  {
+    name: 'Lister les affililations de ce chercheur',
+    visible: [() => hasAcceptedAuthorAffiliations()],
+    action: () => listAcceptedAuthorAffiliations(),
+  },
+  {
+    name: 'Lister les institutions de ce chercheur',
+    visible: [() => hasAcceptedAuthorInstitutions()],
+    action: () => listAcceptedAuthorInstitutions(),
   },
   {
     name: 'Ajouter un chercheur avec son ORCID',
