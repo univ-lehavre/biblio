@@ -9,11 +9,13 @@ import {
   confirm as confirm_prompt,
   select as select_prompt,
   multiselect as multiselect_prompt,
+  taskLog as taskLog_prompt,
   text as text_prompt,
   autocompleteMultiselect as autocompleteMultiselect_prompt,
 } from '@clack/prompts';
 import type { IContext } from '../context/types';
 import { hasEventsForThisORCID } from '../actions';
+import { getAcceptedAuthorDisplayNameAlternatives } from '../events';
 
 const print_title = (): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
@@ -94,4 +96,28 @@ const text = (
     catch: () => new Error('Erreur lors de la saisie'),
   });
 
-export { select, multiselect, text, autocompleteMultiselect, print_title, end, confirm };
+const taskLog = (title: string, list: string[]) => {
+  const task = taskLog_prompt({ title });
+  for (const item of list) {
+    task.message(item);
+  }
+};
+
+const listAcceptedAuthorDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const alternatives: string[] = yield* getAcceptedAuthorDisplayNameAlternatives();
+    taskLog('Formes imprimées acceptées', alternatives);
+    yield* confirm('Souhaitez-vous continuer ?');
+  });
+
+export {
+  select,
+  multiselect,
+  text,
+  autocompleteMultiselect,
+  print_title,
+  end,
+  confirm,
+  taskLog,
+  listAcceptedAuthorDisplayNameAlternatives,
+};

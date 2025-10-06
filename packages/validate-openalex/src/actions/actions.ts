@@ -11,6 +11,8 @@ import {
   hasAcceptedValues,
 } from '.';
 import type { Action } from './types';
+import { hasAcceptedAuthorDisplayNameAlternatives } from '../events';
+import { listAcceptedAuthorDisplayNameAlternatives } from '../prompt';
 
 /**
  * TODO  
@@ -74,6 +76,11 @@ const actions: Action[] = [
     name: 'Fiabiliser les identifiants OpenAlex d’auteurs avec les publications de ce chercheur',
     visible: [() => hasAcceptedValues()],
     action: () => extendsToWorks(),
+  },
+  {
+    name: 'Lister les formes imprimées de ce chercheur',
+    visible: [() => hasAcceptedAuthorDisplayNameAlternatives()],
+    action: () => listAcceptedAuthorDisplayNameAlternatives(),
   },
   {
     name: 'Ajouter un chercheur avec son ORCID',

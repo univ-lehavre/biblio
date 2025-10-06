@@ -2,6 +2,10 @@ import color from 'picocolors';
 import { uniqueSorted } from '../tools';
 import { asOpenAlexID, type OpenAlexID, type ORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { IEntity, IEvent, IField, Status } from './types';
+import { Effect } from 'effect';
+import { IContext } from '../context/types';
+import { getContext } from '../context';
+import { getEvents } from './getter-effect';
 
 /**
  * Return the intersection of two string arrays.
@@ -80,6 +84,30 @@ const getOpenAlexIDs = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => {
 
   return uniques;
 };
+
+const getAcceptedAuthorDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return [];
+    const names: string[] = events
+      .filter(
+        e =>
+          e.id === id &&
+          e.entity === 'author' &&
+          e.field === 'display_name_alternatives' &&
+          e.status === 'accepted',
+      )
+      .map(e => e.value);
+    const uniques = uniqueSorted<string>(names);
+    return uniques;
+  });
+
+const hasAcceptedAuthorDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const names = yield* getAcceptedAuthorDisplayNameAlternatives();
+    return names.length > 0;
+  });
 
 const getAcceptedWorks = (
   orcid: ORCID,
@@ -375,15 +403,17 @@ const existsAcceptedAuthorDisplayNameAlternative = (
 };
 
 export {
-  getOpenAlexIDs,
   existsAcceptedAuthorDisplayNameAlternative,
-  getStatusOfAuthorDisplayNameAlternative,
-  getStatusOfAffiliation,
-  getOpenAlexIDsBasedOnAcceptedWorks,
   getAcceptedWorks,
-  getStatuses,
-  getStatusesByValue,
+  getAcceptedAuthorDisplayNameAlternatives,
   getGlobalStatuses,
+  getOpenAlexIDs,
   getOpenAlexIDByStatus,
   getOpenAlexIDByStatusDashboard,
+  getOpenAlexIDsBasedOnAcceptedWorks,
+  getStatuses,
+  getStatusesByValue,
+  getStatusOfAffiliation,
+  getStatusOfAuthorDisplayNameAlternative,
+  hasAcceptedAuthorDisplayNameAlternatives,
 };
