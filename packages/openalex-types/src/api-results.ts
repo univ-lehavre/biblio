@@ -26,7 +26,7 @@ interface AuthorsResult {
 }
 
 interface AuthorshipInstitution {
-  id: string;
+  id: OpenAlexID;
   display_name: string;
   ror: string;
   country_code: string;
@@ -36,7 +36,7 @@ interface AuthorshipInstitution {
 
 interface AffiliationAuthorshipResult {
   raw_affiliation_string: string;
-  institution_ids: string[];
+  institution_ids: OpenAlexID[];
 }
 
 interface Authorship {
@@ -71,4 +71,11 @@ interface OpenalexResponse<T> {
   results: T[];
 }
 
-export type { AuthorsResult, OpenalexResponse, AffiliationsResult, WorksResult, IInstitution };
+export type {
+  AuthorsResult,
+  OpenalexResponse,
+  AffiliationsResult,
+  WorksResult,
+  IInstitution,
+  AuthorshipInstitution,
+};
