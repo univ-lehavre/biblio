@@ -114,9 +114,9 @@ const fetchOnePage = <T>(endpointURL: URL, params: Query, userAgent: string) =>
     const url: URL = buildURL(endpointURL, params);
     const headers: Headers = buildHeaders(userAgent);
     yield* Effect.logInfo(`Fetching URL: ${url.toString()}`);
-    yield* Effect.logDebug(`Using headers: ${headers}`);
+    yield* Effect.logDebug(`Using headers: ${JSON.stringify(headers, null, 2)}`);
     const json = yield* fetchJSON<T>(url, 'GET', headers);
-    yield* Effect.logDebug(`Received response: ${json}`);
+    yield* Effect.logDebug(`Received response: ${JSON.stringify(json, null, 2)}`);
     return json;
   });
 
