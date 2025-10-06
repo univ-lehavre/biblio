@@ -90,7 +90,7 @@ const buildReference = (work: WorksResult, full: boolean = false): string => {
     .join(', ');
   const ref = full
     ? `${authors} (${work.publication_year}). ${work.title}. DOI: ${work.doi}. OpenAlex ID: ${work.id}`
-    : `${work.title}`;
+    : `${work.publication_year} - ${work.title}`;
   return ref;
 };
 

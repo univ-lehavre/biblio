@@ -5,7 +5,6 @@ import {
   actions,
   active_actions,
   getEvents,
-  getStatuses,
   getORCID,
   isAuthorContext,
   loadStores,
@@ -51,20 +50,19 @@ const dashboard = () =>
     const affiliations: string | null = getStatusesByValue(orcid, 'author', 'affiliation', events);
     if (affiliations !== null) board.push(`${affiliations} affiliations`);
 
-    const institutions: string | null = getStatuses(orcid, 'institution', 'id', events);
+    const institutions: string | null = getStatusesByValue(orcid, 'institution', 'id', events);
     if (institutions !== null) board.push(`${institutions} institutions`);
 
     const affiliations_display_name_alternatives: string | null = getStatusesByValue(
       orcid,
       'institution',
       'display_name_alternatives',
-
       events,
     );
     if (affiliations_display_name_alternatives !== null)
       board.push(`${affiliations_display_name_alternatives} formes imprimées d’institutions`);
 
-    const works: string | null = getStatuses(orcid, 'work', 'id', events);
+    const works: string | null = getStatusesByValue(orcid, 'work', 'id', events);
     if (works !== null) board.push(`${works} articles`);
 
     const global = getGlobalStatuses(orcid, events);

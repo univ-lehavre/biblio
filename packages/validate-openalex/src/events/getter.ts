@@ -243,6 +243,38 @@ const getGlobalStatuses = (id: ORCID, events: IEvent[]): string | null => {
   return status;
 };
 
+/**
+ * Get the status of a specific event by its ID, entity, and field.
+ * Computes the status based on the number of unique `value` entries for each status.
+ *
+ * The status is determined as follows:
+ * - If there are no events matching the criteria, returns `null`.
+ * - Otherwise, returns a formatted string showing counts of unique `value` entries for each status:
+ *   - Accepted count in blue
+ *   - Pending count in yellow
+ *   - Rejected count in red
+ *
+ * Counts are right-aligned with a width of 4 characters, and a dot (`·`) is used to indicate zero counts.
+ *
+ * @param id The ORCID of the author.
+ * @param entity The entity type (e.g., 'author').
+ * @param field The field name (e.g., 'display_name_alternatives').
+ * @param events The list of events to search.
+ * @returns The status of the event or null if not found.
+ * @example
+ * // returns "   3    ·    1" if there are 3 accepted, 0 pending, and 1 rejected unique values
+ * getStatusesByValue('0000-0001-2345-6789', 'author', 'display_name_alternatives', events);
+ * @example
+ * // returns null if there are no events matching the criteria
+ * getStatusesByValue('0000-0001-2345-6789', 'author', 'affiliation', []);
+ * @example
+ * // returns "   ·    ·    ·" if there are events but none matching the criteria
+ * getStatusesByValue('0000-0001-2345-6789', 'author', 'affiliation', eventsWithNoMatches);
+ *
+ * @remarks
+ * - Matching uses strict equality for `id`, `entity`, and `field` (case-sensitive).
+ * - Relies on the `IEvent` shape to contain `id`, `entity`, `field`, `status`, and `value` properties.
+ */
 const getStatusesByValue = (
   id: ORCID,
   entity: IEntity,

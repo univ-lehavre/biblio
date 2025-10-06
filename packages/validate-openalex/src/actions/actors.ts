@@ -174,6 +174,14 @@ const checkWork = (
           }),
           yield* buildEvent({
             from: authorOpenalexID,
+            id: orcid,
+            entity: 'institution',
+            field: 'id',
+            value: institutionID,
+            status: isRejected ? 'rejected' : 'accepted',
+          }),
+          yield* buildEvent({
+            from: authorOpenalexID,
             id: orcid, // Irrelevant here
             entity: 'institution',
             field: 'display_name_alternatives',
@@ -191,14 +199,6 @@ const checkWork = (
         field: 'id',
         value: work.id,
         label: buildReference(work),
-        status: isRejected ? 'rejected' : 'accepted',
-      }),
-      yield* buildEvent({
-        from: authorOpenalexID,
-        id: orcid,
-        entity: 'author',
-        field: 'openalexID',
-        value: authorOpenalexID,
         status: isRejected ? 'rejected' : 'accepted',
       }),
     ]);
