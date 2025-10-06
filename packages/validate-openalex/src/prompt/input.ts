@@ -15,7 +15,11 @@ import {
 } from '@clack/prompts';
 import type { IContext } from '../context/types';
 import { hasEventsForThisORCID } from '../actions';
-import { getAcceptedAuthorAffiliations, getAcceptedAuthorDisplayNameAlternatives } from '../events';
+import {
+  getAcceptedAuthorAffiliations,
+  getAcceptedAuthorDisplayNameAlternatives,
+  getAcceptedInstitutionDisplayNameAlternatives,
+} from '../events';
 
 const print_title = (): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
@@ -124,6 +128,13 @@ const listAcceptedAuthorInstitutions = () =>
     yield* confirm('Souhaitez-vous continuer ?');
   });
 
+const listAcceptedInstitutionDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const alternatives: string[] = yield* getAcceptedInstitutionDisplayNameAlternatives();
+    taskLog('Formes imprimées acceptées', alternatives);
+    yield* confirm('Souhaitez-vous continuer ?');
+  });
+
 export {
   select,
   multiselect,
@@ -136,4 +147,5 @@ export {
   listAcceptedAuthorDisplayNameAlternatives,
   listAcceptedAuthorAffiliations,
   listAcceptedAuthorInstitutions,
+  listAcceptedInstitutionDisplayNameAlternatives,
 };

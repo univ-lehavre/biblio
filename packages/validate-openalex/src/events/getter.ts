@@ -157,6 +157,30 @@ const hasAcceptedAuthorInstitutions = () =>
     return names.length > 0;
   });
 
+const getAcceptedInstitutionDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return [];
+    const names: string[] = events
+      .filter(
+        e =>
+          e.id === id &&
+          e.entity === 'institution' &&
+          e.field === 'display_name_alternatives' &&
+          e.status === 'accepted',
+      )
+      .map(e => e.value);
+    const uniques = uniqueSorted<string>(names);
+    return uniques;
+  });
+
+const hasAcceptedInstitutionDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const names = yield* getAcceptedInstitutionDisplayNameAlternatives();
+    return names.length > 0;
+  });
+
 const getAcceptedWorks = (
   orcid: ORCID,
   events: IEvent[],
@@ -456,6 +480,7 @@ export {
   getAcceptedAuthorDisplayNameAlternatives,
   getAcceptedAuthorAffiliations,
   getAcceptedAuthorInstitutions,
+  getAcceptedInstitutionDisplayNameAlternatives,
   getGlobalStatuses,
   getOpenAlexIDs,
   getOpenAlexIDByStatus,
@@ -468,4 +493,5 @@ export {
   hasAcceptedAuthorDisplayNameAlternatives,
   hasAcceptedAuthorAffiliations,
   hasAcceptedAuthorInstitutions,
+  hasAcceptedInstitutionDisplayNameAlternatives,
 };
