@@ -26,10 +26,7 @@ class Store<T> {
   constructor(private state: Ref.Ref<IState>) {}
 
   get page(): Effect.Effect<number, never, never> {
-    return Effect.gen(this, function* () {
-      const s = yield* Ref.get(this.state);
-      return s.page;
-    });
+    return Ref.get(this.state).pipe(Effect.map(s => s.page));
   }
 
   get current(): Effect.Effect<IState, never, never> {
