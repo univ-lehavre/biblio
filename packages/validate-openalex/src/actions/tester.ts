@@ -32,7 +32,7 @@ const notHasPendings = (
     return !has;
   });
 
-const hasAcceptedValues = () =>
+const hasAcceptedValues = (): Effect.Effect<boolean, never, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const { type, id }: IContext = yield* getContext();
     if (type !== 'author') return false;

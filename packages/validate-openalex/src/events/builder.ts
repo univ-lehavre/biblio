@@ -3,17 +3,22 @@ import { getORCID } from '../context';
 import { ContextStore, EventsStore } from '../store';
 import { getEventData, getEvents } from './getter-effect';
 import { buildIntegrity } from '../tools';
-import type { AuthorsResult, IInstitution } from '../fetch/types';
 import type { IEvent } from './types';
 import { updateNewEventsWithExistingMetadata } from '.';
 import { asOpenAlexID } from '@univ-lehavre/biblio-openalex-types';
-import type { ORCID, WorksResult } from '@univ-lehavre/biblio-openalex-types';
+import type {
+  AuthorsResult,
+  IInstitution,
+  ORCID,
+  WorksResult,
+} from '@univ-lehavre/biblio-openalex-types';
 
 const buildEvent = (
   partial: Omit<IEvent, 'dataIntegrity' | 'createdAt' | 'updatedAt' | 'hasBeenExtendedAt'>,
 ): Effect.Effect<IEvent, never, ContextStore> =>
   Effect.gen(function* () {
-    const dataIntegrity: string = yield* buildIntegrity(getEventData(partial));
+    const data = getEventData(partial);
+    const dataIntegrity: string = yield* buildIntegrity(data);
     const createdAt: string = new Date().toISOString();
     const event: IEvent = {
       ...partial,
@@ -78,12 +83,14 @@ const buildAuthorResultsPendingEvents = (
     return updated;
   });
 
-const buildReference = (work: WorksResult) => {
+const buildReference = (work: WorksResult, full: boolean = false): string => {
   const authors = work.authorships
     .flatMap(a => a.author)
     .map(au => au.display_name)
     .join(', ');
-  const ref = `${authors} (${work.publication_year}). ${work.title}. DOI: ${work.doi}. OpenAlex ID: ${work.id}`;
+  const ref = full
+    ? `${authors} (${work.publication_year}). ${work.title}. DOI: ${work.doi}. OpenAlex ID: ${work.id}`
+    : `${work.publication_year} - ${work.title}`;
   return ref;
 };
 

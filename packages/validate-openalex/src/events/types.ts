@@ -9,10 +9,10 @@ type IField = 'id' | 'display_name_alternatives' | 'affiliation' | 'work' | 'ope
 interface IEventMeta {
   createdAt: string;
   updatedAt: string;
+  dataIntegrity: string;
   hasBeenExtendedAt: string | null;
   label?: string;
   status: Status;
-  dataIntegrity: string;
 }
 
 interface IEventData {

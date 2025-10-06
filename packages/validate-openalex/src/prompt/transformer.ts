@@ -1,6 +1,6 @@
+import { type Option } from '@clack/prompts';
 import type { Action } from '../actions/types';
 import type { IEvent } from '../events/types';
-import type { Option } from './types';
 
 const action2option = (action: Action): Option<string> => ({ value: action.name });
 
@@ -24,8 +24,10 @@ const filterUniqueValues = (events: EventWithValue[]): EventWithValue[] => {
   return uniques;
 };
 
-const sortOptions = (a: { label?: string; value: string }, b: { label?: string; value: string }) =>
-  a.label && b.label ? a.label.localeCompare(b.label) : a.value.localeCompare(b.value);
+const sortOptions = (
+  a: { label?: string; value: string },
+  b: { label?: string; value: string },
+): number => (a.label && b.label ? a.label.localeCompare(b.label) : a.value.localeCompare(b.value));
 
 /**
  * Converts a list of events to options for prompts.

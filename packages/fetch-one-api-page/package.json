@@ -1,13 +1,13 @@
 {
-  "name": "@univ-lehavre/biblio-fetch-openalex",
-  "version": "0.2.1",
-  "description": "Un ensemble d’outils pour le téléchargement de fichiers en TypeScript",
+  "name": "@univ-lehavre/biblio-fetch-one-api-page",
+  "version": "0.0.0",
+  "description": "A monadic API fetch library for paginated requests",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/univ-lehavre/biblio.git",
-    "directory": "packages/fetch-openalex"
+    "directory": "packages/fetch-one-api-page"
   },
   "bugs": {
     "url": "https://github.com/univ-lehavre/biblio/issues"
@@ -21,17 +21,10 @@
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "lint": "eslint \"src/**/*.{ts,js}\" --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,js}\" --fix",
-    "test": "vitest run",
     "test:watch": "vitest watch",
-    "demo": "tsx ./src/demo.ts",
-    "demo:simple": "tsx ./src/demo-simple.ts"
+    "test": "vitest run"
   },
   "dependencies": {
-    "@clack/prompts": "^1.0.0-alpha.4",
-    "@effect/experimental": "^0.56.0",
-    "@effect/platform-node": "^0.98.0",
-    "@univ-lehavre/biblio-fetch-one-api-page": "workspace:^",
-    "@univ-lehavre/biblio-openalex-types": "workspace:^",
     "effect": "^3.17.13",
     "qs": "^6.14.0"
   },
@@ -47,17 +40,17 @@
     "dist",
     "CHANGELOG.md"
   ],
-  "main": "dist/univ-lehavre-biblio-fetch-openalex.cjs.js",
-  "module": "dist/univ-lehavre-biblio-fetch-openalex.esm.js",
+  "main": "dist/univ-lehavre-biblio-fetch-one-api-page.cjs.js",
+  "module": "dist/univ-lehavre-biblio-fetch-one-api-page.esm.js",
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/univ-lehavre-biblio-fetch-openalex.cjs.mjs",
-        "default": "./dist/univ-lehavre-biblio-fetch-openalex.cjs.js"
+        "import": "./dist/univ-lehavre-biblio-fetch-one-api-page.cjs.mjs",
+        "default": "./dist/univ-lehavre-biblio-fetch-one-api-page.cjs.js"
       },
-      "module": "./dist/univ-lehavre-biblio-fetch-openalex.esm.js",
-      "import": "./dist/univ-lehavre-biblio-fetch-openalex.cjs.mjs",
-      "default": "./dist/univ-lehavre-biblio-fetch-openalex.cjs.js"
+      "module": "./dist/univ-lehavre-biblio-fetch-one-api-page.esm.js",
+      "import": "./dist/univ-lehavre-biblio-fetch-one-api-page.cjs.mjs",
+      "default": "./dist/univ-lehavre-biblio-fetch-one-api-page.cjs.js"
     },
     "./package.json": "./package.json"
   },

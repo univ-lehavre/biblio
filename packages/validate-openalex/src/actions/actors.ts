@@ -19,10 +19,16 @@ import {
   removeDuplicates,
   updateNewEventsWithExistingMetadata,
 } from '../events';
-import type { AuthorsResult, ORCID, WorksResult } from '@univ-lehavre/biblio-openalex-types';
+import type {
+  AuthorsResult,
+  OpenAlexID,
+  ORCID,
+  WorksResult,
+} from '@univ-lehavre/biblio-openalex-types';
 import type { ConfigError } from 'effect/ConfigError';
 import type { IEvent, Status } from '../events/types';
 import { IContext } from '../context/types';
+import { log } from '@clack/prompts';
 
 const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
@@ -40,7 +46,7 @@ const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextSto
     const orcid = asORCID(`https://orcid.org/${orcid_raw}`);
     yield* updateContextStore({ type: 'author', id: orcid });
     const authors = yield* searchAuthorByORCID([orcid]);
-    const items = yield* buildAuthorResultsPendingEvents(authors);
+    const items = yield* buildAuthorResultsPendingEvents([...authors]);
     yield* updateEventsStore(items);
   });
 
@@ -70,8 +76,8 @@ const extendsEventsWithAlternativeStrings = (): Effect.Effect<
     const updatedEvents = eventsToUpdate.map(event => ({ ...event, hasBeenExtendedAt }));
     yield* updateEventsStore(updatedEvents);
 
-    const authors: AuthorsResult[] = yield* searchAuthorByName([selected]);
-    const newItems: IEvent[] = yield* buildAuthorResultsPendingEvents(authors);
+    const authors: readonly AuthorsResult[] = yield* searchAuthorByName([selected]);
+    const newItems: IEvent[] = yield* buildAuthorResultsPendingEvents([...authors]);
     const events: IEvent[] = yield* getEvents();
     // remove from newItems the events that are already in events
     const filteredNewItems = updateNewEventsWithExistingMetadata(
@@ -103,79 +109,41 @@ const removeAuthorPendings = (): Effect.Effect<void, Error, ContextStore | Event
     yield* setEventsStore(notPendings);
   });
 
-const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
+const checkWork = (
+  orcid: ORCID,
+  authorOpenalexID: OpenAlexID,
+  work: WorksResult,
+): Effect.Effect<void, Error, EventsStore | ContextStore> =>
   Effect.gen(function* () {
     // On regarde chaque publication
+    let isRejected: boolean = false;
     const authorships = work.authorships;
     if (authorships.length === 0) return;
-    const authorship = authorships.find(author => author.author.id === authorOpenalexID);
-    if (authorship === undefined) {
-      const event = yield* buildEvent({
-        from: work.id,
-        id: orcid,
-        entity: 'work',
-        field: 'id',
-        value: work.id,
-        label: buildReference(work),
-        status: 'rejected',
-      });
-      yield* updateEventsStore([event]);
-      return;
-    }
+    const authorship = authorships.find(authorship => authorship.author.id === authorOpenalexID);
+    if (authorship === undefined) return;
     const status = getStatusOfAuthorDisplayNameAlternative(
       authorship.raw_author_name,
       orcid,
       yield* getEvents(),
     );
     if (status === 'rejected') {
-      const event = yield* buildEvent({
-        from: work.id,
-        id: orcid,
-        entity: 'work',
-        field: 'id',
-        value: work.id,
-        label: buildReference(work),
-        status: 'rejected',
-      });
-      yield* updateEventsStore([event]);
-      return;
+      isRejected = true;
     } else if (status === undefined) {
       const confirmed = yield* confirm(
-        `Acceptez-vous d'ajouter "${authorship.raw_author_name}" comme forme imprimée pour l'ORCID ${orcid} ?`,
+        `Est-ce une forme imprimée de ce chercheur ? "${authorship.raw_author_name}"`,
       );
       if (typeof confirmed !== 'boolean') throw new Error('Réponse invalide');
-      if (confirmed) {
-        const event = yield* buildEvent({
-          from: work.id,
-          id: orcid,
-          entity: 'author',
-          field: 'display_name_alternatives',
-          value: authorship.raw_author_name,
-          status: 'accepted',
-        });
-        yield* updateEventsStore([event]);
-      } else {
-        const event = yield* buildEvent({
-          from: work.id,
-          id: orcid,
-          entity: 'author',
-          field: 'display_name_alternatives',
-          value: authorship.raw_author_name,
-          status: 'rejected',
-        });
-        const event2 = yield* buildEvent({
-          from: work.id,
-          id: orcid,
-          entity: 'work',
-          field: 'id',
-          value: work.id,
-          label: buildReference(work),
-          status: 'rejected',
-        });
-        yield* updateEventsStore([event, event2]);
-        return;
-      }
+      if (!confirmed) isRejected = true;
     }
+    const event = yield* buildEvent({
+      from: authorOpenalexID,
+      id: orcid,
+      entity: 'author',
+      field: 'display_name_alternatives',
+      value: authorship.raw_author_name,
+      status: isRejected ? 'rejected' : 'accepted',
+    });
+    yield* updateEventsStore([event]);
     // On passe aux affiliations
     for (const affiliation of authorship.affiliations) {
       const raw_affiliation_string = affiliation.raw_affiliation_string;
@@ -186,121 +154,65 @@ const checkWork = (orcid: ORCID, authorOpenalexID: string, work: WorksResult) =>
           orcid,
           yield* getEvents(),
         );
-        if (status === 'rejected') {
-          const toPush: IEvent[] = [];
-          toPush.push(
-            yield* buildEvent({
-              from: work.id,
-              id: orcid,
-              entity: 'work',
-              field: 'id',
-              value: work.id,
-              label: buildReference(work),
-              status: 'rejected',
-            }),
-          );
-          toPush.push(
-            yield* buildEvent({
-              from: work.id,
-              id: orcid, // Irrelevant here
-              entity: 'institution',
-              field: 'display_name_alternatives',
-              value: raw_affiliation_string,
-              status: 'rejected',
-            }),
-          );
-          yield* updateEventsStore(toPush);
-          return;
+        if (status === 'rejected' || isRejected) {
+          isRejected = true;
         } else if (status === undefined) {
           const selected = yield* confirm(
-            `${raw_affiliation_string}: Est-ce une affiliation valide pour ce chercheur ?`,
+            `Est-ce une affiliation valide pour ce chercheur ? ${raw_affiliation_string}`,
           );
           if (typeof selected !== 'boolean') throw new Error('Réponse invalide');
-          if (selected) {
-            const toPush: IEvent[] = [];
-            toPush.push(
-              yield* buildEvent({
-                from: work.id,
-                id: orcid, // Irrelevant here
-                entity: 'institution',
-                field: 'display_name_alternatives',
-                value: raw_affiliation_string,
-                status: 'accepted',
-              }),
-            );
-            yield* updateEventsStore(toPush);
-          } else {
-            const toPush: IEvent[] = [];
-            toPush.push(
-              yield* buildEvent({
-                from: work.id,
-                id: orcid, // Irrelevant here
-                entity: 'institution',
-                field: 'display_name_alternatives',
-                value: raw_affiliation_string,
-                status: 'rejected',
-              }),
-            );
-            toPush.push(
-              yield* buildEvent({
-                from: work.id,
-                id: orcid,
-                entity: 'work',
-                field: 'id',
-                value: work.id,
-                label: buildReference(work),
-                status: 'rejected',
-              }),
-            );
-            for (const institutionID of affiliation.institution_ids) {
-              toPush.push(
-                yield* buildEvent({
-                  from: work.id,
-                  id: orcid,
-                  entity: 'author',
-                  field: 'affiliation',
-                  value: institutionID,
-                  status: 'rejected',
-                }),
-              );
-            }
-            yield* updateEventsStore(toPush);
-            return;
-          }
+          if (!selected) isRejected = true;
         }
+        yield* updateEventsStore([
+          yield* buildEvent({
+            from: authorOpenalexID,
+            id: orcid,
+            entity: 'author',
+            field: 'affiliation',
+            value: institutionID,
+            status: isRejected ? 'rejected' : 'accepted',
+          }),
+          yield* buildEvent({
+            from: authorOpenalexID,
+            id: orcid,
+            entity: 'institution',
+            field: 'id',
+            value: institutionID,
+            status: isRejected ? 'rejected' : 'accepted',
+          }),
+          yield* buildEvent({
+            from: authorOpenalexID,
+            id: orcid, // Irrelevant here
+            entity: 'institution',
+            field: 'display_name_alternatives',
+            value: raw_affiliation_string,
+            status: isRejected ? 'rejected' : 'accepted',
+          }),
+        ]);
       }
-      // Si elle est inconnue, on demande à l’utilisateur
-      // si il confirme, on émet un événement d’acceptation pour la forme imprimée de l’affiliation
-      // si il refuse, on émet un événement de rejet pour la publication et de la forme imprimée de l’affiliation
     }
-    const event: IEvent = yield* buildEvent({
-      from: work.id,
-      id: orcid,
-      entity: 'work',
-      field: 'id',
-      value: work.id,
-      label: buildReference(work),
-      status: 'accepted',
-    });
-    const event2: IEvent = yield* buildEvent({
-      from: work.id,
-      id: orcid,
-      entity: 'author',
-      field: 'openalexID',
-      value: authorOpenalexID,
-      status: 'accepted',
-    });
-    yield* updateEventsStore([event, event2]);
+    yield* updateEventsStore([
+      yield* buildEvent({
+        from: authorOpenalexID,
+        id: orcid,
+        entity: 'work',
+        field: 'id',
+        value: work.id,
+        label: buildReference(work),
+        status: isRejected ? 'rejected' : 'accepted',
+      }),
+    ]);
   });
 
-const extendsToWorks = () =>
+const extendsToWorks = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const { id }: IContext = yield* getContext();
     if (id === undefined) return;
-    const openalexIDs = getOpenAlexIDs(id, yield* getEvents());
+    const openalexIDs: OpenAlexID[] = getOpenAlexIDs(id, yield* getEvents());
     for (const authorOpenalexID of openalexIDs) {
+      log.info(`Recherche des publications pour l’identifiant OpenAlex ${authorOpenalexID}`);
       // On travaille sur un chercheur
-      const works = yield* searchWorksByAuthorIDs([authorOpenalexID]);
+      const works: readonly WorksResult[] = yield* searchWorksByAuthorIDs([authorOpenalexID]);
       if (works.length === 0) continue;
       for (const work of works) {
         yield* checkWork(id, authorOpenalexID, work);
