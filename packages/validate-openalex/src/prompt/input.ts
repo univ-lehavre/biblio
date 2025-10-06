@@ -19,7 +19,10 @@ import {
   getAcceptedAuthorAffiliations,
   getAcceptedAuthorDisplayNameAlternatives,
   getAcceptedInstitutionDisplayNameAlternatives,
+  getAcceptedWorks,
+  getEvents,
 } from '../events';
+import { IEvent } from '../events/types';
 
 const print_title = (): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
@@ -135,6 +138,19 @@ const listAcceptedInstitutionDisplayNameAlternatives = () =>
     yield* confirm('Souhaitez-vous continuer ?');
   });
 
+const listAcceptedWorks = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    if (!id) return;
+    const events: IEvent[] = yield* getEvents();
+    const works: string[] = getAcceptedWorks(id, events)
+      .map(e => e.title)
+      .filter(e => e !== undefined)
+      .sort((a, b) => a.localeCompare(b));
+    taskLog('Publications acceptées', works);
+    yield* confirm('Souhaitez-vous continuer ?');
+  });
+
 export {
   select,
   multiselect,
@@ -148,4 +164,5 @@ export {
   listAcceptedAuthorAffiliations,
   listAcceptedAuthorInstitutions,
   listAcceptedInstitutionDisplayNameAlternatives,
+  listAcceptedWorks,
 };

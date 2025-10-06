@@ -16,12 +16,14 @@ import {
   hasAcceptedAuthorDisplayNameAlternatives,
   hasAcceptedAuthorInstitutions,
   hasAcceptedInstitutionDisplayNameAlternatives,
+  hasAcceptedWorks,
 } from '../events';
 import {
   listAcceptedAuthorAffiliations,
   listAcceptedAuthorDisplayNameAlternatives,
   listAcceptedAuthorInstitutions,
   listAcceptedInstitutionDisplayNameAlternatives,
+  listAcceptedWorks,
 } from '../prompt';
 
 /**
@@ -106,6 +108,11 @@ const actions: Action[] = [
     name: 'Lister les formes imprimées des institutions de ce chercheur',
     visible: [() => hasAcceptedInstitutionDisplayNameAlternatives()],
     action: () => listAcceptedInstitutionDisplayNameAlternatives(),
+  },
+  {
+    name: 'Lister les articles de ce chercheur',
+    visible: [() => hasAcceptedWorks()],
+    action: () => listAcceptedWorks(),
   },
   {
     name: 'Ajouter un chercheur avec son ORCID',

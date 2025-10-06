@@ -200,6 +200,15 @@ const getAcceptedWorks = (
   return works;
 };
 
+const hasAcceptedWorks = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return false;
+    const works = getAcceptedWorks(id, events);
+    return works.length > 0;
+  });
+
 const getStatuses = (
   id: ORCID,
   entity: IEntity,
@@ -494,4 +503,5 @@ export {
   hasAcceptedAuthorAffiliations,
   hasAcceptedAuthorInstitutions,
   hasAcceptedInstitutionDisplayNameAlternatives,
+  hasAcceptedWorks,
 };
