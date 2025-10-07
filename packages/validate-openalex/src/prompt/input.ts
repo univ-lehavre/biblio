@@ -113,29 +113,31 @@ const taskLog = (title: string, list: string[]) => {
 const listAcceptedAuthorDisplayNameAlternatives = () =>
   Effect.gen(function* () {
     const alternatives: string[] = yield* getAcceptedAuthorDisplayNameAlternatives();
-    taskLog('Formes imprimées acceptées', alternatives);
-    yield* confirm('Souhaitez-vous continuer ?');
+    yield* autocompleteMultiselect(
+      'Formes imprimées d’auteurs acceptées (appuyez sur entrée pour continuer)',
+      false,
+      alternatives.map(a => ({ value: a })),
+    );
   });
 
 const listAcceptedAuthorAffiliations = () =>
   Effect.gen(function* () {
     const affiliations: string[] = yield* getAcceptedAuthorAffiliations();
-    taskLog('Affiliations acceptées', affiliations);
-    yield* confirm('Souhaitez-vous continuer ?');
-  });
-
-const listAcceptedAuthorInstitutions = () =>
-  Effect.gen(function* () {
-    const institutions: string[] = yield* getAcceptedAuthorAffiliations();
-    taskLog('Institutions acceptées', institutions);
-    yield* confirm('Souhaitez-vous continuer ?');
+    yield* autocompleteMultiselect(
+      'Affiliations acceptées (appuyez sur entrée pour continuer)',
+      false,
+      affiliations.map(a => ({ value: a })),
+    );
   });
 
 const listAcceptedInstitutionDisplayNameAlternatives = () =>
   Effect.gen(function* () {
     const alternatives: string[] = yield* getAcceptedInstitutionDisplayNameAlternatives();
-    taskLog('Formes imprimées acceptées', alternatives);
-    yield* confirm('Souhaitez-vous continuer ?');
+    yield* autocompleteMultiselect(
+      'Formes imprimées d’affiliations acceptées (appuyez sur entrée pour continuer)',
+      false,
+      alternatives.map(a => ({ value: a })),
+    );
   });
 
 const listAcceptedWorks = () =>
@@ -147,8 +149,11 @@ const listAcceptedWorks = () =>
       .map(e => e.title)
       .filter(e => e !== undefined)
       .sort((a, b) => a.localeCompare(b));
-    taskLog('Publications acceptées', works);
-    yield* confirm('Souhaitez-vous continuer ?');
+    yield* autocompleteMultiselect(
+      'Articles acceptés (appuyez sur entrée pour continuer)',
+      false,
+      works.map(a => ({ value: a })),
+    );
   });
 
 export {
@@ -162,7 +167,6 @@ export {
   taskLog,
   listAcceptedAuthorDisplayNameAlternatives,
   listAcceptedAuthorAffiliations,
-  listAcceptedAuthorInstitutions,
   listAcceptedInstitutionDisplayNameAlternatives,
   listAcceptedWorks,
 };
