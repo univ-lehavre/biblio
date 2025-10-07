@@ -1,4 +1,4 @@
-import { Effect, Logger, LogLevel } from 'effect';
+import { Effect, Logger, LogLevel, RateLimiter } from 'effect';
 import { note } from '@clack/prompts';
 import {
   action2option,
@@ -50,9 +50,6 @@ const dashboard = () =>
     const affiliations: string | null = getStatusesByValue(orcid, 'author', 'affiliation', events);
     if (affiliations !== null) board.push(`${affiliations} affiliations`);
 
-    const institutions: string | null = getStatusesByValue(orcid, 'institution', 'id', events);
-    if (institutions !== null) board.push(`${institutions} institutions`);
-
     const affiliations_display_name_alternatives: string | null = getStatusesByValue(
       orcid,
       'institution',
@@ -60,7 +57,7 @@ const dashboard = () =>
       events,
     );
     if (affiliations_display_name_alternatives !== null)
-      board.push(`${affiliations_display_name_alternatives} formes imprimées d’institutions`);
+      board.push(`${affiliations_display_name_alternatives} formes imprimées d’affiliations`);
 
     const works: string | null = getStatusesByValue(orcid, 'work', 'id', events);
     if (works !== null) board.push(`${works} articles`);
@@ -75,26 +72,33 @@ const dashboard = () =>
   });
 
 const ask = () =>
-  Effect.gen(function* () {
-    console.clear();
-    yield* print_title();
-    yield* dashboard();
-    const actives: Action[] = yield* active_actions();
-    const options = actives.map(action2option);
-    const selected_action_value: string = (yield* select(
-      'Que souhaitez-vous faire ?',
-      options,
-    )).toString();
-    const action: Action | undefined = actions.find(
-      action => action.name === selected_action_value,
-    );
-    if (action) {
-      yield* action.action();
-    } else {
-      console.log('Action non trouvée');
-    }
-    yield* saveStores();
-  });
+  Effect.scoped(
+    Effect.gen(function* () {
+      console.clear();
+      const rateLimiter: RateLimiter.RateLimiter = yield* RateLimiter.make({
+        limit: 1,
+        interval: '1 seconds',
+        algorithm: 'fixed-window',
+      });
+      yield* print_title();
+      yield* dashboard();
+      const actives: Action[] = yield* active_actions();
+      const options = actives.map(action2option);
+      const selected_action_value: string = (yield* select(
+        'Que souhaitez-vous faire ?',
+        options,
+      )).toString();
+      const action: Action | undefined = actions.find(
+        action => action.name === selected_action_value,
+      );
+      if (action) {
+        yield* action.action(rateLimiter);
+      } else {
+        console.log('Action non trouvée');
+      }
+      yield* saveStores();
+    }),
+  );
 
 const runnable = start().pipe(provideEventsStore(), provideContextStore());
 
