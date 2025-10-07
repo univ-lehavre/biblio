@@ -5,7 +5,10 @@ import {
 } from '@univ-lehavre/biblio-openalex-types';
 import { Either } from 'effect';
 
-export const getAffiliationLabel = (affiliation: WorksResult, id: OpenAlexID) => {
+export const getAffiliationLabel = (
+  affiliation: WorksResult,
+  id: OpenAlexID,
+): Either.Either<string, never> | Either.Either<never, Error> => {
   const affiliationFound: AuthorshipInstitution | undefined = affiliation.authorships
     .map(a => a.institutions)
     .flat()
