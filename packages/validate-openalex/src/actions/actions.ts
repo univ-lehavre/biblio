@@ -14,14 +14,12 @@ import type { Action } from './types';
 import {
   hasAcceptedAuthorAffiliations,
   hasAcceptedAuthorDisplayNameAlternatives,
-  hasAcceptedAuthorInstitutions,
   hasAcceptedInstitutionDisplayNameAlternatives,
   hasAcceptedWorks,
 } from '../events';
 import {
   listAcceptedAuthorAffiliations,
   listAcceptedAuthorDisplayNameAlternatives,
-  listAcceptedAuthorInstitutions,
   listAcceptedInstitutionDisplayNameAlternatives,
   listAcceptedWorks,
 } from '../prompt';
@@ -87,7 +85,7 @@ const actions: Action[] = [
   {
     name: 'Fiabiliser les identifiants OpenAlex d’auteurs avec les publications de ce chercheur',
     visible: [() => hasAcceptedValues()],
-    action: () => extendsToWorks(),
+    action: rateLimiter => extendsToWorks(rateLimiter),
   },
   {
     name: 'Lister les formes imprimées de ce chercheur',
@@ -98,11 +96,6 @@ const actions: Action[] = [
     name: 'Lister les affililations de ce chercheur',
     visible: [() => hasAcceptedAuthorAffiliations()],
     action: () => listAcceptedAuthorAffiliations(),
-  },
-  {
-    name: 'Lister les institutions de ce chercheur',
-    visible: [() => hasAcceptedAuthorInstitutions()],
-    action: () => listAcceptedAuthorInstitutions(),
   },
   {
     name: 'Lister les formes imprimées des institutions de ce chercheur',
