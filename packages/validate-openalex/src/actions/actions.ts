@@ -15,12 +15,14 @@ import {
   hasAcceptedAuthorAffiliations,
   hasAcceptedAuthorDisplayNameAlternatives,
   hasAcceptedInstitutionDisplayNameAlternatives,
+  hasAcceptedOpenAlexIDs,
   hasAcceptedWorks,
 } from '../events';
 import {
   listAcceptedAuthorAffiliations,
   listAcceptedAuthorDisplayNameAlternatives,
   listAcceptedInstitutionDisplayNameAlternatives,
+  listAcceptedOpenAlexIDs,
   listAcceptedWorks,
 } from '../prompt';
 
@@ -86,6 +88,11 @@ const actions: Action[] = [
     name: 'Fiabiliser les identifiants OpenAlex d’auteurs avec les publications de ce chercheur',
     visible: [() => hasAcceptedValues()],
     action: rateLimiter => extendsToWorks(rateLimiter),
+  },
+  {
+    name: 'Lister les identifiants OpenAlex de ce chercheur',
+    visible: [() => hasAcceptedOpenAlexIDs()],
+    action: () => listAcceptedOpenAlexIDs(),
   },
   {
     name: 'Lister les formes imprimées de ce chercheur',

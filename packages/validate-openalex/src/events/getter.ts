@@ -109,7 +109,7 @@ const getOpenAlexIDs = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => {
   return uniques;
 };
 
-const getPendingOpenAlexIDs = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => {
+export const getPendingOpenAlexIDs = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => {
   if (events.length === 0) return [];
 
   const affiliations = events
@@ -135,6 +135,27 @@ const getPendingOpenAlexIDs = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => 
   const unionIDs: OpenAlexID[] = union<OpenAlexID>(affiliations, display_name_alternatives);
   const accepted = getOpenAlexIDs(orcid, events);
   const outer = outerRight<OpenAlexID>(accepted, unionIDs);
+  const uniques: OpenAlexID[] = uniqueSorted<OpenAlexID>(outer);
+
+  return uniques;
+};
+
+export const getRejectedOpenAlexIDs = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => {
+  if (events.length === 0) return [];
+
+  const affiliations = events
+    .filter(e => e.id === orcid && e.entity === 'author' && e.field === 'affiliation')
+    .map(e => e.from);
+
+  const display_name_alternatives = events
+    .filter(e => e.id === orcid && e.entity === 'author' && e.field === 'display_name_alternatives')
+    .map(e => e.from);
+
+  const unionIDs: OpenAlexID[] = union<OpenAlexID>(affiliations, display_name_alternatives);
+  const accepted = getOpenAlexIDs(orcid, events);
+  const pending = getPendingOpenAlexIDs(orcid, events);
+  const acceptedOrPending = union<OpenAlexID>(accepted, pending);
+  const outer = outerRight<OpenAlexID>(acceptedOrPending, unionIDs);
   const uniques: OpenAlexID[] = uniqueSorted<OpenAlexID>(outer);
 
   return uniques;
@@ -255,6 +276,15 @@ const getAcceptedWorks = (
   return works;
 };
 
+export const hasAcceptedOpenAlexIDs = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return false;
+    const ids = getOpenAlexIDs(id, events);
+    return ids.length > 0;
+  });
+
 const hasAcceptedWorks = () =>
   Effect.gen(function* () {
     const { id }: IContext = yield* getContext();
@@ -367,10 +397,9 @@ const getOpenAlexIDByStatus = (orcid: ORCID, events: IEvent[]) => {
 };
 
 const getOpenAlexIDByStatusDashboard = (orcid: ORCID, events: IEvent[]) => {
-  const statuses = getOpenAlexIDByStatus(orcid, events);
-  const accepted = Array.from(statuses.values()).filter(status => status === 'accepted').length;
-  const pending = Array.from(statuses.values()).filter(status => status === 'pending').length;
-  const rejected = Array.from(statuses.values()).filter(status => status === 'rejected').length;
+  const accepted = getOpenAlexIDs(orcid, events).length;
+  const pending = getPendingOpenAlexIDs(orcid, events).length;
+  const rejected = getRejectedOpenAlexIDs(orcid, events).length;
 
   const maxDigits = 4;
 
@@ -577,7 +606,6 @@ export {
   getAcceptedAuthorAffiliations,
   getAcceptedAuthorInstitutions,
   getAcceptedInstitutionDisplayNameAlternatives,
-  getPendingOpenAlexIDs,
   getGlobalStatuses,
   getOpenAlexIDs,
   getOpenAlexIDByStatus,

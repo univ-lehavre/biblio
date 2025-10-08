@@ -1,4 +1,4 @@
-import { Effect, Either } from 'effect';
+import { Effect, Either, RateLimiter } from 'effect';
 import { getContext, getORCID } from '../context';
 import { setEventsStore } from '../store/setter';
 import { getAuthorAlternativeStrings } from './tester';
@@ -15,6 +15,7 @@ import {
   getOpenAlexIDs,
   getStatusOfAffiliation,
   getStatusOfAuthorDisplayNameAlternative,
+  getStatusOfWork,
   isInteresting,
   removeDuplicates,
   updateNewEventsWithExistingMetadata,
@@ -110,18 +111,18 @@ const removeAuthorPendings = (): Effect.Effect<void, Error, ContextStore | Event
     yield* setEventsStore(notPendings);
   });
 
-const checkWork = (
-  orcid: ORCID,
-  authorOpenalexID: OpenAlexID,
-  work: WorksResult,
-): Effect.Effect<void, Error, EventsStore | ContextStore> =>
+const checkWork = (orcid: ORCID, authorOpenalexID: OpenAlexID, work: WorksResult) =>
   Effect.gen(function* () {
     // On regarde chaque publication
+    log.message(`Traitement de la publication ${buildReference(work)} (${work.id})`);
     let isRejected: boolean = false;
+
     const authorships = work.authorships;
     if (authorships.length === 0) return;
+
     const authorship = authorships.find(authorship => authorship.author.id === authorOpenalexID);
     if (authorship === undefined) return;
+
     const status = getStatusOfAuthorDisplayNameAlternative(
       authorship.raw_author_name,
       orcid,
@@ -129,26 +130,30 @@ const checkWork = (
     );
     if (status === 'rejected') {
       isRejected = true;
-    } else if (status === undefined) {
+    } else if (status === undefined || status === 'pending') {
       const confirmed = yield* confirm(
-        `Est-ce une forme imprimée de ce chercheur ? "${authorship.raw_author_name}"`,
+        `Est-ce une forme imprimée de ce chercheur ?\n- ${authorship.raw_author_name} associé à ${authorship.author.display_name}`,
       );
       if (typeof confirmed !== 'boolean') throw new Error('Réponse invalide');
       if (!confirmed) isRejected = true;
     }
-    const event = yield* buildEvent({
-      from: authorOpenalexID,
-      id: orcid,
-      entity: 'author',
-      field: 'display_name_alternatives',
-      value: authorship.raw_author_name,
-      label: authorship.author.display_name,
-      status: isRejected ? 'rejected' : 'accepted',
-    });
-    yield* updateEventsStore([event]);
+    if (status !== 'accepted')
+      yield* updateEventsStore([
+        yield* buildEvent({
+          from: authorOpenalexID,
+          id: orcid,
+          entity: 'author',
+          field: 'display_name_alternatives',
+          value: authorship.raw_author_name,
+          label: authorship.author.display_name,
+          status: isRejected ? 'rejected' : 'accepted',
+        }),
+      ]);
     // On passe aux affiliations
+    const institutions: { id: string; label: string; status: Status | undefined }[] = [];
+    const raw_affiliation_strings: string[] = [];
     for (const affiliation of authorship.affiliations) {
-      const raw_affiliation_string = affiliation.raw_affiliation_string;
+      raw_affiliation_strings.push(affiliation.raw_affiliation_string);
       // On regarde s’il n’y a pas déjà une affiliation rejetée
       for (const institutionID of affiliation.institution_ids) {
         const status: Status | undefined = getStatusOfAffiliation(
@@ -156,74 +161,86 @@ const checkWork = (
           orcid,
           yield* getEvents(),
         );
-        if (status === 'rejected' || isRejected) {
-          isRejected = true;
-        } else if (status === undefined) {
-          const selected = yield* confirm(
-            `Est-ce une affiliation valide pour ce chercheur ? ${raw_affiliation_string}`,
-          );
-          if (typeof selected !== 'boolean') throw new Error('Réponse invalide');
-          if (!selected) isRejected = true;
-        }
+        if (status === 'rejected') isRejected = true;
         const label = getAffiliationLabel(work, institutionID);
+        institutions.push({
+          id: institutionID,
+          label: Either.isRight(label) ? label.right : institutionID,
+          status,
+        });
+      }
+    }
+    if (
+      !isRejected &&
+      institutions.length > 0 &&
+      institutions.some(inst => inst.status === undefined || inst.status === 'pending')
+    ) {
+      log.info('Vérification des co-affiliations');
+      log.message('Affiliations :');
+      for (const inst of institutions) log.message(`- ${inst.label}`);
+      log.message('Formes imprimées des affiliations :');
+      for (const raw of raw_affiliation_strings) log.message(`- ${raw}`);
+      const selected = yield* confirm("S'agit-il d'affiliations de ce chercheur ?");
+      if (typeof selected !== 'boolean') throw new Error('Réponse invalide');
+      if (!selected) isRejected = true;
+    }
+    for (const institution of institutions) {
+      const status = getStatusOfAffiliation(institution.id, orcid, yield* getEvents());
+      if (status !== 'accepted') {
         yield* updateEventsStore([
           yield* buildEvent({
             from: authorOpenalexID,
             id: orcid,
             entity: 'author',
             field: 'affiliation',
-            label: Either.isRight(label) ? label.right : undefined,
-            value: institutionID,
-
-            status: isRejected ? 'rejected' : 'accepted',
-          }),
-          yield* buildEvent({
-            from: authorOpenalexID,
-            id: orcid,
-            entity: 'institution',
-            field: 'id',
-            value: institutionID,
-            label: Either.isRight(label) ? label.right : undefined,
-            status: isRejected ? 'rejected' : 'accepted',
-          }),
-          yield* buildEvent({
-            from: authorOpenalexID,
-            id: orcid, // Irrelevant here
-            entity: 'institution',
-            field: 'display_name_alternatives',
-            value: raw_affiliation_string,
-            label: Either.isRight(label) ? label.right : undefined,
+            value: institution.id,
+            label: institution.label,
             status: isRejected ? 'rejected' : 'accepted',
           }),
         ]);
       }
     }
-    yield* updateEventsStore([
-      yield* buildEvent({
-        from: authorOpenalexID,
-        id: orcid,
-        entity: 'work',
-        field: 'id',
-        value: work.id,
-        label: buildReference(work),
-        status: isRejected ? 'rejected' : 'accepted',
-      }),
-    ]);
+    for (const raw_affiliation_string of raw_affiliation_strings) {
+      yield* updateEventsStore([
+        yield* buildEvent({
+          from: authorOpenalexID,
+          id: orcid, // Irrelevant here
+          entity: 'institution',
+          field: 'display_name_alternatives',
+          value: raw_affiliation_string,
+          status: isRejected ? 'rejected' : 'accepted',
+        }),
+      ]);
+    }
+    const statusWork = getStatusOfWork(work.id, orcid, yield* getEvents());
+    if (statusWork !== 'accepted')
+      yield* updateEventsStore([
+        yield* buildEvent({
+          from: authorOpenalexID,
+          id: orcid,
+          entity: 'work',
+          field: 'id',
+          value: work.id,
+          label: buildReference(work),
+          status: isRejected ? 'rejected' : 'accepted',
+        }),
+      ]);
   });
 
-const extendsToWorks = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
+const extendsToWorks = (rateLimiter: RateLimiter.RateLimiter | undefined) =>
   Effect.gen(function* () {
+    if (rateLimiter === undefined) throw new Error('RateLimiter is required');
     const { id }: IContext = yield* getContext();
     if (id === undefined) return;
     const openalexIDs: OpenAlexID[] = getOpenAlexIDs(id, yield* getEvents());
     for (const authorOpenalexID of openalexIDs) {
-      log.info(`Recherche des publications pour l’identifiant OpenAlex ${authorOpenalexID}`);
+      log.message(`Recherche des publications pour l’identifiant OpenAlex ${authorOpenalexID}`);
       // On travaille sur un chercheur
-      const works: readonly WorksResult[] = yield* searchWorksByAuthorIDs([authorOpenalexID]);
+      const works: readonly WorksResult[] = yield* rateLimiter(
+        searchWorksByAuthorIDs([authorOpenalexID]),
+      );
       if (works.length === 0) continue;
-      for (const work of works) {
-        yield* checkWork(id, authorOpenalexID, work);
-      }
+      for (const work of works) yield* checkWork(id, authorOpenalexID, work);
     }
   });
 
