@@ -3,8 +3,13 @@ import { getContext, getORCID } from '../context';
 import { setEventsStore } from '../store/setter';
 import { getAuthorAlternativeStrings } from './tester';
 import { text, select, events2options, confirm } from '../prompt';
-import { asORCID } from '@univ-lehavre/biblio-openalex-types';
-import { searchAuthorByName, searchAuthorByORCID, searchWorksByAuthorIDs } from '../fetch';
+import { asOpenAlexID, asORCID } from '@univ-lehavre/biblio-openalex-types';
+import {
+  searchAuthorByName,
+  searchAuthorByORCID,
+  searchWorksByAuthorIDs,
+  searchWorksByORCID,
+} from '../fetch';
 import { ContextStore, EventsStore, updateContextStore, updateEventsStore } from '../store';
 import {
   buildAuthorResultsPendingEvents,
@@ -242,6 +247,69 @@ const extendsToWorks = (rateLimiter: RateLimiter.RateLimiter | undefined) =>
       if (works.length === 0) continue;
       for (const work of works) yield* checkWork(id, authorOpenalexID, work);
     }
+  });
+
+export const retrieveWorksByORCID = (rateLimiter: RateLimiter.RateLimiter | undefined) =>
+  Effect.gen(function* () {
+    if (rateLimiter === undefined) throw new Error('RateLimiter is required');
+    const { id }: IContext = yield* getContext();
+    if (id === undefined) return;
+    log.message(`Recherche des publications pour l’ORCID ${id}`);
+    const works: readonly WorksResult[] = yield* rateLimiter(searchWorksByORCID(id));
+    for (const work of works) {
+      const events: IEvent[] = [];
+      const authorship = work.authorships.find(auth => auth.author.orcid === id);
+      if (authorship === undefined) continue;
+      const authorOpenalexID = asOpenAlexID(authorship.author.id);
+      for (const affiliation of authorship.affiliations) {
+        for (const institutionID of affiliation.institution_ids) {
+          const label = getAffiliationLabel(work, institutionID);
+          events.push(
+            yield* buildEvent({
+              from: authorOpenalexID,
+              id,
+              entity: 'author',
+              field: 'affiliation',
+              value: institutionID,
+              label: Either.isRight(label) ? label.right : institutionID,
+              status: 'accepted',
+            }),
+          );
+        }
+        events.push(
+          yield* buildEvent({
+            from: authorOpenalexID,
+            id,
+            entity: 'institution',
+            field: 'display_name_alternatives',
+            value: affiliation.raw_affiliation_string,
+            status: 'accepted',
+          }),
+        );
+      }
+      events.push(
+        yield* buildEvent({
+          from: authorOpenalexID,
+          id,
+          entity: 'author',
+          field: 'display_name_alternatives',
+          value: authorship.raw_author_name,
+          label: authorship.author.display_name,
+          status: 'accepted',
+        }),
+        yield* buildEvent({
+          from: authorOpenalexID,
+          id,
+          entity: 'work',
+          field: 'id',
+          value: work.id,
+          label: buildReference(work),
+          status: 'accepted',
+        }),
+      );
+      yield* updateEventsStore(events);
+    }
+    return works;
   });
 
 export {

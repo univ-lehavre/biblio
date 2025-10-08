@@ -9,6 +9,7 @@ import {
   notHasPendings,
   hasAuthorAlternativeStrings,
   hasAcceptedValues,
+  retrieveWorksByORCID,
 } from '.';
 import type { Action } from './types';
 import {
@@ -85,7 +86,12 @@ const actions: Action[] = [
     action: () => extendsEventsWithAlternativeStrings(),
   },
   {
-    name: 'Fiabiliser les identifiants OpenAlex d’auteurs avec les publications de ce chercheur',
+    name: 'Ajouter les articles de ce chercheur à partir de son ORCID',
+    visible: [() => isContext('author')],
+    action: rateLimiter => retrieveWorksByORCID(rateLimiter),
+  },
+  {
+    name: 'Ajouter les articles de ce chercheur à partir des formes imprimées de patronyme et d’affiliations',
     visible: [() => hasAcceptedValues()],
     action: rateLimiter => extendsToWorks(rateLimiter),
   },
