@@ -39,20 +39,27 @@ import { log } from '@clack/prompts';
 import { getAffiliationLabel } from '../oa/getter';
 import { readFileSync } from 'fs';
 
+const FullORCIDRegex = /^https:\/\/orcid.org\/\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
+const ORCIDRegex = /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
+
 const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     const orcid_raw = (yield* text(
       'Saisissez l’ORCID d’un chercheur',
       '0000-0000-0000-0000',
       (value: string | undefined) => {
-        if (!value) return 'L’ORCID est requis';
-        const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
-        if (!orcidRegex.test(value)) return 'L’ORCID doit être au format 0000-0000-0000-0000';
+        if (value === undefined) return 'L’ORCID est requis';
+        const trimmed = value.trim();
+        if (trimmed === '') return 'L’ORCID est requis';
+        if (ORCIDRegex.test(trimmed) || FullORCIDRegex.test(trimmed)) return;
+        return 'L’ORCID doit être au format 0000-0000-0000-0000';
       },
     ))
       .toString()
       .trim();
-    const orcid = asORCID(`https://orcid.org/${orcid_raw}`);
+    const orcid = FullORCIDRegex.test(orcid_raw)
+      ? asORCID(orcid_raw)
+      : asORCID(`https://orcid.org/${orcid_raw}`);
     yield* updateContextStore({ type: 'author', id: orcid });
     const authors = yield* searchAuthorByORCID([orcid]);
     const items = yield* buildAuthorResultsPendingEvents([...authors]);

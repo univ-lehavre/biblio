@@ -2,10 +2,7 @@ import { Brand } from 'effect';
 import type { OpenAlexID, ORCID } from './branded';
 
 const asORCID = Brand.refined<ORCID>(
-  s =>
-    s.length > 0 &&
-    s.startsWith('https://orcid.org/') &&
-    /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/.test(s.slice(18)),
+  s => s.length > 0 && /^(https:\/\/orcid.org\/)?\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/.test(s),
   s => Brand.error(`Invalid ORCID format: ${s}`),
 );
 
