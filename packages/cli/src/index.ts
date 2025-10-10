@@ -60,7 +60,7 @@ const dashboard = () =>
       board.push(`${affiliations_display_name_alternatives} formes imprimées d’affiliations`);
 
     const works: string | null = getStatusesByValue(orcid, 'work', 'id', events);
-    if (works !== null) board.push(`${works} articles`);
+    if (works !== null) board.push(`${works} publications`);
 
     const global = getGlobalStatuses(orcid, events);
     if (global !== null) board.push(`${global} objets`);

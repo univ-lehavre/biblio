@@ -8,6 +8,7 @@ import {
   searchAuthorByName,
   searchAuthorByORCID,
   searchWorksByAuthorIDs,
+  searchWorksByDOI,
   searchWorksByORCID,
 } from '../fetch';
 import { ContextStore, EventsStore, updateContextStore, updateEventsStore } from '../store';
@@ -36,6 +37,7 @@ import type { IEvent, Status } from '../events/types';
 import { IContext } from '../context/types';
 import { log } from '@clack/prompts';
 import { getAffiliationLabel } from '../oa/getter';
+import { readFileSync } from 'fs';
 
 const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
@@ -119,7 +121,6 @@ const removeAuthorPendings = (): Effect.Effect<void, Error, ContextStore | Event
 const checkWork = (orcid: ORCID, authorOpenalexID: OpenAlexID, work: WorksResult) =>
   Effect.gen(function* () {
     // On regarde chaque publication
-    log.message(`Traitement de la publication ${buildReference(work)} (${work.id})`);
     let isRejected: boolean = false;
 
     const authorships = work.authorships;
@@ -257,59 +258,32 @@ export const retrieveWorksByORCID = (rateLimiter: RateLimiter.RateLimiter | unde
     log.message(`Recherche des publications pour l’ORCID ${id}`);
     const works: readonly WorksResult[] = yield* rateLimiter(searchWorksByORCID(id));
     for (const work of works) {
-      const events: IEvent[] = [];
       const authorship = work.authorships.find(auth => auth.author.orcid === id);
       if (authorship === undefined) continue;
       const authorOpenalexID = asOpenAlexID(authorship.author.id);
-      for (const affiliation of authorship.affiliations) {
-        for (const institutionID of affiliation.institution_ids) {
-          const label = getAffiliationLabel(work, institutionID);
-          events.push(
-            yield* buildEvent({
-              from: authorOpenalexID,
-              id,
-              entity: 'author',
-              field: 'affiliation',
-              value: institutionID,
-              label: Either.isRight(label) ? label.right : institutionID,
-              status: 'accepted',
-            }),
-          );
-        }
-        events.push(
-          yield* buildEvent({
-            from: authorOpenalexID,
-            id,
-            entity: 'institution',
-            field: 'display_name_alternatives',
-            value: affiliation.raw_affiliation_string,
-            status: 'accepted',
-          }),
-        );
-      }
-      events.push(
-        yield* buildEvent({
-          from: authorOpenalexID,
-          id,
-          entity: 'author',
-          field: 'display_name_alternatives',
-          value: authorship.raw_author_name,
-          label: authorship.author.display_name,
-          status: 'accepted',
-        }),
-        yield* buildEvent({
-          from: authorOpenalexID,
-          id,
-          entity: 'work',
-          field: 'id',
-          value: work.id,
-          label: buildReference(work),
-          status: 'accepted',
-        }),
-      );
-      yield* updateEventsStore(events);
+      yield* checkWork(id, authorOpenalexID, work);
     }
-    return works;
+  });
+
+const retrieveWorksByDOI = (rateLimiter: RateLimiter.RateLimiter | undefined) =>
+  Effect.gen(function* () {
+    if (rateLimiter === undefined) throw new Error('RateLimiter is required');
+    const { id }: IContext = yield* getContext();
+    if (id === undefined) return;
+    const raw = readFileSync('doi.txt', 'utf-8');
+    if (typeof raw !== 'string' || raw.trim() === '') return;
+    const dois = raw.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/gi);
+    if (dois === null || dois.length === 0) return;
+    log.message(`Téléchargement de ${dois.length} DOI, trouvés dans le fichier doi.txt`);
+    for (const doi of dois) {
+      const works: readonly WorksResult[] = yield* rateLimiter(searchWorksByDOI([doi]));
+      for (const work of works) {
+        const authorship = work.authorships.find(auth => auth.author.orcid === id);
+        if (authorship === undefined) continue;
+        const authorOpenalexID = asOpenAlexID(authorship.author.id);
+        yield* checkWork(id, authorOpenalexID, work);
+      }
+    }
   });
 
 export {
@@ -318,4 +292,5 @@ export {
   hasEventsForThisORCID,
   extendsEventsWithAlternativeStrings,
   extendsToWorks,
+  retrieveWorksByDOI,
 };

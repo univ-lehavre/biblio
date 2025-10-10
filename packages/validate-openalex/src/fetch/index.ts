@@ -17,11 +17,15 @@ const filterByORCID = (orcid: string[]): FetchOpenAlexAPIOptions => ({
 });
 
 const filterAuthorshipByIDs = (ids: string[]): FetchOpenAlexAPIOptions => ({
-  filter: `type:article,author.id:${ids.join('|')}`,
+  filter: `author.id:${ids.join('|')}`,
 });
 
 const filterWorksByORCID = (orcid: ORCID): FetchOpenAlexAPIOptions => ({
-  filter: `type:article,author.orcid:${orcid}`,
+  filter: `author.orcid:${orcid}`,
+});
+
+const filterWorksByDOI = (doi: string[]): FetchOpenAlexAPIOptions => ({
+  filter: `doi:${doi.join('|')}`,
 });
 
 const buildFetchOptions = (
@@ -88,4 +92,15 @@ const searchWorksByORCID = (
     return works;
   });
 
-export { searchAuthorByName, searchAuthorByORCID, searchWorksByAuthorIDs, searchWorksByORCID };
+const searchWorksByDOI = (
+  dois: string[],
+): Effect.Effect<readonly WorksResult[], ConfigError | FetchError | ResponseParseError, never> =>
+  fetchWork(dois, filterWorksByDOI);
+
+export {
+  searchAuthorByName,
+  searchAuthorByORCID,
+  searchWorksByAuthorIDs,
+  searchWorksByORCID,
+  searchWorksByDOI,
+};

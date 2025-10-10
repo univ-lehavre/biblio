@@ -10,6 +10,7 @@ import {
   hasAuthorAlternativeStrings,
   hasAcceptedValues,
   retrieveWorksByORCID,
+  retrieveWorksByDOI,
 } from '.';
 import type { Action } from './types';
 import {
@@ -86,14 +87,19 @@ const actions: Action[] = [
     action: () => extendsEventsWithAlternativeStrings(),
   },
   {
-    name: 'Ajouter les articles de ce chercheur à partir de son ORCID',
+    name: 'Ajouter les publications de ce chercheur à partir de son ORCID',
     visible: [() => isContext('author')],
     action: rateLimiter => retrieveWorksByORCID(rateLimiter),
   },
   {
-    name: 'Ajouter les articles de ce chercheur à partir des formes imprimées de patronyme et d’affiliations',
+    name: 'Ajouter les publications de ce chercheur à partir des formes imprimées de patronyme et d’affiliations',
     visible: [() => hasAcceptedValues()],
     action: rateLimiter => extendsToWorks(rateLimiter),
+  },
+  {
+    name: 'Ajouter les publications de ce chercheur à partir d’une liste de références',
+    visible: [() => isContext('author')],
+    action: rateLimiter => retrieveWorksByDOI(rateLimiter),
   },
   {
     name: 'Lister les identifiants OpenAlex de ce chercheur',
@@ -116,7 +122,7 @@ const actions: Action[] = [
     action: () => listAcceptedInstitutionDisplayNameAlternatives(),
   },
   {
-    name: 'Lister les articles de ce chercheur',
+    name: 'Lister les publications de ce chercheur',
     visible: [() => hasAcceptedWorks()],
     action: () => listAcceptedWorks(),
   },

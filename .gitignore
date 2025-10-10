@@ -7,3 +7,6 @@ packages/*/docs/
 *state*.json
 *context*.json
 *events*.json
+packages/cli/doi.txt
+packages/cli/jp.txt
+packages/cli/dl.txt
