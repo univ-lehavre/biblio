@@ -164,7 +164,7 @@ const listAcceptedWorks = () =>
       .filter(e => e !== undefined)
       .sort((a, b) => a.localeCompare(b));
     yield* autocompleteMultiselect(
-      'publications acceptés (appuyez sur entrée pour continuer)',
+      'publications acceptées (appuyez sur entrée pour continuer)',
       false,
       works.map(a => ({ value: a })),
     );
