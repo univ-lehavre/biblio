@@ -2,7 +2,6 @@ export * from './actions';
 export * from './context';
 export * from './events';
 export * from './fetch';
-export * from './metrics';
 export * from './prompt';
 export * from './store';
 export * from './tools';

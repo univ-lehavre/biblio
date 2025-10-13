@@ -11,14 +11,7 @@ import {
   searchWorksByDOI,
   searchWorksByORCID,
 } from '../fetch';
-import {
-  ContextStore,
-  EventsStore,
-  MetricsStore,
-  updateContextStore,
-  updateEventsStore,
-  updateMetricsStore,
-} from '../store';
+import { ContextStore, EventsStore, updateContextStore, updateEventsStore } from '../store';
 import {
   buildAuthorResultsPendingEvents,
   buildEvent,
@@ -136,7 +129,7 @@ const checkWork = (
   orcid: ORCID,
   authorOpenalexID: OpenAlexID,
   work: WorksResult,
-): Effect.Effect<void, Error, ContextStore | EventsStore | MetricsStore> =>
+): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     // On regarde chaque publication
     let isRejected: boolean = false;
@@ -225,19 +218,6 @@ const checkWork = (
           }),
         ]);
       }
-      if (status === 'accepted' && !isRejected) {
-        yield* updateMetricsStore([
-          yield* buildEvent({
-            from: authorOpenalexID,
-            id: orcid,
-            entity: 'institution',
-            field: 'publication_date',
-            value: work.publication_year.toString(),
-            label: institution.label,
-            status: 'accepted',
-          }),
-        ]);
-      }
     }
     for (const raw_affiliation_string of raw_affiliation_strings) {
       yield* updateEventsStore([
@@ -268,7 +248,7 @@ const checkWork = (
 
 const extendsToWorks = (
   rateLimiter: RateLimiter.RateLimiter | undefined,
-): Effect.Effect<void, ConfigError | Error, ContextStore | EventsStore | MetricsStore> =>
+): Effect.Effect<void, ConfigError | Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     if (rateLimiter === undefined) throw new Error('RateLimiter is required');
     const { id }: IContext = yield* getContext();
@@ -287,7 +267,7 @@ const extendsToWorks = (
 
 export const retrieveWorksByORCID = (
   rateLimiter: RateLimiter.RateLimiter | undefined,
-): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore | MetricsStore> =>
+): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     if (rateLimiter === undefined) throw new Error('RateLimiter is required');
     const { id }: IContext = yield* getContext();
@@ -304,7 +284,7 @@ export const retrieveWorksByORCID = (
 
 const retrieveWorksByDOI = (
   rateLimiter: RateLimiter.RateLimiter | undefined,
-): Effect.Effect<void, ConfigError | Error, ContextStore | EventsStore | MetricsStore> =>
+): Effect.Effect<void, ConfigError | Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     if (rateLimiter === undefined) throw new Error('RateLimiter is required');
     const { id }: IContext = yield* getContext();

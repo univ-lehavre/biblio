@@ -1,15 +1,8 @@
 import { Effect, Ref } from 'effect';
-import {
-  ContextStore,
-  EventsStore,
-  MetricsStore,
-  saveEventsStore,
-  saveMetricsStore,
-} from '../store';
+import { ContextStore, EventsStore, saveEventsStore } from '../store';
 import type { IEvent } from '../events/types';
 import type { IContext } from '../context/types';
 import { filterDuplicates, getEvents, updateNewEventsWithExistingMetadata } from '../events';
-import { getMetrics } from '../metrics';
 
 /**
  * Updates the EventsStore with new events, ensuring no duplicates.
@@ -36,12 +29,4 @@ const updateContextStore = (
     yield* Ref.update(store, state => ({ ...state, ...newContext }));
   });
 
-const updateMetricsStore = (newMetrics: IEvent[]) =>
-  Effect.gen(function* () {
-    const store = yield* MetricsStore;
-    const metrics = yield* getMetrics();
-    yield* Ref.update(store, () => [...metrics, ...newMetrics]);
-    yield* saveMetricsStore();
-  });
-
-export { updateEventsStore, updateContextStore, updateMetricsStore };
+export { updateEventsStore, updateContextStore };

@@ -1,4 +1,4 @@
-import { Effect, Logger, LogLevel, RateLimiter } from 'effect';
+import { Config, Effect, Logger, LogLevel, RateLimiter } from 'effect';
 import { note } from '@clack/prompts';
 import {
   action2option,
@@ -16,9 +16,6 @@ import {
   getGlobalStatuses,
   getStatusesByValue,
   getOpenAlexIDByStatusDashboard,
-  print_aggregate,
-  aggregateEvents,
-  getContext,
   provideMetricsStore,
 } from '@univ-lehavre/biblio-validate-openalex';
 import type {
@@ -31,7 +28,6 @@ import type {
 import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 import { NodeRuntime } from '@effect/platform-node';
 import { DevTools } from '@effect/experimental';
-import { getMetrics } from '../../validate-openalex/src/metrics';
 import { ConfigError } from 'effect/ConfigError';
 
 const start = (): Effect.Effect<
@@ -94,19 +90,11 @@ const ask = (): Effect.Effect<
 > =>
   Effect.scoped(
     Effect.gen(function* () {
+      const rateLimit = JSON.parse(yield* Config.string('RATE_LIMIT'));
+      const rateLimiter: RateLimiter.RateLimiter = yield* RateLimiter.make(rateLimit);
       console.clear();
-      const rateLimiter: RateLimiter.RateLimiter = yield* RateLimiter.make({
-        limit: 1,
-        interval: '1 seconds',
-        algorithm: 'fixed-window',
-      });
       yield* print_title();
       yield* dashboard();
-      const { id } = yield* getContext();
-      if (id !== undefined) {
-        const aggregate = aggregateEvents(id, yield* getMetrics());
-        print_aggregate(aggregate);
-      }
       const actives: Action[] = yield* active_actions();
       const options = actives.map(action2option);
       const selected_action_value: string = (yield* select(
