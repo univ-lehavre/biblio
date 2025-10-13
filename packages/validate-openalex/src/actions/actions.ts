@@ -112,7 +112,7 @@ const actions: Action[] = [
     action: () => listAcceptedAuthorDisplayNameAlternatives(),
   },
   {
-    name: 'Lister les affililations de ce chercheur',
+    name: 'Lister les affiliations de ce chercheur',
     visible: [() => hasAcceptedAuthorAffiliations()],
     action: () => listAcceptedAuthorAffiliations(),
   },
