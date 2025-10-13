@@ -11,6 +11,7 @@ interface IContext {
   backup: boolean;
   context_file: string;
   events_file: string;
+  metrics_file: string;
   NAMESPACE: string;
 }
 

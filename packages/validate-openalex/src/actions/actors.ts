@@ -11,7 +11,14 @@ import {
   searchWorksByDOI,
   searchWorksByORCID,
 } from '../fetch';
-import { ContextStore, EventsStore, updateContextStore, updateEventsStore } from '../store';
+import {
+  ContextStore,
+  EventsStore,
+  MetricsStore,
+  updateContextStore,
+  updateEventsStore,
+  updateMetricsStore,
+} from '../store';
 import {
   buildAuthorResultsPendingEvents,
   buildEvent,
@@ -125,7 +132,11 @@ const removeAuthorPendings = (): Effect.Effect<void, Error, ContextStore | Event
     yield* setEventsStore(notPendings);
   });
 
-const checkWork = (orcid: ORCID, authorOpenalexID: OpenAlexID, work: WorksResult) =>
+const checkWork = (
+  orcid: ORCID,
+  authorOpenalexID: OpenAlexID,
+  work: WorksResult,
+): Effect.Effect<void, Error, ContextStore | EventsStore | MetricsStore> =>
   Effect.gen(function* () {
     // On regarde chaque publication
     let isRejected: boolean = false;
@@ -145,7 +156,7 @@ const checkWork = (orcid: ORCID, authorOpenalexID: OpenAlexID, work: WorksResult
       isRejected = true;
     } else if (status === undefined || status === 'pending') {
       const confirmed = yield* confirm(
-        `Est-ce une forme imprimée de ce chercheur ?\n- ${authorship.raw_author_name} associé à ${authorship.author.display_name}`,
+        `Est-ce que "${authorship.raw_author_name}" est une forme imprimée de ce chercheur ?`,
       );
       if (typeof confirmed !== 'boolean') throw new Error('Réponse invalide');
       if (!confirmed) isRejected = true;
@@ -188,12 +199,14 @@ const checkWork = (orcid: ORCID, authorOpenalexID: OpenAlexID, work: WorksResult
       institutions.length > 0 &&
       institutions.some(inst => inst.status === undefined || inst.status === 'pending')
     ) {
-      log.info('Vérification des co-affiliations');
-      log.message('Affiliations :');
+      log.info('Co-affiliations');
+      log.message('Noms officiels :');
       for (const inst of institutions) log.message(`- ${inst.label}`);
-      log.message('Formes imprimées des affiliations :');
+      log.message('Formes imprimées :');
       for (const raw of raw_affiliation_strings) log.message(`- ${raw}`);
-      const selected = yield* confirm("S'agit-il d'affiliations de ce chercheur ?");
+      const selected = yield* confirm(
+        'Est-ce que ces affiliations correspondent à celle de ce chercheur ?',
+      );
       if (typeof selected !== 'boolean') throw new Error('Réponse invalide');
       if (!selected) isRejected = true;
     }
@@ -209,6 +222,19 @@ const checkWork = (orcid: ORCID, authorOpenalexID: OpenAlexID, work: WorksResult
             value: institution.id,
             label: institution.label,
             status: isRejected ? 'rejected' : 'accepted',
+          }),
+        ]);
+      }
+      if (status === 'accepted' && !isRejected) {
+        yield* updateMetricsStore([
+          yield* buildEvent({
+            from: authorOpenalexID,
+            id: orcid,
+            entity: 'institution',
+            field: 'publication_date',
+            value: work.publication_year.toString(),
+            label: institution.label,
+            status: 'accepted',
           }),
         ]);
       }
@@ -240,7 +266,9 @@ const checkWork = (orcid: ORCID, authorOpenalexID: OpenAlexID, work: WorksResult
       ]);
   });
 
-const extendsToWorks = (rateLimiter: RateLimiter.RateLimiter | undefined) =>
+const extendsToWorks = (
+  rateLimiter: RateLimiter.RateLimiter | undefined,
+): Effect.Effect<void, ConfigError | Error, ContextStore | EventsStore | MetricsStore> =>
   Effect.gen(function* () {
     if (rateLimiter === undefined) throw new Error('RateLimiter is required');
     const { id }: IContext = yield* getContext();
@@ -257,7 +285,9 @@ const extendsToWorks = (rateLimiter: RateLimiter.RateLimiter | undefined) =>
     }
   });
 
-export const retrieveWorksByORCID = (rateLimiter: RateLimiter.RateLimiter | undefined) =>
+export const retrieveWorksByORCID = (
+  rateLimiter: RateLimiter.RateLimiter | undefined,
+): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore | MetricsStore> =>
   Effect.gen(function* () {
     if (rateLimiter === undefined) throw new Error('RateLimiter is required');
     const { id }: IContext = yield* getContext();
@@ -272,7 +302,9 @@ export const retrieveWorksByORCID = (rateLimiter: RateLimiter.RateLimiter | unde
     }
   });
 
-const retrieveWorksByDOI = (rateLimiter: RateLimiter.RateLimiter | undefined) =>
+const retrieveWorksByDOI = (
+  rateLimiter: RateLimiter.RateLimiter | undefined,
+): Effect.Effect<void, ConfigError | Error, ContextStore | EventsStore | MetricsStore> =>
   Effect.gen(function* () {
     if (rateLimiter === undefined) throw new Error('RateLimiter is required');
     const { id }: IContext = yield* getContext();

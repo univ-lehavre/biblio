@@ -1,6 +1,6 @@
 import { Effect, Ref } from 'effect';
 import { existsSync, readFileSync } from 'fs';
-import { ContextStore, EventsStore } from '.';
+import { ContextStore, EventsStore, MetricsStore } from '.';
 import type { IEvent } from '../events/types';
 import type { IContext } from '../context/types';
 import { getContext } from '../context';
@@ -34,10 +34,21 @@ const loadEventsStore = (): Effect.Effect<void, never, ContextStore | EventsStor
     }
   });
 
-const loadStores = (): Effect.Effect<void, never, ContextStore | EventsStore> =>
+const loadMetricsStore = () =>
+  Effect.gen(function* () {
+    const file = (yield* getContext()).metrics_file;
+    const parsed = readFile(file) as IEvent[];
+    if (parsed) {
+      const store = yield* MetricsStore;
+      yield* Ref.set(store, parsed);
+    }
+  });
+
+const loadStores = (): Effect.Effect<void, never, ContextStore | EventsStore | MetricsStore> =>
   Effect.gen(function* () {
     yield* loadContextStore();
     yield* loadEventsStore();
+    yield* loadMetricsStore();
   });
 
 export { loadStores };

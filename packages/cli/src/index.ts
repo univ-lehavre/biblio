@@ -16,19 +16,35 @@ import {
   getGlobalStatuses,
   getStatusesByValue,
   getOpenAlexIDByStatusDashboard,
+  print_aggregate,
+  aggregateEvents,
+  getContext,
+  provideMetricsStore,
 } from '@univ-lehavre/biblio-validate-openalex';
-import type { Action, IEvent } from '@univ-lehavre/biblio-validate-openalex';
+import type {
+  Action,
+  ContextStore,
+  EventsStore,
+  IEvent,
+  MetricsStore,
+} from '@univ-lehavre/biblio-validate-openalex';
 import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 import { NodeRuntime } from '@effect/platform-node';
 import { DevTools } from '@effect/experimental';
+import { getMetrics } from '../../validate-openalex/src/metrics';
+import { ConfigError } from 'effect/ConfigError';
 
-const start = () =>
+const start = (): Effect.Effect<
+  void,
+  Error | ConfigError,
+  ContextStore | EventsStore | MetricsStore
+> =>
   Effect.gen(function* () {
     yield* loadStores();
     yield* Effect.forever(ask());
   });
 
-const dashboard = () =>
+const dashboard = (): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     if (!(yield* isAuthorContext())) return;
     const orcid: ORCID = yield* getORCID();
@@ -71,7 +87,11 @@ const dashboard = () =>
       });
   });
 
-const ask = () =>
+const ask = (): Effect.Effect<
+  void,
+  Error | ConfigError,
+  ContextStore | EventsStore | MetricsStore
+> =>
   Effect.scoped(
     Effect.gen(function* () {
       console.clear();
@@ -82,6 +102,11 @@ const ask = () =>
       });
       yield* print_title();
       yield* dashboard();
+      const { id } = yield* getContext();
+      if (id !== undefined) {
+        const aggregate = aggregateEvents(id, yield* getMetrics());
+        print_aggregate(aggregate);
+      }
       const actives: Action[] = yield* active_actions();
       const options = actives.map(action2option);
       const selected_action_value: string = (yield* select(
@@ -100,7 +125,7 @@ const ask = () =>
     }),
   );
 
-const runnable = start().pipe(provideEventsStore(), provideContextStore());
+const runnable = start().pipe(provideEventsStore(), provideContextStore(), provideMetricsStore());
 
 const DevToolsLive = DevTools.layer();
 

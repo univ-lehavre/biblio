@@ -17,7 +17,7 @@
     "format:check": "turbo run format:check",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "clean": "turbo run clean",
+    "clean": "turbo run clean && rm -fR node_modules && rm -fR .turbo",
     "dev": "turbo run dev",
     "changeset": "pnpm dlx @changesets/cli",
     "changeset:version": "pnpm dlx @changesets/cli version",
