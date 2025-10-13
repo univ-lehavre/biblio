@@ -1,6 +1,6 @@
 {
   "name": "@univ-lehavre/biblio-fetch-one-api-page",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A monadic API fetch library for paginated requests",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",

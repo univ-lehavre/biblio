@@ -1,5 +1,29 @@
 # @univ-lehavre/fetch-openalex
 
+## 0.3.0
+
+### Minor Changes
+
+- 860f2ec: The package delivers now a queue of results
+- f2e51a2: Add ResponseParseError to manage errors in fetchAPIQueue and fetchAPIResults
+
+### Patch Changes
+
+- Updated dependencies [180efc4]
+- Updated dependencies [7d367cc]
+- Updated dependencies [89e93ef]
+- Updated dependencies [96004c5]
+- Updated dependencies [a37d8ec]
+- Updated dependencies [b1a7c42]
+- Updated dependencies [50b37de]
+- Updated dependencies [0221639]
+- Updated dependencies [688fc6a]
+- Updated dependencies [62ea086]
+- Updated dependencies [4a2513c]
+- Updated dependencies [9e07433]
+  - @univ-lehavre/biblio-fetch-one-api-page@1.0.0
+  - @univ-lehavre/biblio-openalex-types@3.0.0
+
 ## 0.2.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@univ-lehavre/biblio-openalex-types",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Un ensemble d’outils pour le téléchargement de fichiers en TypeScript",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
