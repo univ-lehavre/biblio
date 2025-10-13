@@ -8,7 +8,7 @@ import { Either } from 'effect';
 export const getAffiliationLabel = (
   affiliation: WorksResult,
   id: OpenAlexID,
-): Either.Either<string, never> | Either.Either<never, Error> => {
+): Either.Either<string, Error> => {
   const affiliationFound: AuthorshipInstitution | undefined = affiliation.authorships
     .map(a => a.institutions)
     .flat()
