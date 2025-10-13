@@ -1,3 +1,4 @@
+export * from './aggregate';
 export * from './builder';
 export * from './filter';
 export * from './getter';

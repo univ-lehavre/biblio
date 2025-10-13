@@ -2,6 +2,10 @@ import color from 'picocolors';
 import { uniqueSorted } from '../tools';
 import { asOpenAlexID, type OpenAlexID, type ORCID } from '@univ-lehavre/biblio-openalex-types';
 import type { IEntity, IEvent, IField, Status } from './types';
+import { Effect } from 'effect';
+import { IContext } from '../context/types';
+import { getContext } from '../context';
+import { getEvents } from './getter-effect';
 
 /**
  * Return the intersection of two string arrays.
@@ -23,6 +27,22 @@ import type { IEntity, IEvent, IField, Status } from './types';
 const intersect = <T>(arr1: T[], arr2: T[]): T[] => {
   const set2 = new Set(arr2);
   return arr1.filter(value => set2.has(value));
+};
+
+const union = <T>(arr1: T[], arr2: T[]): T[] => {
+  const set = new Set(arr1);
+  arr2.forEach(value => set.add(value));
+  return Array.from(set);
+};
+
+const outerRight = <T>(arr1: T[], arr2: T[]): T[] => {
+  const set1 = new Set(arr1);
+  return arr2.filter(value => !set1.has(value));
+};
+
+const outerLeft = <T>(arr1: T[], arr2: T[]): T[] => {
+  const set2 = new Set(arr2);
+  return arr1.filter(value => !set2.has(value));
 };
 
 /**
@@ -74,12 +94,168 @@ const getOpenAlexIDs = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => {
     )
     .map(e => e.from);
 
-  const intersection = intersect<OpenAlexID>(affiliations, display_name_alternatives);
+  const intersectIDs: OpenAlexID[] = intersect<OpenAlexID>(affiliations, display_name_alternatives);
 
-  const uniques = uniqueSorted<OpenAlexID>(intersection);
+  const works = events
+    .filter(
+      e => e.id === orcid && e.entity === 'work' && e.field === 'id' && e.status === 'accepted',
+    )
+    .map(e => e.from);
+
+  const unionIDs: OpenAlexID[] = union<OpenAlexID>(intersectIDs, works);
+
+  const uniques: OpenAlexID[] = uniqueSorted<OpenAlexID>(unionIDs);
 
   return uniques;
 };
+
+export const getPendingOpenAlexIDs = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => {
+  if (events.length === 0) return [];
+
+  const affiliations = events
+    .filter(
+      e =>
+        e.id === orcid &&
+        e.entity === 'author' &&
+        e.field === 'affiliation' &&
+        (e.status === 'accepted' || e.status === 'pending'),
+    )
+    .map(e => e.from);
+
+  const display_name_alternatives = events
+    .filter(
+      e =>
+        e.id === orcid &&
+        e.entity === 'author' &&
+        e.field === 'display_name_alternatives' &&
+        (e.status === 'accepted' || e.status === 'pending'),
+    )
+    .map(e => e.from);
+
+  const unionIDs: OpenAlexID[] = union<OpenAlexID>(affiliations, display_name_alternatives);
+  const accepted = getOpenAlexIDs(orcid, events);
+  const outer = outerRight<OpenAlexID>(accepted, unionIDs);
+  const uniques: OpenAlexID[] = uniqueSorted<OpenAlexID>(outer);
+
+  return uniques;
+};
+
+export const getRejectedOpenAlexIDs = (orcid: ORCID, events: IEvent[]): OpenAlexID[] => {
+  if (events.length === 0) return [];
+
+  const affiliations = events
+    .filter(e => e.id === orcid && e.entity === 'author' && e.field === 'affiliation')
+    .map(e => e.from);
+
+  const display_name_alternatives = events
+    .filter(e => e.id === orcid && e.entity === 'author' && e.field === 'display_name_alternatives')
+    .map(e => e.from);
+
+  const unionIDs: OpenAlexID[] = union<OpenAlexID>(affiliations, display_name_alternatives);
+  const accepted = getOpenAlexIDs(orcid, events);
+  const pending = getPendingOpenAlexIDs(orcid, events);
+  const acceptedOrPending = union<OpenAlexID>(accepted, pending);
+  const outer = outerRight<OpenAlexID>(acceptedOrPending, unionIDs);
+  const uniques: OpenAlexID[] = uniqueSorted<OpenAlexID>(outer);
+
+  return uniques;
+};
+
+const getAcceptedAuthorDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return [];
+    const names: string[] = events
+      .filter(
+        e =>
+          e.id === id &&
+          e.entity === 'author' &&
+          e.field === 'display_name_alternatives' &&
+          e.status === 'accepted',
+      )
+      .map(e => e.value);
+    const uniques = uniqueSorted<string>(names);
+    return uniques;
+  });
+
+const hasAcceptedAuthorDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const names = yield* getAcceptedAuthorDisplayNameAlternatives();
+    return names.length > 0;
+  });
+
+const getAcceptedAuthorAffiliations = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return [];
+    const names: string[] = events
+      .filter(
+        e =>
+          e.id === id &&
+          e.entity === 'author' &&
+          e.field === 'affiliation' &&
+          e.status === 'accepted',
+      )
+      .map(e => `${e.label} (${e.value})`);
+    const uniques = uniqueSorted<string>(names);
+    return uniques;
+  });
+
+const hasAcceptedAuthorAffiliations = () =>
+  Effect.gen(function* () {
+    const names = yield* getAcceptedAuthorAffiliations();
+    return names.length > 0;
+  });
+
+const getAcceptedAuthorInstitutions = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return [];
+    const names: string[] = events
+      .filter(
+        e =>
+          e.id === id &&
+          e.entity === 'institution' &&
+          e.field === 'display_name_alternatives' &&
+          e.status === 'accepted',
+      )
+      .map(e => `${e.label} (${e.value})`);
+    const uniques = uniqueSorted<string>(names);
+    return uniques;
+  });
+
+const hasAcceptedAuthorInstitutions = () =>
+  Effect.gen(function* () {
+    const names = yield* getAcceptedAuthorInstitutions();
+    return names.length > 0;
+  });
+
+const getAcceptedInstitutionDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return [];
+    const names: string[] = events
+      .filter(
+        e =>
+          e.id === id &&
+          e.entity === 'institution' &&
+          e.field === 'display_name_alternatives' &&
+          e.status === 'accepted',
+      )
+      .map(e => e.value);
+    const uniques = uniqueSorted<string>(names);
+    return uniques;
+  });
+
+const hasAcceptedInstitutionDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const names = yield* getAcceptedInstitutionDisplayNameAlternatives();
+    return names.length > 0;
+  });
 
 const getAcceptedWorks = (
   orcid: ORCID,
@@ -99,6 +275,24 @@ const getAcceptedWorks = (
     .map(e => ({ id: e.value, title: e.label }));
   return works;
 };
+
+export const hasAcceptedOpenAlexIDs = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return false;
+    const ids = getOpenAlexIDs(id, events);
+    return ids.length > 0;
+  });
+
+const hasAcceptedWorks = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    const events: IEvent[] = yield* getEvents();
+    if (!id) return false;
+    const works = getAcceptedWorks(id, events);
+    return works.length > 0;
+  });
 
 const getStatuses = (
   id: ORCID,
@@ -141,8 +335,9 @@ const getOpenAlexIDByStatus = (orcid: ORCID, events: IEvent[]) => {
     .filter(
       e =>
         e.id === orcid &&
-        e.entity === 'author' &&
-        (e.field === 'affiliation' || e.field === 'display_name_alternatives'),
+        ((e.entity === 'author' &&
+          (e.field === 'affiliation' || e.field === 'display_name_alternatives')) ||
+          (e.entity === 'work' && e.field === 'id')),
     )
     .map(e => ({ openalexID: e.from, status: e.status, entity: e.entity, field: e.field }));
 
@@ -168,21 +363,29 @@ const getOpenAlexIDByStatus = (orcid: ORCID, events: IEvent[]) => {
     const statusSet = grouped[openalexID];
     const hasAcceptedAffiliation = statusSet.has('author|affiliation|accepted');
     const hasAcceptedDisplayName = statusSet.has('author|display_name_alternatives|accepted');
+    const hasAcceptedWork = statusSet.has('work|id|accepted');
     const hasPendingAffiliation = statusSet.has('author|affiliation|pending');
     const hasPendingDisplayName = statusSet.has('author|display_name_alternatives|pending');
+    const hasPendingWork = statusSet.has('work|id|pending');
     const hasRejectedAffiliation = statusSet.has('author|affiliation|rejected');
     const hasRejectedDisplayName = statusSet.has('author|display_name_alternatives|rejected');
+    const hasRejectedWork = statusSet.has('work|id|rejected');
 
-    if (hasAcceptedAffiliation && hasAcceptedDisplayName) {
+    if (hasAcceptedAffiliation && hasAcceptedDisplayName && hasAcceptedWork) {
       result.set(asOpenAlexID(openalexID), 'accepted');
-    } else if (hasPendingAffiliation && hasPendingDisplayName) {
+    } else if (hasPendingAffiliation && hasPendingDisplayName && hasPendingWork) {
       result.set(asOpenAlexID(openalexID), 'pending');
-    } else if (hasRejectedAffiliation || hasRejectedDisplayName) {
+    } else if (
+      hasPendingAffiliation ||
+      hasPendingDisplayName ||
+      hasPendingWork ||
+      hasAcceptedAffiliation ||
+      hasAcceptedDisplayName ||
+      hasAcceptedWork
+    ) {
+      result.set(asOpenAlexID(openalexID), 'pending');
+    } else if (hasRejectedAffiliation || hasRejectedDisplayName || hasRejectedWork) {
       result.set(asOpenAlexID(openalexID), 'rejected');
-    } else if (hasPendingAffiliation || hasPendingDisplayName) {
-      result.set(asOpenAlexID(openalexID), 'pending');
-    } else if (hasAcceptedAffiliation || hasAcceptedDisplayName) {
-      result.set(asOpenAlexID(openalexID), 'accepted');
     } else {
       throw new Error(
         `Unexpected status combination for OpenAlexID ${openalexID} : ${Array.from(statusSet).join(', ')}`,
@@ -194,10 +397,9 @@ const getOpenAlexIDByStatus = (orcid: ORCID, events: IEvent[]) => {
 };
 
 const getOpenAlexIDByStatusDashboard = (orcid: ORCID, events: IEvent[]) => {
-  const statuses = getOpenAlexIDByStatus(orcid, events);
-  const accepted = Array.from(statuses.values()).filter(status => status === 'accepted').length;
-  const pending = Array.from(statuses.values()).filter(status => status === 'pending').length;
-  const rejected = Array.from(statuses.values()).filter(status => status === 'rejected').length;
+  const accepted = getOpenAlexIDs(orcid, events).length;
+  const pending = getPendingOpenAlexIDs(orcid, events).length;
+  const rejected = getRejectedOpenAlexIDs(orcid, events).length;
 
   const maxDigits = 4;
 
@@ -358,6 +560,28 @@ const getStatusOfAffiliation = (
   return event?.status;
 };
 
+const getStatusOfInstitutionAlternativesStrings = (
+  institutionID: string,
+  orcid: string,
+  events: IEvent[],
+): Status | undefined => {
+  const event = events.find(
+    e =>
+      e.id === orcid &&
+      e.entity === 'institution' &&
+      e.field === 'display_name_alternatives' &&
+      e.value === institutionID,
+  );
+  return event?.status;
+};
+
+const getStatusOfWork = (workID: string, orcid: string, events: IEvent[]): Status | undefined => {
+  const event = events.find(
+    e => e.id === orcid && e.entity === 'work' && e.field === 'id' && e.value === workID,
+  );
+  return event?.status;
+};
+
 const existsAcceptedAuthorDisplayNameAlternative = (
   name: string,
   orcid: string,
@@ -375,15 +599,30 @@ const existsAcceptedAuthorDisplayNameAlternative = (
 };
 
 export {
-  getOpenAlexIDs,
+  union,
   existsAcceptedAuthorDisplayNameAlternative,
-  getStatusOfAuthorDisplayNameAlternative,
-  getStatusOfAffiliation,
-  getOpenAlexIDsBasedOnAcceptedWorks,
   getAcceptedWorks,
-  getStatuses,
-  getStatusesByValue,
+  getAcceptedAuthorDisplayNameAlternatives,
+  getAcceptedAuthorAffiliations,
+  getAcceptedAuthorInstitutions,
+  getAcceptedInstitutionDisplayNameAlternatives,
   getGlobalStatuses,
+  getOpenAlexIDs,
   getOpenAlexIDByStatus,
   getOpenAlexIDByStatusDashboard,
+  getOpenAlexIDsBasedOnAcceptedWorks,
+  getStatuses,
+  getStatusesByValue,
+  getStatusOfAffiliation,
+  getStatusOfInstitutionAlternativesStrings,
+  getStatusOfAuthorDisplayNameAlternative,
+  getStatusOfWork,
+  hasAcceptedAuthorDisplayNameAlternatives,
+  hasAcceptedAuthorAffiliations,
+  hasAcceptedAuthorInstitutions,
+  hasAcceptedInstitutionDisplayNameAlternatives,
+  hasAcceptedWorks,
+  outerLeft,
+  outerRight,
+  intersect,
 };

@@ -1,5 +1,5 @@
-import { Effect } from 'effect';
-import { ContextStore, EventsStore } from '../store';
+import { Effect, RateLimiter } from 'effect';
+import { ContextStore, EventsStore, MetricsStore } from '../store';
 import type { ConfigError } from 'effect/ConfigError';
 
 interface Action {
@@ -9,7 +9,9 @@ interface Action {
     index: number;
   };
   visible?: (() => Effect.Effect<boolean, never, ContextStore | EventsStore>)[];
-  action: () => Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore>;
+  action: (
+    rateLimiter?: RateLimiter.RateLimiter,
+  ) => Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore | MetricsStore>;
 }
 
 export type { Action };

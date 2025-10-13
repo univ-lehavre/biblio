@@ -1,5 +1,17 @@
 # @univ-lehavre/openalex-types
 
+## 3.0.0
+
+### Major Changes
+
+- 96004c5: Reinforce the OpenAlex ID type
+- 50b37de: ORCID and DOI are now more strict
+
+### Minor Changes
+
+- a37d8ec: Assouplissement de la vérification de l’ORCID en permettant le préfixe URL
+- 4a2513c: Add fetch api parameters
+
 ## 2.0.0
 
 ### Major Changes

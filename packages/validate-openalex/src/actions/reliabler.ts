@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { ConfigError, Effect } from 'effect';
 import { getORCID } from '../context';
 import { ContextStore, EventsStore, updateEventsStore } from '../store';
 import { autocompleteMultiselect, events2options } from '../prompt';
@@ -24,7 +24,7 @@ const updateDate = (event: IEvent): IEvent => ({
 const updateEventsStoreBasedOnAcceptedValues = (
   values: string[],
   opts: Partial<IEvent>,
-): Effect.Effect<void, never, EventsStore | ContextStore> =>
+): Effect.Effect<void, Error | ConfigError.ConfigError, EventsStore | ContextStore> =>
   Effect.gen(function* () {
     const events = yield* getEvents();
     const updated = updateEventStatusBasedOnAcceptedValues(events, values, opts).map(updateDate);
@@ -34,7 +34,7 @@ const updateEventsStoreBasedOnAcceptedValues = (
 const mark_alternative_strings_reliable = (
   message: string,
   opts: Partial<IEvent>,
-): Effect.Effect<void, Error, ContextStore | EventsStore> =>
+): Effect.Effect<void, Error | ConfigError.ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     if (!opts.id) opts.id = yield* getORCID();
     const events = yield* getEvents();

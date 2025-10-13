@@ -1,40 +1,55 @@
-import { Effect, Ref } from 'effect';
-import { existsSync, readFileSync } from 'fs';
+import { Config, Effect, Ref, ConfigError } from 'effect';
+import fs, { existsSync } from 'node:fs';
 import { ContextStore, EventsStore } from '.';
 import type { IEvent } from '../events/types';
 import type { IContext } from '../context/types';
-import { getContext } from '../context';
 
-const readFile = <T>(file: string): T | null => {
-  if (existsSync(file)) {
-    const data = readFileSync(file, 'utf-8');
-    return JSON.parse(data) as T;
-  } else {
-    return null;
-  }
-};
-
-const loadContextStore = (): Effect.Effect<void, never, ContextStore> =>
+const readFile = <T>(file: string): Effect.Effect<T | null, Error, never> =>
   Effect.gen(function* () {
-    const file: string = (yield* getContext()).context_file;
-    const parsed: IContext = readFile(file) as IContext;
+    if (!existsSync(file)) return null;
+    const data: string = yield* Effect.tryPromise({
+      try: () => fs.promises.readFile(file, 'utf-8'),
+      catch: cause => new Error(`Error while reading ${file}`, { cause }),
+    });
+    yield* Effect.log(data);
+    const json: T = yield* Effect.try({
+      try: () => JSON.parse(data),
+      catch: cause => new Error(`Error while parsing content of ${file}`, { cause }),
+    });
+    return json;
+  });
+
+const loadContextStore = (): Effect.Effect<void, Error | ConfigError.ConfigError, ContextStore> =>
+  Effect.gen(function* () {
+    const file: string = yield* Config.string('CONTEXT_FILE');
+    yield* Effect.log(file);
+    const parsed: IContext | null = yield* readFile<IContext>(file);
     if (parsed) {
       const store: Ref.Ref<IContext> = yield* ContextStore;
       yield* Ref.set(store, parsed);
     }
   });
 
-const loadEventsStore = (): Effect.Effect<void, never, ContextStore | EventsStore> =>
+const loadEventsStore = (): Effect.Effect<
+  void,
+  Error | ConfigError.ConfigError,
+  ContextStore | EventsStore
+> =>
   Effect.gen(function* () {
-    const file = (yield* getContext()).events_file;
-    const parsed = readFile(file) as IEvent[];
+    const file = yield* Config.string('EVENTS_FILE');
+    yield* Effect.log(file);
+    const parsed: IEvent[] | null = yield* readFile<IEvent[]>(file);
     if (parsed) {
       const store = yield* EventsStore;
       yield* Ref.set(store, parsed);
     }
   });
 
-const loadStores = (): Effect.Effect<void, never, ContextStore | EventsStore> =>
+const loadStores = (): Effect.Effect<
+  void,
+  Error | ConfigError.ConfigError,
+  ContextStore | EventsStore
+> =>
   Effect.gen(function* () {
     yield* loadContextStore();
     yield* loadEventsStore();

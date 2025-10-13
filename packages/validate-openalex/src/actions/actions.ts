@@ -9,8 +9,24 @@ import {
   notHasPendings,
   hasAuthorAlternativeStrings,
   hasAcceptedValues,
+  retrieveWorksByORCID,
+  retrieveWorksByDOI,
 } from '.';
 import type { Action } from './types';
+import {
+  hasAcceptedAuthorAffiliations,
+  hasAcceptedAuthorDisplayNameAlternatives,
+  hasAcceptedInstitutionDisplayNameAlternatives,
+  hasAcceptedOpenAlexIDs,
+  hasAcceptedWorks,
+} from '../events';
+import {
+  listAcceptedAuthorAffiliations,
+  listAcceptedAuthorDisplayNameAlternatives,
+  listAcceptedInstitutionDisplayNameAlternatives,
+  listAcceptedOpenAlexIDs,
+  listAcceptedWorks,
+} from '../prompt';
 
 /**
  * TODO  
@@ -71,9 +87,44 @@ const actions: Action[] = [
     action: () => extendsEventsWithAlternativeStrings(),
   },
   {
-    name: 'Fiabiliser les identifiants OpenAlex d’auteurs avec les publications de ce chercheur',
+    name: 'Ajouter les publications de ce chercheur à partir de son ORCID',
+    visible: [() => isContext('author')],
+    action: rateLimiter => retrieveWorksByORCID(rateLimiter),
+  },
+  {
+    name: 'Ajouter les publications de ce chercheur à partir des formes imprimées de patronyme et d’affiliations',
     visible: [() => hasAcceptedValues()],
-    action: () => extendsToWorks(),
+    action: rateLimiter => extendsToWorks(rateLimiter),
+  },
+  {
+    name: 'Ajouter les publications de ce chercheur à partir d’une liste de références',
+    visible: [() => isContext('author')],
+    action: rateLimiter => retrieveWorksByDOI(rateLimiter),
+  },
+  {
+    name: 'Lister les identifiants OpenAlex de ce chercheur',
+    visible: [() => hasAcceptedOpenAlexIDs()],
+    action: () => listAcceptedOpenAlexIDs(),
+  },
+  {
+    name: 'Lister les formes imprimées de ce chercheur',
+    visible: [() => hasAcceptedAuthorDisplayNameAlternatives()],
+    action: () => listAcceptedAuthorDisplayNameAlternatives(),
+  },
+  {
+    name: 'Lister les affiliations de ce chercheur',
+    visible: [() => hasAcceptedAuthorAffiliations()],
+    action: () => listAcceptedAuthorAffiliations(),
+  },
+  {
+    name: 'Lister les formes imprimées des institutions de ce chercheur',
+    visible: [() => hasAcceptedInstitutionDisplayNameAlternatives()],
+    action: () => listAcceptedInstitutionDisplayNameAlternatives(),
+  },
+  {
+    name: 'Lister les publications de ce chercheur',
+    visible: [() => hasAcceptedWorks()],
+    action: () => listAcceptedWorks(),
   },
   {
     name: 'Ajouter un chercheur avec son ORCID',

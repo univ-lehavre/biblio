@@ -1,4 +1,4 @@
-import { Effect, Logger, LogLevel } from 'effect';
+import { Config, Effect, Logger, LogLevel, RateLimiter } from 'effect';
 import { note } from '@clack/prompts';
 import {
   action2option,
@@ -16,19 +16,31 @@ import {
   getGlobalStatuses,
   getStatusesByValue,
   getOpenAlexIDByStatusDashboard,
+  provideMetricsStore,
 } from '@univ-lehavre/biblio-validate-openalex';
-import type { Action, IEvent } from '@univ-lehavre/biblio-validate-openalex';
+import type {
+  Action,
+  ContextStore,
+  EventsStore,
+  IEvent,
+  MetricsStore,
+} from '@univ-lehavre/biblio-validate-openalex';
 import type { ORCID } from '@univ-lehavre/biblio-openalex-types';
 import { NodeRuntime } from '@effect/platform-node';
 import { DevTools } from '@effect/experimental';
+import { ConfigError } from 'effect/ConfigError';
 
-const start = () =>
+const start = (): Effect.Effect<
+  void,
+  Error | ConfigError,
+  ContextStore | EventsStore | MetricsStore
+> =>
   Effect.gen(function* () {
     yield* loadStores();
     yield* Effect.forever(ask());
   });
 
-const dashboard = () =>
+const dashboard = (): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     if (!(yield* isAuthorContext())) return;
     const orcid: ORCID = yield* getORCID();
@@ -50,9 +62,6 @@ const dashboard = () =>
     const affiliations: string | null = getStatusesByValue(orcid, 'author', 'affiliation', events);
     if (affiliations !== null) board.push(`${affiliations} affiliations`);
 
-    const institutions: string | null = getStatusesByValue(orcid, 'institution', 'id', events);
-    if (institutions !== null) board.push(`${institutions} institutions`);
-
     const affiliations_display_name_alternatives: string | null = getStatusesByValue(
       orcid,
       'institution',
@@ -60,10 +69,10 @@ const dashboard = () =>
       events,
     );
     if (affiliations_display_name_alternatives !== null)
-      board.push(`${affiliations_display_name_alternatives} formes imprimées d’institutions`);
+      board.push(`${affiliations_display_name_alternatives} formes imprimées d’affiliations`);
 
     const works: string | null = getStatusesByValue(orcid, 'work', 'id', events);
-    if (works !== null) board.push(`${works} articles`);
+    if (works !== null) board.push(`${works} publications`);
 
     const global = getGlobalStatuses(orcid, events);
     if (global !== null) board.push(`${global} objets`);
@@ -74,34 +83,42 @@ const dashboard = () =>
       });
   });
 
-const ask = () =>
-  Effect.gen(function* () {
-    console.clear();
-    yield* print_title();
-    yield* dashboard();
-    const actives: Action[] = yield* active_actions();
-    const options = actives.map(action2option);
-    const selected_action_value: string = (yield* select(
-      'Que souhaitez-vous faire ?',
-      options,
-    )).toString();
-    const action: Action | undefined = actions.find(
-      action => action.name === selected_action_value,
-    );
-    if (action) {
-      yield* action.action();
-    } else {
-      console.log('Action non trouvée');
-    }
-    yield* saveStores();
-  });
+const ask = (): Effect.Effect<
+  void,
+  Error | ConfigError,
+  ContextStore | EventsStore | MetricsStore
+> =>
+  Effect.scoped(
+    Effect.gen(function* () {
+      const rateLimit = JSON.parse(yield* Config.string('RATE_LIMIT'));
+      const rateLimiter: RateLimiter.RateLimiter = yield* RateLimiter.make(rateLimit);
+      //console.clear();
+      yield* print_title();
+      yield* dashboard();
+      const actives: Action[] = yield* active_actions();
+      const options = actives.map(action2option);
+      const selected_action_value: string = (yield* select(
+        'Que souhaitez-vous faire ?',
+        options,
+      )).toString();
+      const action: Action | undefined = actions.find(
+        action => action.name === selected_action_value,
+      );
+      if (action) {
+        yield* action.action(rateLimiter);
+      } else {
+        console.log('Action non trouvée');
+      }
+      yield* saveStores();
+    }),
+  );
 
-const runnable = start().pipe(provideEventsStore(), provideContextStore());
+const runnable = start().pipe(provideEventsStore(), provideContextStore(), provideMetricsStore());
 
 const DevToolsLive = DevTools.layer();
 
 runnable.pipe(
-  Logger.withMinimumLogLevel(LogLevel.None),
+  Logger.withMinimumLogLevel(LogLevel.Info),
   Effect.provide(DevToolsLive),
   NodeRuntime.runMain,
 );

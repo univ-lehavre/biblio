@@ -1,6 +1,6 @@
 {
   "name": "@univ-lehavre/biblio-openalex-types",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Un ensemble d’outils pour le téléchargement de fichiers en TypeScript",
   "author": "Pierre-Olivier Chasset",
   "license": "UNLICENSED",
@@ -15,7 +15,7 @@
   "scripts": {
     "build": "preconstruct build",
     "dev": "preconstruct watch",
-    "clean": "rm -fR dist",
+    "clean": "rm -fR dist && rm -fR .turbo && rm -fR node_modules",
     "types:check": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",

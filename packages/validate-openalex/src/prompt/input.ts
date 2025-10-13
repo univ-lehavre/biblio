@@ -9,11 +9,21 @@ import {
   confirm as confirm_prompt,
   select as select_prompt,
   multiselect as multiselect_prompt,
+  taskLog as taskLog_prompt,
   text as text_prompt,
   autocompleteMultiselect as autocompleteMultiselect_prompt,
 } from '@clack/prompts';
 import type { IContext } from '../context/types';
 import { hasEventsForThisORCID } from '../actions';
+import {
+  getAcceptedAuthorAffiliations,
+  getAcceptedAuthorDisplayNameAlternatives,
+  getAcceptedInstitutionDisplayNameAlternatives,
+  getAcceptedWorks,
+  getEvents,
+  getOpenAlexIDs,
+} from '../events';
+import { IEvent } from '../events/types';
 
 const print_title = (): Effect.Effect<void, Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
@@ -94,4 +104,83 @@ const text = (
     catch: () => new Error('Erreur lors de la saisie'),
   });
 
-export { select, multiselect, text, autocompleteMultiselect, print_title, end, confirm };
+const taskLog = (title: string, list: string[]) => {
+  const task = taskLog_prompt({ title });
+  for (const item of list) {
+    task.message(item);
+  }
+};
+
+export const listAcceptedOpenAlexIDs = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    if (!id) return;
+    const events: IEvent[] = yield* getEvents();
+    const openAlexIDs: string[] = getOpenAlexIDs(id, events);
+    yield* autocompleteMultiselect(
+      'Identifiants OpenAlex acceptés (appuyez sur entrée pour continuer)',
+      false,
+      openAlexIDs.map(a => ({ value: a })),
+    );
+  });
+
+const listAcceptedAuthorDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const alternatives: string[] = yield* getAcceptedAuthorDisplayNameAlternatives();
+    yield* autocompleteMultiselect(
+      'Formes imprimées d’auteurs acceptées (appuyez sur entrée pour continuer)',
+      false,
+      alternatives.map(a => ({ value: a })),
+    );
+  });
+
+const listAcceptedAuthorAffiliations = () =>
+  Effect.gen(function* () {
+    const affiliations: string[] = yield* getAcceptedAuthorAffiliations();
+    yield* autocompleteMultiselect(
+      'Affiliations acceptées (appuyez sur entrée pour continuer)',
+      false,
+      affiliations.map(a => ({ value: a })),
+    );
+  });
+
+const listAcceptedInstitutionDisplayNameAlternatives = () =>
+  Effect.gen(function* () {
+    const alternatives: string[] = yield* getAcceptedInstitutionDisplayNameAlternatives();
+    yield* autocompleteMultiselect(
+      'Formes imprimées d’affiliations acceptées (appuyez sur entrée pour continuer)',
+      false,
+      alternatives.map(a => ({ value: a })),
+    );
+  });
+
+const listAcceptedWorks = () =>
+  Effect.gen(function* () {
+    const { id }: IContext = yield* getContext();
+    if (!id) return;
+    const events: IEvent[] = yield* getEvents();
+    const works: string[] = getAcceptedWorks(id, events)
+      .map(e => e.title)
+      .filter(e => e !== undefined)
+      .sort((a, b) => a.localeCompare(b));
+    yield* autocompleteMultiselect(
+      'publications acceptées (appuyez sur entrée pour continuer)',
+      false,
+      works.map(a => ({ value: a })),
+    );
+  });
+
+export {
+  select,
+  multiselect,
+  text,
+  autocompleteMultiselect,
+  print_title,
+  end,
+  confirm,
+  taskLog,
+  listAcceptedAuthorDisplayNameAlternatives,
+  listAcceptedAuthorAffiliations,
+  listAcceptedInstitutionDisplayNameAlternatives,
+  listAcceptedWorks,
+};
