@@ -1,4 +1,4 @@
-import { Effect, Ref } from 'effect';
+import { ConfigError, Effect, Ref } from 'effect';
 import { ContextStore, EventsStore, saveEventsStore } from '../store';
 import type { IEvent } from '../events/types';
 import type { IContext } from '../context/types';
@@ -11,7 +11,7 @@ import { filterDuplicates, getEvents, updateNewEventsWithExistingMetadata } from
  */
 const updateEventsStore = (
   newEvents: IEvent[],
-): Effect.Effect<void, never, ContextStore | EventsStore> =>
+): Effect.Effect<void, Error | ConfigError.ConfigError, EventsStore | ContextStore> =>
   Effect.gen(function* () {
     const store = yield* EventsStore;
     const events = yield* getEvents();

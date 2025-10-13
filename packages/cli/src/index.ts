@@ -92,7 +92,7 @@ const ask = (): Effect.Effect<
     Effect.gen(function* () {
       const rateLimit = JSON.parse(yield* Config.string('RATE_LIMIT'));
       const rateLimiter: RateLimiter.RateLimiter = yield* RateLimiter.make(rateLimit);
-      console.clear();
+      //console.clear();
       yield* print_title();
       yield* dashboard();
       const actives: Action[] = yield* active_actions();
@@ -118,7 +118,7 @@ const runnable = start().pipe(provideEventsStore(), provideContextStore(), provi
 const DevToolsLive = DevTools.layer();
 
 runnable.pipe(
-  Logger.withMinimumLogLevel(LogLevel.None),
+  Logger.withMinimumLogLevel(LogLevel.Info),
   Effect.provide(DevToolsLive),
   NodeRuntime.runMain,
 );

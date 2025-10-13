@@ -17,9 +17,6 @@ const initialContext: IContext = {
   id: undefined,
   NAMESPACE: v7(),
   backup: false,
-  context_file: 'context.json',
-  events_file: 'events.json',
-  metrics_file: 'metrics.json',
 };
 
 class ContextStore extends Context.Tag('ContextStore')<ContextStore, Ref.Ref<IContext>>() {}

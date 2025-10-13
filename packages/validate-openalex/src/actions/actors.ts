@@ -1,4 +1,4 @@
-import { Effect, Either, RateLimiter } from 'effect';
+import { Effect, Either, RateLimiter, ConfigError } from 'effect';
 import { getContext, getORCID } from '../context';
 import { setEventsStore } from '../store/setter';
 import { getAuthorAlternativeStrings } from './tester';
@@ -32,17 +32,20 @@ import type {
   ORCID,
   WorksResult,
 } from '@univ-lehavre/biblio-openalex-types';
-import type { ConfigError } from 'effect/ConfigError';
 import type { IEvent, Status } from '../events/types';
 import { IContext } from '../context/types';
 import { log } from '@clack/prompts';
 import { getAffiliationLabel } from '../oa/getter';
-import { readFileSync } from 'fs';
+import fs from 'node:fs';
 
 const FullORCIDRegex = /^https:\/\/orcid.org\/\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
 const ORCIDRegex = /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
 
-const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
+const insert_new_ORCID = (): Effect.Effect<
+  void,
+  Error | ConfigError.ConfigError,
+  ContextStore | EventsStore
+> =>
   Effect.gen(function* () {
     const orcid_raw = (yield* text(
       'Saisissez l’ORCID d’un chercheur',
@@ -68,7 +71,7 @@ const insert_new_ORCID = (): Effect.Effect<void, Error | ConfigError, ContextSto
 
 const extendsEventsWithAlternativeStrings = (): Effect.Effect<
   void,
-  Error | ConfigError,
+  Error | ConfigError.ConfigError,
   ContextStore | EventsStore
 > =>
   Effect.gen(function* () {
@@ -129,7 +132,7 @@ const checkWork = (
   orcid: ORCID,
   authorOpenalexID: OpenAlexID,
   work: WorksResult,
-): Effect.Effect<void, Error, ContextStore | EventsStore> =>
+): Effect.Effect<void, Error | ConfigError.ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     // On regarde chaque publication
     let isRejected: boolean = false;
@@ -248,7 +251,7 @@ const checkWork = (
 
 const extendsToWorks = (
   rateLimiter: RateLimiter.RateLimiter | undefined,
-): Effect.Effect<void, ConfigError | Error, ContextStore | EventsStore> =>
+): Effect.Effect<void, ConfigError.ConfigError | Error, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     if (rateLimiter === undefined) throw new Error('RateLimiter is required');
     const { id }: IContext = yield* getContext();
@@ -267,7 +270,7 @@ const extendsToWorks = (
 
 export const retrieveWorksByORCID = (
   rateLimiter: RateLimiter.RateLimiter | undefined,
-): Effect.Effect<void, Error | ConfigError, ContextStore | EventsStore> =>
+): Effect.Effect<void, Error | ConfigError.ConfigError, ContextStore | EventsStore> =>
   Effect.gen(function* () {
     if (rateLimiter === undefined) throw new Error('RateLimiter is required');
     const { id }: IContext = yield* getContext();
@@ -282,14 +285,17 @@ export const retrieveWorksByORCID = (
     }
   });
 
-const retrieveWorksByDOI = (
-  rateLimiter: RateLimiter.RateLimiter | undefined,
-): Effect.Effect<void, ConfigError | Error, ContextStore | EventsStore> =>
+const retrieveWorksByDOI = (rateLimiter: RateLimiter.RateLimiter | undefined) =>
   Effect.gen(function* () {
     if (rateLimiter === undefined) throw new Error('RateLimiter is required');
     const { id }: IContext = yield* getContext();
     if (id === undefined) return;
-    const raw = readFileSync('doi.txt', 'utf-8');
+
+    const raw = yield* Effect.tryPromise({
+      try: () => fs.promises.readFile('doi.txt', { encoding: 'utf8' }),
+      catch: cause => new Error(`Error while reading doi.txt`, { cause }),
+    });
+
     if (typeof raw !== 'string' || raw.trim() === '') return;
     const dois = raw.match(/10.\d{4,9}\/[-._;()/:A-Z0-9]+/gi);
     if (dois === null || dois.length === 0) return;

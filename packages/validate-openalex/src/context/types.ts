@@ -9,9 +9,6 @@ interface IContext {
   id: ORCID | undefined;
   // Stockage du contexte et des évènements
   backup: boolean;
-  context_file: string;
-  events_file: string;
-  metrics_file: string;
   NAMESPACE: string;
 }
 
